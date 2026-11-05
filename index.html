@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>JobScenario Trainer - 职场外语场景化脱稿训练器</title>
+  <title>ScenarioHQ - 职场面试场景化脱稿训练器 (开源引擎版)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -140,23 +140,24 @@
           <i class="fa-solid fa-bolt-lightning text-amber-400"></i>
           <span>ScenarioHQ</span>
         </span>
-        <span v-if="isUsingCustomBank" class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-800 flex items-center space-x-0.5">
+        <span v-if="isCustomBank" class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-800 flex items-center space-x-1">
           <i class="fa-solid fa-lock text-[9px]"></i>
           <span>私有题库 ({{ scenariosList.length }})</span>
         </span>
         <span v-else class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-gray-100 text-gray-600">
-          公开示例库
+          开源演示题库
         </span>
       </div>
 
-      <div class="flex items-center space-x-2 text-sm">
+      <div class="flex items-center space-x-2.5 text-sm">
+        <button @click="openImportModal = true" class="text-xs px-2.5 py-1 rounded-full font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 flex items-center space-x-1 hover:bg-indigo-100 transition">
+          <i class="fa-solid fa-file-import"></i>
+          <span>导入</span>
+        </button>
         <div class="flex items-center space-x-1 font-bold text-gray-600 bg-gray-100 px-2 py-1 rounded-full text-xs">
           <i class="fa-regular fa-clock text-blue-500"></i>
           <span>{{ studyMinutes }}m</span>
         </div>
-        <button @click="openImportModal = true" class="text-emerald-600 hover:text-emerald-700 p-1 text-base" title="导入私有题库">
-          <i class="fa-solid fa-file-import"></i>
-        </button>
         <button @click="openSettings = true" class="text-gray-500 hover:text-gray-800 p-1 text-base">
           <i class="fa-solid fa-gear"></i>
         </button>
@@ -190,7 +191,7 @@
     <!-- MAIN BODY -->
     <main class="flex-1 p-4 overflow-y-auto pb-28">
 
-      <!-- ================= MODE 1: CHUNK BUILDER ================= -->
+      <!-- ================= MODE 1: CHUNK BUILDER (渐进词块拼装) ================= -->
       <div v-if="activeMode === 'chunks'" class="space-y-4">
         
         <!-- Scenario Switcher Pill -->
@@ -200,7 +201,7 @@
             <span class="truncate max-w-[170px]">{{ currentScenario.title }}</span>
           </div>
           <button @click="openScenarioPicker = true" class="text-blue-600 font-bold hover:underline flex items-center space-x-0.5">
-            <span>所有场景 ({{ scenariosList.length }})</span>
+            <span>切换场景 ({{ scenariosList.length }})</span>
             <i class="fa-solid fa-chevron-right text-[10px]"></i>
           </button>
         </div>
@@ -256,7 +257,7 @@
           <p>{{ currentStep.hint_text }}</p>
         </div>
 
-        <!-- Assembly Target Box -->
+        <!-- Assembly Target Box (组装答题槽) -->
         <div 
           :class="[hasError ? 'animate-shake border-red-400 bg-red-50/30' : 'border-gray-200 bg-white']"
           class="min-h-[105px] p-3 rounded-2xl border-2 border-dashed flex flex-wrap gap-2 items-start content-start transition-all">
@@ -273,7 +274,7 @@
           </button>
         </div>
 
-        <!-- Chunk Selection Pool -->
+        <!-- Chunk Selection Pool (词块备选池，含易错干扰项) -->
         <div class="space-y-2">
           <div class="text-[11px] font-bold text-gray-500 uppercase tracking-wider flex justify-between">
             <span>备选词块库 (含真实高频易错项)</span>
@@ -348,7 +349,7 @@
       </div>
 
 
-      <!-- ================= MODE 2: SPELLING SPRINT ================= -->
+      <!-- ================= MODE 2: SPELLING SPRINT (核心词汇键盘盲打) ================= -->
       <div v-if="activeMode === 'spelling'" class="space-y-4">
         
         <!-- Word Progress Tracker -->
@@ -441,14 +442,12 @@
               </span>
             </div>
 
-            <!-- Trap & Phonetics tip -->
             <div class="text-xs space-y-1 bg-white/70 p-2.5 rounded-xl border">
               <p class="font-bold text-gray-800">⚠️ 易错混淆点：{{ currentWord.trap_note }}</p>
               <p class="text-gray-600">例句全句：{{ currentWord.full_sentence }}</p>
             </div>
           </div>
 
-          <!-- Bottom Button to next word -->
           <button 
             @click="nextSpellingWord" 
             class="w-full btn-3d-primary py-3 rounded-2xl font-bold text-sm flex items-center justify-center space-x-2">
@@ -490,18 +489,18 @@
         @click="openScenarioPicker = true" 
         class="flex flex-col items-center space-y-0.5 text-xs text-gray-400 font-medium hover:text-gray-700">
         <i class="fa-solid fa-list-check text-lg"></i>
-        <span>场景目录</span>
+        <span>场景导航</span>
       </button>
     </nav>
 
 
-    <!-- ================= MODAL: 题库数据导入与管理 (解决隐私核心弹窗) ================= -->
+        <!-- ================= MODAL: 导入私有题库 (Import Modal) ================= -->
     <div v-if="openImportModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end justify-center">
-      <div class="bg-white w-full max-w-md rounded-t-3xl max-h-[85vh] flex flex-col overflow-hidden animate-slide-up">
-        <div class="p-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
+      <div class="bg-white w-full max-w-md rounded-t-3xl max-h-[90vh] flex flex-col overflow-hidden animate-slide-up">
+        <div class="p-4 border-b border-gray-200 flex items-center justify-between bg-indigo-50/60">
           <div class="flex items-center space-x-2">
-            <span class="text-base font-black text-gray-900">📥 导入私有专属题库</span>
-            <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">数据仅存本地</span>
+            <span class="text-base font-black text-indigo-950">📥 导入私有题库</span>
+            <span class="text-[10px] bg-indigo-100 text-indigo-800 font-bold px-2 py-0.5 rounded-full">本地隐私保护</span>
           </div>
           <button @click="openImportModal = false" class="text-gray-400 hover:text-gray-600 text-lg p-1">
             <i class="fa-solid fa-xmark"></i>
@@ -509,37 +508,72 @@
         </div>
 
         <div class="p-4 overflow-y-auto space-y-4 text-xs">
-          <div class="p-3 bg-emerald-50 rounded-2xl border border-emerald-200 text-emerald-900 space-y-1">
-            <p class="font-bold flex items-center space-x-1">
-              <i class="fa-solid fa-shield-halved"></i>
-              <span>100% 隐私安全保证</span>
-            </p>
-            <p class="text-[11px] leading-relaxed">
-              开源代码中仅包含演示样本。将你的专属场景 JSON 粘贴在此处后，数据将<strong>仅保存在你当前手机浏览器的 LocalStorage 中</strong>，任何第三方、爬虫或访问你 GitHub 仓库的人均无法查看你的个人业务细节。
+          <div class="p-3 bg-amber-50 rounded-2xl border border-amber-200 text-amber-900 space-y-1">
+            <div class="font-bold flex items-center space-x-1">
+              <i class="fa-solid fa-shield-halved text-amber-600"></i>
+              <span>本地完全保密</span>
+            </div>
+            <p class="leading-relaxed">
+              题库文件直接在手机本地解析存入 localStorage，零上传服务器，GitHub 公共仓库完全看不到你的个人项目与经历。
             </p>
           </div>
 
+          <!-- OPTION 1: FILE UPLOAD (RECOMMENDED) -->
+          <div class="space-y-2">
+            <label class="block font-bold text-gray-800 flex items-center justify-between">
+              <span>方法一：直接选择并上传 JSON 文件（推荐）</span>
+              <span class="text-[10px] text-emerald-600 font-bold">无字数限制</span>
+            </label>
+            <div class="relative">
+              <input 
+                type="file" 
+                ref="fileInputRef"
+                accept=".json,application/json" 
+                @change="handleFileUpload" 
+                class="hidden" 
+                id="jsonFileInput">
+              <label 
+                for="jsonFileInput" 
+                class="w-full btn-3d-primary py-3.5 px-4 rounded-2xl font-black text-xs uppercase tracking-wide flex items-center justify-center space-x-2 cursor-pointer shadow-md">
+                <i class="fa-solid fa-folder-open text-base"></i>
+                <span>选择本地 my_scenarios.json 文件导入</span>
+              </label>
+            </div>
+            <p v-if="uploadedFileName" class="text-[11px] font-bold text-emerald-600 text-center flex items-center justify-center space-x-1">
+              <i class="fa-solid fa-circle-check"></i>
+              <span>已成功载入文件: {{ uploadedFileName }}</span>
+            </p>
+          </div>
+
+          <div class="relative flex py-1 items-center">
+            <div class="flex-grow border-t border-gray-200"></div>
+            <span class="flex-shrink mx-3 text-gray-400 text-[10px] font-bold">或者</span>
+            <div class="flex-grow border-t border-gray-200"></div>
+          </div>
+
+          <!-- OPTION 2: PASTE TEXT (FALLBACK) -->
           <div class="space-y-1.5">
-            <label class="block font-bold text-gray-700">请粘贴私有题库 JSON 文本：</label>
+            <label class="block font-bold text-gray-700">方法二：手动粘贴 JSON 文本</label>
             <textarea 
               v-model="importJsonText" 
-              placeholder="在此处粘贴 my_scenarios.json 的全部内容..." 
-              rows="7"
-              class="w-full p-3 border-2 border-gray-300 rounded-2xl font-mono text-[11px] focus:outline-none focus:border-emerald-500 bg-gray-50"></textarea>
+              rows="4" 
+              placeholder='将 json 内容复制粘贴到这里...' 
+              class="w-full p-2.5 font-mono text-[11px] border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none bg-gray-50"></textarea>
+            <button 
+              @click="applyImportJson" 
+              :disabled="!importJsonText.trim()"
+              :class="!importJsonText.trim() ? 'opacity-40 cursor-not-allowed' : ''"
+              class="w-full btn-3d-accent py-2.5 rounded-xl font-bold text-xs flex items-center justify-center space-x-1">
+              <i class="fa-solid fa-paste"></i>
+              <span>解析并载入粘贴文本</span>
+            </button>
           </div>
 
-          <div class="flex space-x-2">
+          <div v-if="isCustomBank" class="pt-2">
             <button 
-              @click="applyImportedJson" 
-              class="flex-1 btn-3d-primary py-3 rounded-2xl font-bold text-xs flex items-center justify-center space-x-1">
-              <i class="fa-solid fa-circle-check"></i>
-              <span>确认导入并生效</span>
-            </button>
-            <button 
-              v-if="isUsingCustomBank" 
-              @click="revertToDefaultBank" 
-              class="px-3 py-3 rounded-2xl border border-gray-300 font-bold text-gray-600 hover:bg-gray-100">
-              恢复默认示例
+              @click="restoreDefaultBank" 
+              class="w-full py-2.5 rounded-xl border border-gray-300 text-gray-600 font-bold hover:bg-gray-100 transition">
+              清空私有题库，恢复默认开源演示
             </button>
           </div>
         </div>
@@ -547,7 +581,7 @@
     </div>
 
 
-    <!-- ================= MODAL: 完整范文查阅 ================= -->
+    <!-- ================= MODAL: 完整范文即时查阅 ================= -->
     <div v-if="openExemplarModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end justify-center">
       <div class="bg-white w-full max-w-md rounded-t-3xl max-h-[85vh] flex flex-col overflow-hidden animate-slide-up">
         <div class="p-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
@@ -560,6 +594,7 @@
           </button>
         </div>
 
+        <!-- Sub Tabs for Foundation vs Advanced -->
         <div class="p-3 bg-white border-b border-gray-200 flex space-x-2">
           <button 
             @click="exemplarTab = 'foundation'" 
@@ -578,7 +613,7 @@
         <div class="p-4 overflow-y-auto space-y-4 text-xs leading-relaxed">
           <div class="p-3.5 bg-gray-50 rounded-2xl border border-gray-200 text-gray-800 space-y-2">
             <div class="font-bold text-gray-500 uppercase tracking-wider text-[10px]">
-              {{ exemplarTab === 'foundation' ? 'Foundation Script (~100 words)' : 'Advanced Script (~110 words)' }}
+              {{ exemplarTab === 'foundation' ? 'Foundation Script' : 'Advanced Script' }}
             </div>
             <p class="text-sm font-medium leading-relaxed font-sans">
               {{ exemplarTab === 'foundation' ? currentScenario.foundation_text : currentScenario.advanced_text }}
@@ -596,7 +631,7 @@
           <div class="p-3.5 bg-rose-50 rounded-2xl border border-rose-200 text-rose-900 space-y-1.5">
             <div class="font-bold flex items-center space-x-1 text-rose-700">
               <i class="fa-solid fa-triangle-exclamation"></i>
-              <span>高频易错警报</span>
+              <span>历史高频易错警报</span>
             </div>
             <ul class="list-disc list-inside space-y-1">
               <li v-for="(tip, tidx) in currentScenario.watch_outs" :key="tidx">{{ tip }}</li>
@@ -617,7 +652,7 @@
     <div v-if="openScenarioPicker" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end justify-center">
       <div class="bg-white w-full max-w-md rounded-t-3xl max-h-[85vh] flex flex-col overflow-hidden animate-slide-up">
         <div class="p-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
-          <span class="text-base font-black text-gray-900">场景目录导航 ({{ scenariosList.length }})</span>
+          <span class="text-base font-black text-gray-900">面试场景导航库</span>
           <button @click="openScenarioPicker = false" class="text-gray-400 hover:text-gray-600 text-lg p-1">
             <i class="fa-solid fa-xmark"></i>
           </button>
@@ -651,7 +686,7 @@
     </div>
 
 
-    <!-- ================= MODAL: 成果大盘 ================= -->
+    <!-- ================= MODAL: 成果大盘 (Dashboard) ================= -->
     <div v-if="openDashboard" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end justify-center">
       <div class="bg-white w-full max-w-md rounded-t-3xl max-h-[85vh] flex flex-col overflow-hidden animate-slide-up">
         <div class="p-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
@@ -662,6 +697,7 @@
         </div>
 
         <div class="p-4 overflow-y-auto space-y-4 text-xs">
+          <!-- Big KPI Cards -->
           <div class="grid grid-cols-3 gap-2">
             <div class="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-center">
               <div class="text-lg font-black text-emerald-600">{{ studyMinutes }}m</div>
@@ -672,21 +708,22 @@
               <div class="text-[10px] text-blue-800 font-bold mt-0.5">刷题总数</div>
             </div>
             <div class="p-3 rounded-2xl bg-purple-50 border border-purple-200 text-center">
-              <div class="text-lg font-black text-purple-600">{{ scenariosList.length > 0 ? Math.round((scenariosList.filter(s=>s.status==='green').length / scenariosList.length)*100) : 0 }}%</div>
+              <div class="text-lg font-black text-purple-600">{{ isCustomBank ? '35%' : '80%' }}</div>
               <div class="text-[10px] text-purple-800 font-bold mt-0.5">就绪率</div>
             </div>
           </div>
 
+          <!-- Scenario Readiness Bars -->
           <div class="p-3.5 rounded-2xl bg-white border border-gray-200 shadow-sm space-y-2">
             <div class="font-bold text-gray-800">各场景脱稿就绪度</div>
             <div class="space-y-2">
-              <div v-for="sc in scenariosList.slice(0, 6)" :key="sc.id" class="space-y-0.5">
+              <div v-for="sc in scenariosList" :key="sc.id" class="space-y-0.5">
                 <div class="flex justify-between text-[11px] font-medium text-gray-600">
                   <span>#{{ sc.id }} {{ sc.title }}</span>
-                  <span class="font-bold">{{ sc.mastery || 40 }}%</span>
+                  <span class="font-bold">{{ sc.mastery || 50 }}%</span>
                 </div>
                 <div class="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
-                  <div class="bg-emerald-500 h-full rounded-full" :style="{ width: (sc.mastery || 40) + '%' }"></div>
+                  <div class="bg-emerald-500 h-full rounded-full" :style="{ width: (sc.mastery || 50) + '%' }"></div>
                 </div>
               </div>
             </div>
@@ -696,7 +733,7 @@
     </div>
 
 
-    <!-- ================= MODAL: 设置 ================= -->
+    <!-- ================= MODAL: 设置与风格选择 ================= -->
     <div v-if="openSettings" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end justify-center">
       <div class="bg-white w-full max-w-md rounded-t-3xl max-h-[85vh] flex flex-col overflow-hidden animate-slide-up">
         <div class="p-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
@@ -707,8 +744,9 @@
         </div>
 
         <div class="p-5 space-y-4 text-xs">
+          <!-- Theme Picker -->
           <div class="space-y-2">
-            <label class="block font-bold text-gray-700">视觉主题风格</label>
+            <label class="block font-bold text-gray-700">视觉主题风格 (Theme Selection)</label>
             <div class="grid grid-cols-3 gap-2">
               <button 
                 @click="switchTheme('duo')"
@@ -716,6 +754,7 @@
                 class="p-3 rounded-2xl border-2 text-center transition">
                 <div class="text-base text-emerald-500 mb-1"><i class="fa-solid fa-shapes"></i></div>
                 <div class="text-xs">多邻国风</div>
+                <div class="text-[9px] text-gray-400 mt-0.5">趣味3D</div>
               </button>
               <button 
                 @click="switchTheme('apple')"
@@ -723,6 +762,7 @@
                 class="p-3 rounded-2xl border-2 text-center transition">
                 <div class="text-base text-blue-500 mb-1"><i class="fa-brands fa-apple"></i></div>
                 <div class="text-xs">苹果极简</div>
+                <div class="text-[9px] text-gray-400 mt-0.5">流线克制</div>
               </button>
               <button 
                 @click="switchTheme('nordic')"
@@ -730,19 +770,21 @@
                 class="p-3 rounded-2xl border-2 text-center transition">
                 <div class="text-base text-amber-700 mb-1"><i class="fa-solid fa-leaf"></i></div>
                 <div class="text-xs">北欧有机</div>
+                <div class="text-[9px] text-gray-400 mt-0.5">舒适低疲劳</div>
               </button>
             </div>
           </div>
 
+          <!-- Data Storage info -->
           <div class="p-3.5 bg-gray-50 rounded-2xl border border-gray-200 space-y-1">
-            <div class="font-bold text-gray-700">隐私与数据存储机制</div>
-            <p class="text-gray-500">本应用采用零后端纯静态运行架构。所有私有题库、练习进度全部写入手机本地存储，绝不上云。</p>
+            <div class="font-bold text-gray-700">开源安全与数据存储说明</div>
+            <p class="text-gray-500">本应用为纯前端单文件引擎，开源仓库完全不含个人简历隐私。所有私有题库与做题进度均保存在本地浏览器的 localStorage 中。</p>
           </div>
 
           <button 
             @click="resetProgress" 
             class="w-full py-3 rounded-xl border border-rose-300 text-rose-700 font-bold hover:bg-rose-50 transition">
-            重置全部本地练习数据
+            清空所有学习记录并恢复初始状态
           </button>
         </div>
       </div>
@@ -750,94 +792,59 @@
 
   </div>
 
+  <!-- APPLICATION VUE SCRIPT -->
   <script>
     const { createApp, ref, computed, onMounted } = Vue;
 
-    // Generic, non-sensitive demo database for the public open-source repository
-    const defaultOpenSourceScenarios = [
+    // Default Generic Open Source Seed Data (Safe for public GitHub)
+    const genericScenarios = [
       {
         id: 'DEMO-01',
-        title: '每日站会与工作进展 (Daily Standup)',
-        interviewer_q: 'Could you give us a quick update on your current sprint progress and blockers?',
-        foundation_text: "Yesterday I completed the requirement analysis for the new module. Today I am collaborating with the engineering team to finalize the API schema. Currently, there are no major blockers, and we are on track for release.",
-        advanced_text: "Yesterday my primary focus was wrapping up the edge-case specifications for the core module. Today I am syncing with our backend developers to ensure alignment on the API contracts. Everything is tracking smoothly against our milestones.",
-        zh_scaffold_full: "昨日完成分析 → 今日协同研发梳理接口契约 → 目前无阻塞点并按期推进",
-        watch_outs: ["focus on doing (不能用 focus do)", "be on track for (按计划推进)", "sync with the team"],
-        mastery: 70,
+        title: '职业背景陈述 (Professional Background Template)',
+        interviewer_q: 'Could you introduce your background and experience?',
+        foundation_text: "I have over ten years of experience in product management, focusing on internal enterprise workflows. My strength is translating complex business requirements into clear technical specifications. I work closely with engineering and business stakeholders to ensure smooth feature delivery.",
+        advanced_text: "Throughout my career in enterprise software, I have focused on streamlining complex operational processes and coordinating cross-functional teams. I specialize in identifying high-impact workflow bottlenecks and translating diverse stakeholder priorities into scalable product roadmaps.",
+        zh_scaffold_full: "多年产品经验 → 聚焦流程与内部系统 → 擅长将业务需求转化为系统要求 → 跨部门协作推进项目",
+        watch_outs: ["have years OF experience in (介词 of 不能漏)", "translate needs INTO requirements (介词 into)"],
+        mastery: 80,
         status: 'green',
         steps: [
           {
-            step_zh: "① 进展汇报：昨天我完成了新模块的需求分析与边界定义",
-            hint_text: "完成分析: completed the requirement analysis",
-            target_sentence: "Yesterday I completed the requirement analysis for the core module.",
+            step_zh: "① 背景概述：多年B端经验，聚焦内部企业系统流程",
+            hint_text: "注意搭配: have years of experience in...",
+            target_sentence: "I have extensive experience in product management, focusing on internal workflows.",
             correct_chunks: [
-              { text: "Yesterday I completed the" },
-              { text: "requirement analysis for the core module." }
+              { text: "I have extensive experience in" },
+              { text: "product management, focusing on internal workflows." }
             ],
             distractors: [
-              { text: "competed the analysis", trap_reason: "注意拼写是 completed (完成)，不是 competed (竞争)" }
-            ]
-          }
-        ]
-      },
-      {
-        id: 'DEMO-02',
-        title: '敏捷排期与优先级沟通 (Prioritization Sync)',
-        interviewer_q: 'How do you handle unexpected feature requests from executive stakeholders during a sprint?',
-        foundation_text: "First, I clarify the core business objective and urgency with the stakeholder. Then, I assess the technical feasibility and impact on the sprint backlog. If urgent, we negotiate de-scoping lower-priority tasks.",
-        advanced_text: "I start by evaluating the strategic rationale and timeline sensitivity behind the request. Next, I conduct a rapid trade-off assessment with the team to determine whether to pivot the sprint backlog or defer it.",
-        zh_scaffold_full: "评估战略价值与紧迫度 → 与研发评估排期影响 → 协商置换低优先级任务",
-        watch_outs: ["prioritize tasks (动词)", "assess the impact on", "clarify the requirement"],
-        mastery: 50,
-        status: 'orange',
-        steps: [
-          {
-            step_zh: "① 需求响应：首先明确核心业务目标，并评估对当前迭代的影响",
-            hint_text: "澄清需求: clarify the core objective",
-            target_sentence: "First, I clarify the business objective and assess the impact on current tasks.",
-            correct_chunks: [
-              { text: "First, I clarify the business objective" },
-              { text: "and assess the impact on current tasks." }
-            ],
-            distractors: [
-              { text: "and assess the impacts in current tasks", trap_reason: "固定搭配为 impact on something" }
+              { text: "have extensive experience at", trap_reason: "experience in 某个领域，介词用 in" }
             ]
           }
         ]
       }
     ];
 
-    const defaultOpenSourceSpelling = [
+    const genericSpelling = [
       {
         target_word: "prioritize",
-        zh: "按优先级排序 / 区分轻重缓急",
+        zh: "按优先级排序",
         pos: "v.",
-        topic: "通用协作: 敏捷排期",
-        context_tip: "把需求按重要度排序，动词形式",
-        sentence_before: "We need to",
-        sentence_after: "critical tasks to meet the sprint deadline.",
-        trap_note: "动词必须用 prioritize，不能用名词 priority 代替",
-        full_sentence: "We need to prioritize critical tasks."
-      },
-      {
-        target_word: "collaboration",
-        zh: "跨部门协同 / 合作",
-        pos: "n.",
-        topic: "通用协作: 团队合作",
-        context_tip: "团队跨职能配合沟通",
-        sentence_before: "Cross-functional",
-        sentence_after: "is essential for product success.",
-        trap_note: "名词是 collaboration，动词是 collaborate",
-        full_sentence: "Cross-functional collaboration is essential for product success."
+        topic: "通用面试高频动词",
+        context_tip: "把多项需求按重要程度分级，注意是动词形式",
+        sentence_before: "As a product manager, I need to",
+        sentence_after: "stakeholder requests based on business impact.",
+        trap_note: "prioritize 是动词，千万不要说 priority business needs",
+        full_sentence: "I need to prioritize stakeholder requests based on business impact."
       }
     ];
 
     createApp({
       setup() {
         const currentTheme = ref(localStorage.getItem('app_theme') || 'duo');
-        const activeMode = ref('chunks');
-        const studyMinutes = ref(parseInt(localStorage.getItem('study_mins') || '12'));
-        const totalPracticedCount = ref(parseInt(localStorage.getItem('practice_count') || '15'));
+        const activeMode = ref('chunks'); // 'chunks' | 'spelling'
+        const studyMinutes = ref(parseInt(localStorage.getItem('study_mins') || '0'));
+        const totalPracticedCount = ref(parseInt(localStorage.getItem('practice_count') || '0'));
 
         const openSettings = ref(false);
         const openExemplarModal = ref(false);
@@ -845,42 +852,68 @@
         const openDashboard = ref(false);
         const openImportModal = ref(false);
         const exemplarTab = ref('foundation');
+
         const importJsonText = ref('');
+        const fileInputRef = ref(null);
+        const uploadedFileName = ref('');
 
-        const isUsingCustomBank = ref(!!localStorage.getItem('custom_user_scenarios'));
+        const processBankData = (parsed, sourceName = '') => {
+          if (!parsed.scenarios || !Array.isArray(parsed.scenarios)) {
+            alert('JSON 格式不正确：缺少 scenarios 数组！');
+            return false;
+          }
+          localStorage.setItem('my_custom_bank', JSON.stringify(parsed));
+          isCustomBank.value = true;
+          scenariosList.value = parsed.scenarios;
+          spellingBank.value = parsed.spelling_bank || genericSpelling;
+          currentScenario.value = scenariosList.value[0];
+          currentStepIndex.value = 0;
+          initStep();
+          uploadedFileName.value = sourceName;
+          alert('🎉 题库导入成功！共载入 ' + parsed.scenarios.length + ' 个场景。数据完全保存在你手机本地。');
+          openImportModal.value = false;
+          return true;
+        };
 
-        // Load scenarios: prefer custom local storage if exists, else public demo
-        const getInitialScenarios = () => {
-          const saved = localStorage.getItem('custom_user_scenarios');
-          if (saved) {
+        const handleFileUpload = (event) => {
+          const file = event.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = (e) => {
             try {
-              const parsed = JSON.parse(saved);
-              if (parsed.scenarios && parsed.scenarios.length > 0) {
-                return parsed.scenarios;
-              }
-            } catch (e) {
-              console.error("Failed to parse custom scenarios", e);
+              const text = e.target.result;
+              const parsed = JSON.parse(text);
+              processBankData(parsed, file.name);
+            } catch (err) {
+              alert('读取或解析 JSON 文件失败！请确保文件格式完整正确。\n错误信息: ' + err.message);
+            }
+          };
+          reader.readAsText(file, 'utf-8');
+        };
+        const isCustomBank = ref(!!localStorage.getItem('my_custom_bank'));
+
+        // Load custom or generic scenarios
+        const loadBank = () => {
+          const raw = localStorage.getItem('my_custom_bank');
+          if (raw) {
+            try {
+              const parsed = JSON.parse(raw);
+              return {
+                scenarios: parsed.scenarios || genericScenarios,
+                spelling: parsed.spelling_bank || genericSpelling
+              };
+            } catch(e) {
+              console.error(e);
             }
           }
-          return defaultOpenSourceScenarios;
+          return { scenarios: genericScenarios, spelling: genericSpelling };
         };
 
-        const getInitialSpelling = () => {
-          const saved = localStorage.getItem('custom_user_scenarios');
-          if (saved) {
-            try {
-              const parsed = JSON.parse(saved);
-              if (parsed.spelling_bank && parsed.spelling_bank.length > 0) {
-                return parsed.spelling_bank;
-              }
-            } catch (e) {}
-          }
-          return defaultOpenSourceSpelling;
-        };
+        const bankData = loadBank();
+        const scenariosList = ref(bankData.scenarios);
+        const spellingBank = ref(bankData.spelling);
 
-        const scenariosList = ref(getInitialScenarios());
-        const spellingBank = ref(getInitialSpelling());
-
+        // Timer
         setInterval(() => {
           studyMinutes.value++;
           localStorage.setItem('study_mins', studyMinutes.value);
@@ -891,56 +924,39 @@
           localStorage.setItem('app_theme', t);
         };
 
+        // Import & Restore
+        const applyImportJson = () => {
+          try {
+            const parsed = JSON.parse(importJsonText.value);
+            if (processBankData(parsed, '粘贴导入')) {
+              importJsonText.value = '';
+            }
+          } catch (err) {
+            alert('解析 JSON 失败，请检查是否完整复制了内容！\n错误信息: ' + err.message);
+          }
+        };
+
+        const restoreDefaultBank = () => {
+          if (confirm('确认清空私有题库并恢复开源演示题库吗？')) {
+            localStorage.removeItem('my_custom_bank');
+            isCustomBank.value = false;
+            scenariosList.value = genericScenarios;
+            spellingBank.value = genericSpelling;
+            currentScenario.value = scenariosList.value[0];
+            currentStepIndex.value = 0;
+            initStep();
+            openImportModal.value = false;
+          }
+        };
+
         const resetProgress = () => {
-          if (confirm('确认清空本地所有做题记录吗？')) {
-            localStorage.removeItem('study_mins');
-            localStorage.removeItem('practice_count');
+          if (confirm('确认清空全部本地数据（包括题库与做题时长）吗？')) {
+            localStorage.clear();
             location.reload();
           }
         };
 
-        const applyImportedJson = () => {
-          if (!importJsonText.value.trim()) {
-            alert('请先粘贴 JSON 内容');
-            return;
-          }
-          try {
-            const parsed = JSON.parse(importJsonText.value.trim());
-            if (!parsed.scenarios || !Array.isArray(parsed.scenarios)) {
-              alert('JSON 格式有误：缺少 scenarios 数组');
-              return;
-            }
-            localStorage.setItem('custom_user_scenarios', JSON.stringify(parsed));
-            isUsingCustomBank.value = true;
-            scenariosList.value = parsed.scenarios;
-            if (parsed.spelling_bank) {
-              spellingBank.value = parsed.spelling_bank;
-            }
-            currentScenario.value = scenariosList.value[0];
-            currentStepIndex.value = 0;
-            initStep();
-            openImportModal.value = false;
-            importJsonText.value = '';
-            alert(`🎉 成功导入 ${scenariosList.value.length} 个私有场景与 ${spellingBank.value.length} 个盲打词汇！数据已完全离线保存在本地。`);
-          } catch (e) {
-            alert('JSON 解析失败，请检查是否完整复制！错误: ' + e.message);
-          }
-        };
-
-        const revertToDefaultBank = () => {
-          if (confirm('确认清除本地私有题库，切回公开示例库吗？')) {
-            localStorage.removeItem('custom_user_scenarios');
-            isUsingCustomBank.value = false;
-            scenariosList.value = defaultOpenSourceScenarios;
-            spellingBank.value = defaultOpenSourceSpelling;
-            currentScenario.value = scenariosList.value[0];
-            currentStepIndex.value = 0;
-            initStep();
-            openImportModal.value = false;
-          }
-        };
-
-        // Engine State
+        // Chunk builder engine
         const currentScenario = ref(scenariosList.value[0]);
         const currentStepIndex = ref(0);
         const currentStep = computed(() => currentScenario.value.steps[currentStepIndex.value]);
@@ -1007,7 +1023,7 @@
             currentStepIndex.value++;
             initStep();
           } else {
-            alert(`🎉 完成场景 ${currentScenario.value.id} 的所有微步骤！`);
+            alert(`🎉 完成场景 ${currentScenario.value.id} 的所有微步骤！进度已保存。`);
             currentStepIndex.value = 0;
             initStep();
           }
@@ -1028,7 +1044,7 @@
         const wordFeedback = ref(null);
 
         const giveFirstLetterHint = () => {
-          if (!userTypedWord.value && currentWord.value) {
+          if (!userTypedWord.value) {
             userTypedWord.value = currentWord.value.target_word.charAt(0);
           }
         };
@@ -1039,7 +1055,10 @@
           const target = currentWord.value.target_word.toLowerCase();
           const isCorrect = (cleanInput === target);
 
-          wordFeedback.value = { isCorrect, typed: cleanInput };
+          wordFeedback.value = {
+            isCorrect,
+            typed: cleanInput
+          };
           wordEvaluated.value = true;
           totalPracticedCount.value++;
           localStorage.setItem('practice_count', totalPracticedCount.value);
@@ -1052,7 +1071,7 @@
           if (spellingIndex.value < spellingBank.value.length - 1) {
             spellingIndex.value++;
           } else {
-            alert('🎉 词汇盲打已过完一轮！');
+            alert('🎉 词汇盲打专项已全部过完一轮！');
             spellingIndex.value = 0;
           }
         };
@@ -1072,11 +1091,14 @@
           openScenarioPicker,
           openDashboard,
           openImportModal,
-          importJsonText,
-          isUsingCustomBank,
-          applyImportedJson,
-          revertToDefaultBank,
           exemplarTab,
+          importJsonText,
+          fileInputRef,
+          uploadedFileName,
+          handleFileUpload,
+          isCustomBank,
+          applyImportJson,
+          restoreDefaultBank,
           scenariosList,
           currentScenario,
           currentStepIndex,
