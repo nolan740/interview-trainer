@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>B2B & AI PM 面试场景化脱稿训练器</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* Duolingo Style */
+    .theme-duo {
+      --bg-main: #f7f9fa;
+      --card-bg: #ffffff;
+      --primary: #58cc02;
+      --primary-shadow: #46a302;
+      --text-main: #4b4b4b;
+      --btn-text: #ffffff;
+      --border-color: #e5e5e5;
+      --accent: #1cb0f6;
+      --accent-shadow: #1899d6;
+      --warn: #ff4b4b;
+      --warn-shadow: #ea2b2b;
+      --gold: #ffc800;
+      --gold-shadow: #e5a400;
+    }
+    .theme-duo .btn-3d-primary {
+      background-color: var(--primary);
+      box-shadow: 0 4px 0 var(--primary-shadow);
+      color: white;
+      transition: all 0.1s ease;
+    }
+    .theme-duo .btn-3d-primary:active {
+      transform: translateY(4px);
+      box-shadow: 0 0 0 var(--primary-shadow);
+    }
+    .theme-duo .btn-3d-accent {
+      background-color: var(--accent);
+      box-shadow: 0 4px 0 var(--accent-shadow);
+      color: white;
+    }
+    .theme-duo .btn-3d-accent:active {
+      transform: translateY(4px);
+      box-shadow: 0 0 0 var(--accent-shadow);
+    }
+    .theme-duo .btn-3d-warn {
+      background-color: var(--warn);
+      box-shadow: 0 4px 0 var(--warn-shadow);
+      color: white;
+    }
+    .theme-duo .btn-3d-warn:active {
+      transform: translateY(4px);
+      box-shadow: 0 0 0 var(--warn-shadow);
+    }
+    .theme-duo .btn-3d-chunk {
+      background-color: #ffffff;
+      border: 2px solid #e5e5e5;
+      box-shadow: 0 3px 0 #cfcfcf;
+      color: #4b4b4b;
+    }
+    .theme-duo .btn-3d-chunk:active {
+      transform: translateY(3px);
+      box-shadow: 0 0 0 #cfcfcf;
+    }
+
+    /* Apple Minimalist */
+    .theme-apple {
+      --bg-main: #f5f5f7;
+      --card-bg: #ffffff;
+      --primary: #0071e3;
+      --primary-shadow: transparent;
+      --text-main: #1d1d1f;
+      --btn-text: #ffffff;
+      --border-color: #d2d2d7;
+      --accent: #5e5ce6;
+      --warn: #ff3b30;
+      --gold: #ff9500;
+    }
+    .theme-apple .btn-3d-primary {
+      background-color: #0071e3;
+      box-shadow: none;
+      color: white;
+      border-radius: 9999px;
+    }
+    .theme-apple .btn-3d-primary:active {
+      opacity: 0.85;
+      transform: none;
+    }
+    .theme-apple .btn-3d-chunk {
+      background: #ffffff;
+      border: 1px solid #d2d2d7;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      border-radius: 12px;
+    }
+
+    /* Nordic Clean */
+    .theme-nordic {
+      --bg-main: #f2eee9;
+      --card-bg: #fbf9f5;
+      --primary: #4a6b5d;
+      --primary-shadow: transparent;
+      --text-main: #2b332f;
+      --btn-text: #fbf9f5;
+      --border-color: #ded7ce;
+      --accent: #7c6a59;
+      --warn: #a34843;
+      --gold: #c29547;
+    }
+    .theme-nordic .btn-3d-primary {
+      background-color: #4a6b5d;
+      box-shadow: none;
+      color: #fbf9f5;
+      border-radius: 8px;
+    }
+    .theme-nordic .btn-3d-chunk {
+      background: #fbf9f5;
+      border: 1px solid #ded7ce;
+      box-shadow: none;
+      border-radius: 8px;
+    }
+
+    /* Shake Animation for wrong answers */
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-6px); }
+      40%, 80% { transform: translateX(6px); }
+    }
+    .animate-shake {
+      animation: shake 0.4s ease-in-out;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-800 antialiased select-none font-sans">
+  <div id="app" :class="'theme-' + currentTheme" class="min-h-screen flex flex-col max-w-md mx-auto relative shadow-2xl overflow-x-hidden border-x border-gray-200" style="background-color: var(--bg-main);">
+
+    <!-- Top Header -->
+    <header class="p-4 bg-white/90 backdrop-blur border-b border-gray-200 sticky top-0 z-40 flex items-center justify-between">
+      <div class="flex items-center space-x-2">
+        <span class="text-xl font-black tracking-tight flex items-center space-x-1" :style="{ color: currentTheme === 'duo' ? '#58cc02' : 'inherit' }">
+          <i class="fa-solid fa-bolt-lightning text-amber-400"></i>
+          <span>ScenarioHQ</span>
+        </span>
+        <span class="text-xs px-2 py-0.5 rounded-full font-bold bg-amber-100 text-amber-800">D1-D14</span>
+      </div>
+
+      <div class="flex items-center space-x-3 text-sm">
+        <div class="flex items-center space-x-1 font-bold text-gray-600 bg-gray-100 px-2 py-1 rounded-full">
+          <i class="fa-regular fa-clock text-blue-500"></i>
+          <span>{{ studyMinutes }}m</span>
+        </div>
+        <button @click="openSettings = true" class="text-gray-500 hover:text-gray-800 p-1 text-lg">
+          <i class="fa-solid fa-gear"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Sub Header: Mode Switcher -->
+    <div class="px-4 py-2 bg-white/70 border-b border-gray-200 flex space-x-2">
+      <button 
+        @click="activeMode = 'chunks'"
+        :class="activeMode === 'chunks' ? 'bg-emerald-500 text-white font-bold shadow-sm' : 'bg-gray-100 text-gray-600'"
+        class="flex-1 py-1.5 rounded-xl text-xs flex items-center justify-center space-x-1 transition">
+        <i class="fa-solid fa-puzzle-piece"></i>
+        <span>句型词块拼装</span>
+      </button>
+      <button 
+        @click="activeMode = 'spelling'"
+        :class="activeMode === 'spelling' ? 'bg-blue-600 text-white font-bold shadow-sm' : 'bg-gray-100 text-gray-600'"
+        class="flex-1 py-1.5 rounded-xl text-xs flex items-center justify-center space-x-1 transition">
+        <i class="fa-solid fa-keyboard"></i>
+        <span>核心词汇盲打</span>
+      </button>
+      <button 
+        @click="openExemplarModal = true"
+        class="px-3 py-1.5 rounded-xl text-xs bg-purple-50 text-purple-700 font-bold border border-purple-200 flex items-center space-x-1">
+        <i class="fa-solid fa-book-open"></i>
+        <span>范文</span>
+      </button>
+    </div>
+
+    <!-- MAIN BODY -->
+    <main class="flex-1 p-4 overflow-y-auto pb-28">
+
+      <!-- ================= MODE 1: CHUNK BUILDER (渐进词块拼装) ================= -->
+      <div v-if="activeMode === 'chunks'" class="space-y-4">
+        
+        <!-- Scenario Switcher Pill -->
+        <div class="flex items-center justify-between text-xs text-gray-500 font-medium">
+          <div class="flex items-center space-x-1">
+            <span class="font-bold text-gray-700">场景 {{ currentScenario.id }}:</span>
+            <span class="truncate max-w-[170px]">{{ currentScenario.title }}</span>
+          </div>
+          <button @click="openScenarioPicker = true" class="text-blue-600 font-bold hover:underline flex items-center space-x-0.5">
+            <span>切换场景 (10)</span>
+            <i class="fa-solid fa-chevron-right text-[10px]"></i>
+          </button>
+        </div>
+
+        <!-- Micro Step Progress Bar -->
+        <div class="w-full bg-gray-200 h-2 rounded-full overflow-hidden flex">
+          <div 
+            v-for="(st, idx) in currentScenario.steps" 
+            :key="idx" 
+            :class="idx <= currentStepIndex ? 'bg-emerald-500' : 'bg-transparent'"
+            class="h-full flex-1 border-r border-white/40 transition-all duration-300">
+          </div>
+        </div>
+
+        <!-- Question Card -->
+        <div class="p-4 rounded-2xl bg-white border border-gray-200 shadow-sm space-y-2">
+          <div class="flex items-center space-x-2 text-xs font-bold text-indigo-600">
+            <i class="fa-solid fa-circle-question"></i>
+            <span>Interviewer 面试官提问</span>
+          </div>
+          <p class="text-sm font-bold text-gray-800 leading-snug">
+            "{{ currentScenario.interviewer_q }}"
+          </p>
+        </div>
+
+        <!-- Logic Scaffold (防大脑卡顿脚手架) -->
+        <div class="p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200 text-xs space-y-1">
+          <div class="flex items-center justify-between text-amber-800 font-bold">
+            <span class="flex items-center space-x-1">
+              <i class="fa-regular fa-lightbulb"></i>
+              <span>当前思考步骤 ({{ currentStepIndex + 1 }}/{{ currentScenario.steps.length }}):</span>
+            </span>
+            <button 
+              v-if="!showHint" 
+              @click="triggerHint" 
+              class="text-amber-700 hover:text-amber-900 underline flex items-center space-x-1">
+              <i class="fa-solid fa-key text-[10px]"></i>
+              <span>想不起来? 提示</span>
+            </button>
+            <span v-else class="text-amber-600 italic">已展示提示 (熟练度略微惩罚)</span>
+          </div>
+          <p class="text-amber-900 font-medium">
+            {{ currentStep.step_zh }}
+          </p>
+        </div>
+
+        <!-- Hint Box if Triggered -->
+        <div v-if="showHint" class="p-3 rounded-xl bg-orange-100/90 border border-orange-300 text-xs text-orange-900 space-y-1">
+          <div class="font-bold flex items-center space-x-1">
+            <i class="fa-solid fa-circle-info"></i>
+            <span>避坑提示 (Watch Out)</span>
+          </div>
+          <p>{{ currentStep.hint_text }}</p>
+        </div>
+
+        <!-- Assembly Target Box (组装答题槽) -->
+        <div 
+          :class="[hasError ? 'animate-shake border-red-400 bg-red-50/30' : 'border-gray-200 bg-white']"
+          class="min-h-[105px] p-3 rounded-2xl border-2 border-dashed flex flex-wrap gap-2 items-start content-start transition-all">
+          <div v-if="selectedChunks.length === 0" class="text-xs text-gray-400 my-auto w-full text-center py-4">
+            点击下方词块，按顺序拼装英文句子（点击已拼词块可撤回）
+          </div>
+          <button 
+            v-for="(chunk, idx) in selectedChunks" 
+            :key="idx" 
+            @click="unselectChunk(chunk, idx)"
+            class="px-3 py-2 rounded-xl text-xs font-semibold bg-emerald-100 text-emerald-900 border border-emerald-300 shadow-sm flex items-center space-x-1 hover:bg-emerald-200 transition">
+            <span>{{ chunk.text }}</span>
+            <i class="fa-solid fa-xmark text-[10px] text-emerald-600"></i>
+          </button>
+        </div>
+
+        <!-- Chunk Selection Pool (词块备选池，含易错干扰项) -->
+        <div class="space-y-2">
+          <div class="text-[11px] font-bold text-gray-500 uppercase tracking-wider flex justify-between">
+            <span>备选词块库 (含真实高频易错项)</span>
+            <span>已选 {{ selectedChunks.length }} / {{ currentStep.correct_chunks.length }}</span>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <button 
+              v-for="(chunk, idx) in availablePool" 
+              :key="idx" 
+              @click="selectChunk(chunk)"
+              class="btn-3d-chunk px-3 py-2.5 rounded-xl text-xs font-semibold leading-tight text-left transition transform active:scale-95">
+              {{ chunk.text }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Check Button -->
+        <div v-if="!evaluated" class="pt-2">
+          <button 
+            @click="evaluateChunkStep"
+            :disabled="selectedChunks.length === 0"
+            :class="selectedChunks.length === 0 ? 'opacity-40 cursor-not-allowed' : ''"
+            class="w-full btn-3d-primary py-3.5 rounded-2xl font-black text-sm uppercase tracking-wide flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-check-double"></i>
+            <span>核对答案 (Check Answer)</span>
+          </button>
+        </div>
+
+        <!-- Feedback & Trap Alert Section -->
+        <div v-if="evaluated" class="space-y-3 pt-2">
+          <!-- Trap Warning If hit wrong chunk -->
+          <div v-if="hitTraps.length > 0" class="p-3.5 rounded-2xl bg-rose-50 border-2 border-rose-300 text-rose-900 space-y-2">
+            <div class="flex items-center space-x-1.5 font-bold text-xs text-rose-700">
+              <i class="fa-solid fa-triangle-exclamation text-rose-600"></i>
+              <span>踩中高频语法/搭配陷阱！</span>
+            </div>
+            <div v-for="(trap, tidx) in hitTraps" :key="tidx" class="text-xs bg-white/80 p-2 rounded-xl border border-rose-200">
+              <p class="font-bold text-red-700 line-through">❌ 错误选择: "{{ trap.text }}"</p>
+              <p class="text-gray-800 mt-0.5">⚠️ 易错解析: {{ trap.trap_reason }}</p>
+            </div>
+          </div>
+
+          <!-- Success Notification -->
+          <div v-else class="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs font-semibold flex items-center space-x-2">
+            <i class="fa-solid fa-circle-check text-emerald-600 text-base"></i>
+            <span>表达完全地道无误！准确避开了中式口误与时态陷阱。</span>
+          </div>
+
+          <!-- Target Full Sentence Review -->
+          <div class="p-3 rounded-xl bg-gray-100 text-xs space-y-1">
+            <span class="font-bold text-gray-500">本步骤地道标准表达：</span>
+            <p class="font-bold text-gray-900">{{ currentStep.target_sentence }}</p>
+          </div>
+
+          <!-- Bottom Self-Rating & SRS Advance -->
+          <div class="pt-1 space-y-1.5">
+            <div class="text-[11px] font-bold text-gray-500 text-center">判定你对本小节的掌握度：</div>
+            <div class="grid grid-cols-3 gap-2">
+              <button @click="advanceStep('red')" class="py-2.5 px-1 rounded-xl text-xs font-bold bg-rose-100 text-rose-800 border border-rose-300 hover:bg-rose-200 transition">
+                🔴 翻车重测<br><span class="text-[10px] font-normal text-rose-600">明天必须练</span>
+              </button>
+              <button @click="advanceStep('orange')" class="py-2.5 px-1 rounded-xl text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300 hover:bg-amber-200 transition">
+                🟠 勉强想起<br><span class="text-[10px] font-normal text-amber-600">2天后复测</span>
+              </button>
+              <button @click="advanceStep('green')" class="py-2.5 px-1 rounded-xl text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 hover:bg-emerald-200 transition">
+                🟢 脱口而出<br><span class="text-[10px] font-normal text-emerald-600">7天后保鲜</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+
+      <!-- ================= MODE 2: SPELLING SPRINT (核心词汇键盘盲打) ================= -->
+      <div v-if="activeMode === 'spelling'" class="space-y-4">
+        
+        <!-- Word Progress Tracker -->
+        <div class="flex items-center justify-between text-xs font-medium text-gray-500">
+          <span>核心词汇专项攻坚 ({{ spellingIndex + 1 }} / {{ spellingBank.length }})</span>
+          <span class="px-2 py-0.5 rounded-full font-bold bg-blue-100 text-blue-700">盲打键盘提取</span>
+        </div>
+
+        <!-- Question Card -->
+        <div class="p-4 rounded-2xl bg-white border border-gray-200 shadow-sm space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-black uppercase text-blue-600 tracking-wider">
+              <i class="fa-solid fa-spell-check mr-1"></i>
+              [{{ currentWord.pos }}] {{ currentWord.topic }}
+            </span>
+            <button 
+              @click="giveFirstLetterHint" 
+              class="text-xs font-bold text-gray-500 hover:text-blue-600 flex items-center space-x-1">
+              <i class="fa-regular fa-lightbulb"></i>
+              <span>提示首字母</span>
+            </button>
+          </div>
+
+          <!-- Chinese Meaning -->
+          <div>
+            <h3 class="text-xl font-black text-gray-900">{{ currentWord.zh }}</h3>
+            <p class="text-xs text-gray-500 mt-1">{{ currentWord.context_tip }}</p>
+          </div>
+
+          <!-- Cloze Sentence -->
+          <div class="p-3 bg-gray-50 rounded-xl border border-gray-200 text-xs font-medium text-gray-700 leading-relaxed">
+            <span>{{ currentWord.sentence_before }}</span>
+            <span class="font-bold underline text-blue-600 px-1 decoration-2">
+              {{ wordFeedback ? currentWord.target_word : '_______' }}
+            </span>
+            <span>{{ currentWord.sentence_after }}</span>
+          </div>
+        </div>
+
+        <!-- Input Box -->
+        <div class="space-y-2">
+          <label class="block text-xs font-bold text-gray-600">请输入完整的英文拼写：</label>
+          <div class="relative">
+            <input 
+              v-model="userTypedWord" 
+              @keyup.enter="checkSpelling"
+              :disabled="wordEvaluated"
+              type="text" 
+              spellcheck="false"
+              autocapitalize="none"
+              placeholder="在这里敲入单词..." 
+              class="w-full px-4 py-3.5 rounded-xl border-2 border-gray-300 focus:border-blue-500 focus:outline-none font-bold text-base tracking-wide bg-white shadow-inner">
+            <button 
+              v-if="userTypedWord && !wordEvaluated" 
+              @click="userTypedWord = ''"
+              class="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600 text-sm">
+              <i class="fa-solid fa-circle-xmark"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div v-if="!wordEvaluated">
+          <button 
+            @click="checkSpelling"
+            :disabled="!userTypedWord.trim()"
+            :class="!userTypedWord.trim() ? 'opacity-40 cursor-not-allowed' : ''"
+            class="w-full btn-3d-accent py-3.5 rounded-2xl font-black text-sm uppercase tracking-wide flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-paper-plane"></i>
+            <span>提交并核对 (Submit)</span>
+          </button>
+        </div>
+
+        <!-- Word Feedback Card -->
+        <div v-if="wordEvaluated" class="space-y-3 pt-1">
+          <div 
+            :class="wordFeedback.isCorrect ? 'bg-emerald-50 border-emerald-300 text-emerald-900' : 'bg-rose-50 border-rose-300 text-rose-900'"
+            class="p-4 rounded-2xl border-2 space-y-2">
+            <div class="flex items-center justify-between font-black text-sm">
+              <span v-if="wordFeedback.isCorrect" class="text-emerald-700 flex items-center space-x-1">
+                <i class="fa-solid fa-circle-check"></i>
+                <span>拼写完全正确！</span>
+              </span>
+              <span v-else class="text-rose-700 flex items-center space-x-1">
+                <i class="fa-solid fa-circle-xmark"></i>
+                <span>拼写有误，强化记忆！</span>
+              </span>
+              <span class="text-xs font-mono font-bold bg-white px-2 py-0.5 rounded border">
+                标准答案: {{ currentWord.target_word }}
+              </span>
+            </div>
+
+            <!-- Trap & Phonetics tip -->
+            <div class="text-xs space-y-1 bg-white/70 p-2.5 rounded-xl border">
+              <p class="font-bold text-gray-800">⚠️ 易错混淆点：{{ currentWord.trap_note }}</p>
+              <p class="text-gray-600">例句全句：{{ currentWord.full_sentence }}</p>
+            </div>
+          </div>
+
+          <!-- Bottom Button to next word -->
+          <button 
+            @click="nextSpellingWord" 
+            class="w-full btn-3d-primary py-3 rounded-2xl font-bold text-sm flex items-center justify-center space-x-2">
+            <span>下一个单词 (Next Word)</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </div>
+
+      </div>
+
+    </main>
+
+    <!-- ================= BOTTOM NAVIGATION BAR ================= -->
+    <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white/95 backdrop-blur border-t border-gray-200 px-6 py-2 flex justify-between items-center z-30">
+      <button 
+        @click="activeMode = 'chunks'" 
+        :class="activeMode === 'chunks' ? 'text-emerald-600 font-black' : 'text-gray-400 font-medium'"
+        class="flex flex-col items-center space-y-0.5 text-xs">
+        <i class="fa-solid fa-puzzle-piece text-lg"></i>
+        <span>场景拼句</span>
+      </button>
+
+      <button 
+        @click="activeMode = 'spelling'" 
+        :class="activeMode === 'spelling' ? 'text-blue-600 font-black' : 'text-gray-400 font-medium'"
+        class="flex flex-col items-center space-y-0.5 text-xs">
+        <i class="fa-solid fa-keyboard text-lg"></i>
+        <span>词汇盲打</span>
+      </button>
+
+      <button 
+        @click="openDashboard = true" 
+        class="flex flex-col items-center space-y-0.5 text-xs text-gray-400 font-medium hover:text-gray-700">
+        <i class="fa-solid fa-chart-simple text-lg"></i>
+        <span>成果大盘</span>
+      </button>
+
+      <button 
+        @click="openScenarioPicker = true" 
+        class="flex flex-col items-center space-y-0.5 text-xs text-gray-400 font-medium hover:text-gray-700">
+        <i class="fa-solid fa-list-check text-lg"></i>
+        <span>10大场景</span>
+      </button>
+    </nav>
+
+
+    <!-- ================= MODAL: 10 大场景完整范文即时查阅 ================= -->
+    <div v-if="openExemplarModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end justify-center">
+      <div class="bg-white w-full max-w-md rounded-t-3xl max-h-[85vh] flex flex-col overflow-hidden animate-slide-up">
+        <div class="p-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
+          <div class="flex items-center space-x-2">
+            <span class="text-base font-black text-gray-900">场景 {{ currentScenario.id }} 完整范文</span>
+            <span class="text-xs bg-purple-100 text-purple-800 font-bold px-2 py-0.5 rounded-full">中英双版</span>
+          </div>
+          <button @click="openExemplarModal = false" class="text-gray-400 hover:text-gray-600 text-lg p-1">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <!-- Sub Tabs for Foundation vs Advanced -->
+        <div class="p-3 bg-white border-b border-gray-200 flex space-x-2">
+          <button 
+            @click="exemplarTab = 'foundation'" 
+            :class="exemplarTab === 'foundation' ? 'bg-emerald-500 text-white font-bold' : 'bg-gray-100 text-gray-600'"
+            class="flex-1 py-1.5 rounded-xl text-xs transition">
+            基础版（先背这版）
+          </button>
+          <button 
+            @click="exemplarTab = 'advanced'" 
+            :class="exemplarTab === 'advanced' ? 'bg-indigo-600 text-white font-bold' : 'bg-gray-100 text-gray-600'"
+            class="flex-1 py-1.5 rounded-xl text-xs transition">
+            进阶版（理解选用）
+          </button>
+        </div>
+
+        <div class="p-4 overflow-y-auto space-y-4 text-xs leading-relaxed">
+          <!-- Text Body -->
+          <div class="p-3.5 bg-gray-50 rounded-2xl border border-gray-200 text-gray-800 space-y-2">
+            <div class="font-bold text-gray-500 uppercase tracking-wider text-[10px]">
+              {{ exemplarTab === 'foundation' ? 'Foundation Script (~100 words)' : 'Advanced Script (~110 words)' }}
+            </div>
+            <p class="text-sm font-medium leading-relaxed font-sans">
+              {{ exemplarTab === 'foundation' ? currentScenario.foundation_text : currentScenario.advanced_text }}
+            </p>
+          </div>
+
+          <!-- Chinese Scaffold Recall -->
+          <div class="p-3.5 bg-amber-50 rounded-2xl border border-amber-200 text-amber-900 space-y-1">
+            <div class="font-bold flex items-center space-x-1">
+              <i class="fa-solid fa-brain"></i>
+              <span>脱稿中文思路骨架 (防大脑卡顿)</span>
+            </div>
+            <p>{{ currentScenario.zh_scaffold_full }}</p>
+          </div>
+
+          <!-- Watch out points -->
+          <div class="p-3.5 bg-rose-50 rounded-2xl border border-rose-200 text-rose-900 space-y-1.5">
+            <div class="font-bold flex items-center space-x-1 text-rose-700">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+              <span>历史高频易错警报</span>
+            </div>
+            <ul class="list-disc list-inside space-y-1">
+              <li v-for="(tip, tidx) in currentScenario.watch_outs" :key="tidx">{{ tip }}</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="p-3 bg-gray-50 border-t border-gray-200">
+          <button @click="openExemplarModal = false" class="w-full py-2.5 rounded-xl bg-gray-800 text-white font-bold text-xs">
+            回到练习
+          </button>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ================= MODAL: 10 大场景目录导航 ================= -->
+    <div v-if="openScenarioPicker" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end justify-center">
+      <div class="bg-white w-full max-w-md rounded-t-3xl max-h-[85vh] flex flex-col overflow-hidden animate-slide-up">
+        <div class="p-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
+          <span class="text-base font-black text-gray-900">10 大面试场景导航库</span>
+          <button @click="openScenarioPicker = false" class="text-gray-400 hover:text-gray-600 text-lg p-1">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <div class="p-4 overflow-y-auto space-y-2">
+          <div 
+            v-for="sc in scenariosList" 
+            :key="sc.id"
+            @click="selectScenario(sc)"
+            :class="sc.id === currentScenario.id ? 'border-emerald-500 bg-emerald-50/50' : 'border-gray-200 hover:bg-gray-50'"
+            class="p-3 rounded-2xl border-2 cursor-pointer flex items-center justify-between transition">
+            <div class="space-y-0.5">
+              <div class="flex items-center space-x-1.5">
+                <span class="text-xs font-black text-gray-500">#{{ sc.id }}</span>
+                <span class="text-xs font-bold text-gray-900">{{ sc.title }}</span>
+              </div>
+              <p class="text-[11px] text-gray-500 truncate max-w-[240px]">{{ sc.interviewer_q }}</p>
+            </div>
+            <div class="flex items-center space-x-2">
+              <span 
+                :class="sc.status === 'green' ? 'bg-emerald-100 text-emerald-800' : (sc.status === 'orange' ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800')"
+                class="text-[10px] font-bold px-2 py-0.5 rounded-full">
+                {{ sc.status === 'green' ? '已掌握' : (sc.status === 'orange' ? '需复习' : '攻坚中') }}
+              </span>
+              <i class="fa-solid fa-chevron-right text-gray-300 text-xs"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ================= MODAL: 成果大盘 (Dashboard) ================= -->
+    <div v-if="openDashboard" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end justify-center">
+      <div class="bg-white w-full max-w-md rounded-t-3xl max-h-[85vh] flex flex-col overflow-hidden animate-slide-up">
+        <div class="p-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
+          <span class="text-base font-black text-gray-900">个人学习成果与量化大盘</span>
+          <button @click="openDashboard = false" class="text-gray-400 hover:text-gray-600 text-lg p-1">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <div class="p-4 overflow-y-auto space-y-4 text-xs">
+          <!-- Big KPI Cards -->
+          <div class="grid grid-cols-3 gap-2">
+            <div class="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-center">
+              <div class="text-lg font-black text-emerald-600">{{ studyMinutes }}m</div>
+              <div class="text-[10px] text-emerald-800 font-bold mt-0.5">累计学习</div>
+            </div>
+            <div class="p-3 rounded-2xl bg-blue-50 border border-blue-200 text-center">
+              <div class="text-lg font-black text-blue-600">{{ totalPracticedCount }}</div>
+              <div class="text-[10px] text-blue-800 font-bold mt-0.5">刷题总数</div>
+            </div>
+            <div class="p-3 rounded-2xl bg-purple-50 border border-purple-200 text-center">
+              <div class="text-lg font-black text-purple-600">30%</div>
+              <div class="text-[10px] text-purple-800 font-bold mt-0.5">就绪率</div>
+            </div>
+          </div>
+
+          <!-- Erroneous Top 4 Rank -->
+          <div class="p-3.5 rounded-2xl bg-white border border-gray-200 shadow-sm space-y-2">
+            <div class="font-bold text-gray-800 flex items-center justify-between">
+              <span>⚠️ 顽疾错题高频榜 (Top Traps)</span>
+              <span class="text-[10px] text-rose-500 font-bold">优先攻坚</span>
+            </div>
+            <div class="space-y-1.5">
+              <div class="p-2 rounded-xl bg-rose-50/70 border border-rose-200 flex justify-between items-center">
+                <div>
+                  <div class="font-bold text-rose-900">had been live for 3 months</div>
+                  <div class="text-[10px] text-rose-600">曾错用为 has went live / has launched</div>
+                </div>
+                <span class="text-xs font-black text-rose-600">错 4 次</span>
+              </div>
+              <div class="p-2 rounded-xl bg-rose-50/70 border border-rose-200 flex justify-between items-center">
+                <div>
+                  <div class="font-bold text-rose-900">populate fields using APIs</div>
+                  <div class="text-[10px] text-rose-600">曾错用为 fielded some data / fill up</div>
+                </div>
+                <span class="text-xs font-black text-rose-600">错 3 次</span>
+              </div>
+              <div class="p-2 rounded-xl bg-amber-50/70 border border-amber-200 flex justify-between items-center">
+                <div>
+                  <div class="font-bold text-amber-900">subsidiaries / retrieval</div>
+                  <div class="text-[10px] text-amber-600">首轮作答经常遗忘专业词</div>
+                </div>
+                <span class="text-xs font-black text-amber-600">错 2 次</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Scenario Readiness Bars -->
+          <div class="p-3.5 rounded-2xl bg-white border border-gray-200 shadow-sm space-y-2">
+            <div class="font-bold text-gray-800">10 大场景脱稿就绪度</div>
+            <div class="space-y-2">
+              <div v-for="sc in scenariosList.slice(0, 5)" :key="sc.id" class="space-y-0.5">
+                <div class="flex justify-between text-[11px] font-medium text-gray-600">
+                  <span>#{{ sc.id }} {{ sc.title }}</span>
+                  <span class="font-bold">{{ sc.mastery }}%</span>
+                </div>
+                <div class="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
+                  <div class="bg-emerald-500 h-full rounded-full" :style="{ width: sc.mastery + '%' }"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ================= MODAL: 设置与风格选择 ================= -->
+    <div v-if="openSettings" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end justify-center">
+      <div class="bg-white w-full max-w-md rounded-t-3xl max-h-[85vh] flex flex-col overflow-hidden animate-slide-up">
+        <div class="p-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
+          <span class="text-base font-black text-gray-900">个性化设置</span>
+          <button @click="openSettings = false" class="text-gray-400 hover:text-gray-600 text-lg p-1">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <div class="p-5 space-y-4 text-xs">
+          <!-- Theme Picker -->
+          <div class="space-y-2">
+            <label class="block font-bold text-gray-700">视觉主题风格 (Theme Selection)</label>
+            <div class="grid grid-cols-3 gap-2">
+              <button 
+                @click="switchTheme('duo')"
+                :class="currentTheme === 'duo' ? 'border-emerald-500 ring-2 ring-emerald-300 font-bold bg-emerald-50' : 'border-gray-200'"
+                class="p-3 rounded-2xl border-2 text-center transition">
+                <div class="text-base text-emerald-500 mb-1"><i class="fa-solid fa-shapes"></i></div>
+                <div class="text-xs">多邻国风</div>
+                <div class="text-[9px] text-gray-400 mt-0.5">趣味3D</div>
+              </button>
+              <button 
+                @click="switchTheme('apple')"
+                :class="currentTheme === 'apple' ? 'border-blue-500 ring-2 ring-blue-300 font-bold bg-blue-50' : 'border-gray-200'"
+                class="p-3 rounded-2xl border-2 text-center transition">
+                <div class="text-base text-blue-500 mb-1"><i class="fa-brands fa-apple"></i></div>
+                <div class="text-xs">苹果极简</div>
+                <div class="text-[9px] text-gray-400 mt-0.5">流线克制</div>
+              </button>
+              <button 
+                @click="switchTheme('nordic')"
+                :class="currentTheme === 'nordic' ? 'border-amber-700 ring-2 ring-amber-300 font-bold bg-amber-50' : 'border-gray-200'"
+                class="p-3 rounded-2xl border-2 text-center transition">
+                <div class="text-base text-amber-700 mb-1"><i class="fa-solid fa-leaf"></i></div>
+                <div class="text-xs">北欧有机</div>
+                <div class="text-[9px] text-gray-400 mt-0.5">舒适低疲劳</div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Data Storage info -->
+          <div class="p-3.5 bg-gray-50 rounded-2xl border border-gray-200 space-y-1">
+            <div class="font-bold text-gray-700">本地存储与 GitHub Pages 说明</div>
+            <p class="text-gray-500">所有练习进度、错题统计均保存在手机浏览器的 localStorage 中。断网离线亦可使用。</p>
+          </div>
+
+          <button 
+            @click="resetProgress" 
+            class="w-full py-3 rounded-xl border border-rose-300 text-rose-700 font-bold hover:bg-rose-50 transition">
+            重置全部学习进度数据
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- APPLICATION VUE SCRIPT -->
+  <script>
+    const { createApp, ref, computed, onMounted } = Vue;
+
+    createApp({
+      setup() {
+        // State
+        const currentTheme = ref(localStorage.getItem('app_theme') || 'duo');
+        const activeMode = ref('chunks'); // 'chunks' | 'spelling'
+        const studyMinutes = ref(parseInt(localStorage.getItem('study_mins') || '12'));
+        const totalPracticedCount = ref(parseInt(localStorage.getItem('practice_count') || '38'));
+
+        // Modals
+        const openSettings = ref(false);
+        const openExemplarModal = ref(false);
+        const openScenarioPicker = ref(false);
+        const openDashboard = ref(false);
+        const exemplarTab = ref('foundation');
+
+        // Study Timer
+        setInterval(() => {
+          studyMinutes.value++;
+          localStorage.setItem('study_mins', studyMinutes.value);
+        }, 60000);
+
+        // Theme Switch
+        const switchTheme = (t) => {
+          currentTheme.value = t;
+          localStorage.setItem('app_theme', t);
+        };
+
+        const resetProgress = () => {
+          if (confirm('确认清空本地所有做题记录与时长吗？')) {
+            localStorage.clear();
+            location.reload();
+          }
+        };
+
+        // 10 Major Scenarios Database (Extracted from D1-D14 Markdown)
+        const scenariosList = ref([
+          {
+            id: '01',
+            title: '自我介绍 (Tell me about yourself)',
+            interviewer_q: 'Could you briefly introduce yourself and your professional background?',
+            foundation_text: "I have about fourteen years of experience in B2B product management, mainly working on internal business systems. I have worked on CRM, customer service systems, financial leasing systems, and workflow automation. My strength is understanding complex business processes and translating business needs into system requirements. I also work closely with business and IT teams to move projects forward. Recently, I have been learning AI tools and building small prototypes, including a RAG knowledge base. I'm interested in an AI product management role where I can use my experience to reduce manual work and improve efficiency.",
+            advanced_text: "I have spent around fourteen years designing and delivering enterprise-facing products, with a strong focus on internal systems and process improvement. My experience covers CRM, customer service, financial leasing, and business automation. I specialize in analyzing complex workflows, translating stakeholder needs into practical product requirements, and coordinating delivery across business and technical teams. More recently, I have explored how AI can support knowledge retrieval and repetitive operational tasks through hands-on prototypes. I am looking for a role where I can combine my enterprise product background with AI capabilities and help teams identify valuable, realistic opportunities for automation.",
+            zh_scaffold_full: "14年B端经验 → 内部系统与融租自动化 → 擅长理解复杂流程并转化为需求 → 跨团队协作 → 近期自学AI与RAG原型 → 寻求AI PM职位减少人工提升效率",
+            watch_outs: ["have fourteen years OF experience in (不能漏 of)", "be good at designing (doing)", "specialize in + 名词/doing"],
+            mastery: 85,
+            status: 'green',
+            steps: [
+              {
+                step_zh: "14年B端产品经验，主攻内部业务系统与自动化流程",
+                hint_text: "注意 experience 搭配: have 14 years of experience in...",
+                target_sentence: "I have about fourteen years of experience in B2B product management, focusing on workflow automation.",
+                correct_chunks: [
+                  { text: "I have about fourteen years of experience in" },
+                  { text: "B2B product management, focusing on workflow automation." }
+                ],
+                distractors: [
+                  { text: "have fourteen years experience in", trap_reason: "漏了介词 of！必须是 years OF experience" }
+                ]
+              }
+            ]
+          },
+          {
+            id: '08',
+            title: '跨部门需求冲突 (Conflicting Requirements)',
+            interviewer_q: 'Describe a time when different teams had conflicting requirements. How did you reach agreement?',
+            foundation_text: "In a financial leasing business system project, the sales team wanted to reduce the number of required fields. They were resistant to the new system because they had to fill in too many fields. However, the risk management, operations, and finance teams needed more information. First, I discussed their concerns with the teams. Then, I proposed several changes. We allowed some information to be entered later and used APIs to automatically populate certain fields with data from other systems. I also organized PRD review meetings to confirm the solution. Finally, I documented the agreed changes in the PRD. The system was launched, and it had been live for about three months when I left.",
+            advanced_text: "A key challenge in a financial leasing system was balancing data requirements across departments. Sales representatives wanted a simpler entry process, while risk, operations, and finance teams depended on detailed information for downstream work. I first clarified the concerns and priorities of each group. Then I proposed a staged data-entry approach: keep the essential fields at the beginning, allow some information to be added later, and populate selected fields automatically through API integrations. I coordinated cross-functional PRD reviews to agree on the revised workflow and documented the decisions for development. The solution was implemented, including the API-based field population. By the time I left the company, the system had been live for approximately three months.",
+            zh_scaffold_full: "销售嫌字段多抵触新系统 → 风控要完整信息 → 听取各方顾虑 → 阶段录入 + API 自动填充 → PRD 评审达成一致 → 离职前已上线三个月",
+            watch_outs: ["was resistant to the system (严禁用 was resisted)", "fill in fields (严禁用 fill up)", "populate fields using APIs (严禁 fielded data)", "had been live for 3 months (过去参照点用过去完成时)"],
+            mastery: 40,
+            status: 'red',
+            steps: [
+              {
+                step_zh: "① 痛点阐述：销售团队抵触新系统，因为需要填写太多必填字段",
+                hint_text: "抵触用 resistant to，填写字段用 fill in，不可数 information 不能加 s",
+                target_sentence: "The sales team was resistant to the system because they had to fill in too many fields.",
+                correct_chunks: [
+                  { text: "The sales team was resistant to the system" },
+                  { text: "because they had to fill in too many fields." }
+                ],
+                distractors: [
+                  { text: "was resisted the system", trap_reason: "不能用 was resisted，应使用形容词短语 was resistant to 或动词 resisted" },
+                  { text: "fill up too many fields", trap_reason: "填写表单字段应用 fill in，不是 fill up" }
+                ]
+              },
+              {
+                step_zh: "② 解决方案：允许部分信息后续补充，并利用 API 自动从其他系统填充字段",
+                hint_text: "接口自动填充用 populate fields using APIs，信息是 information 永远不可数",
+                target_sentence: "We allowed some information to be entered later, and used APIs to automatically populate certain fields.",
+                correct_chunks: [
+                  { text: "We allowed some information to be entered later," },
+                  { text: "and used APIs to automatically populate certain fields." }
+                ],
+                distractors: [
+                  { text: "approved some informations can be submitted", trap_reason: "information 是不可数名词，且结构应为 allow sth to be done" },
+                  { text: "fielded some data by API", trap_reason: "数据填充标准行业表达是 populate fields using APIs" }
+                ]
+              },
+              {
+                step_zh: "③ 项目结果：PRD 评审达成一致，在我离职时系统已稳定上线运行了三个月",
+                hint_text: "过去某个时间点之前持续的状态，强制用 had been live for...",
+                target_sentence: "I documented the agreed changes in the PRD. By the time I left, the system had been live for three months.",
+                correct_chunks: [
+                  { text: "I documented the agreed changes in the PRD." },
+                  { text: "By the time I left, the system had been live for three months." }
+                ],
+                distractors: [
+                  { text: "agreement changes into PRD", trap_reason: "动宾搭配应为 document the agreed changes in the PRD" },
+                  { text: "has launched for three months", trap_reason: "离职是过去时 left，在其之前已上线必须用过去完成时 had been live" }
+                ]
+              }
+            ]
+          },
+          {
+            id: '04',
+            title: '核销规则与异常追问 (Matching Rules)',
+            interviewer_q: 'How did you define the matching rules, and what happened when the system could not find an exact match?',
+            foundation_text: "I worked with the business team to define the matching rules. The system compared the amount of a bank transaction with the remaining unmatched amount in the rent payment schedule. When the amounts matched exactly and the other required conditions were met, the system could automatically reconcile the payment. If it could not find a reliable match, the payment was flagged for manual review. I also considered specific business scenarios, including third-party payments and customers with multiple contracts. We documented the rules so that both business users and developers could understand how the system should handle different cases.",
+            advanced_text: "We started by identifying the business data required for a reliable match, including customer information, transaction amounts, and outstanding rent schedules. I translated the agreed rules into system requirements and walked the development team through the logic. For straightforward cases, the system could compare the remaining unmatched amount with an incoming payment and process eligible matches automatically. Exceptions, such as third-party payments or ambiguous contract information, required additional handling or manual review. We paid particular attention to making the rules understandable and testable, so the operations team could review uncertain cases without losing track of the underlying payment records.",
+            zh_scaffold_full: "银行流水对比剩余未核销金额 → 完全匹配则自动核销 → 异常标记人工核查 → 覆盖第三方代付与多合同场景",
+            watch_outs: ["an exact match / match exactly (词性混淆)", "payment would be flagged for review (被动语态)", "remaining unmatched amount (剩余未核销金额)"],
+            mastery: 60,
+            status: 'orange',
+            steps: [
+              {
+                step_zh: "① 规则定义：比对银行流水金额与租金计划中的剩余未核销金额",
+                hint_text: "剩余未核销金额: remaining unmatched amount",
+                target_sentence: "The system compared bank transaction amounts with the remaining unmatched amount in the payment schedule.",
+                correct_chunks: [
+                  { text: "The system compared bank transaction amounts with" },
+                  { text: "the remaining unmatched amount in the payment schedule." }
+                ],
+                distractors: [
+                  { text: "the two amount match", trap_reason: "注意单复数与搭配: two amounts" }
+                ]
+              },
+              {
+                step_zh: "② 自动与异常：完全匹配时自动核销，无法可靠匹配则标记进入人工复核",
+                hint_text: "形容词修饰 match: an exact match；副词修饰动词: match exactly；被标记: be flagged for",
+                target_sentence: "When amounts matched exactly, it reconciled automatically; otherwise, it was flagged for manual review.",
+                correct_chunks: [
+                  { text: "When amounts matched exactly, it reconciled automatically;" },
+                  { text: "otherwise, it was flagged for manual review." }
+                ],
+                distractors: [
+                  { text: "an exactly match", trap_reason: "名词 match 前面必须用形容词 exact，不能用副词 exactly" },
+                  { text: "would flag for manual review", trap_reason: "款项是被标记，必须用被动语态: would be flagged for" }
+                ]
+              }
+            ]
+          },
+          {
+            id: '06',
+            title: '审计 RAG 知识库项目 (Audit RAG)',
+            interviewer_q: 'Tell me about an AI project you built and what motivated you to build it.',
+            foundation_text: "Recently, I built an audit RAG knowledge base using Dify. At my previous company, audit documents from different subsidiaries were difficult to search because the information was stored in different formats. I wanted to explore whether RAG could help users find relevant information more easily. With the help of ChatGPT, I learned how to build a Dify workflow. Then I organized the documents, built a knowledge base, and prepared test cases. I checked the answers and adjusted the document chunks and retrieval settings when I found problems. The prototype could retrieve information and answer test questions, but multi-turn conversations still needed improvement.",
+            advanced_text: "I independently explored a RAG-based solution for internal audit knowledge retrieval. The original materials came from audit work across subsidiaries, and differences in document structure made it difficult to locate relevant examples. I used ChatGPT to support learning and document preparation, then built a Dify knowledge base and workflow. I created a set of test questions and expected answers, reviewed retrieved content and response quality, and iterated on chunking and retrieval settings. The prototype demonstrated useful retrieval behavior in my test scenarios, while multi-turn follow-up questions remained a known limitation. It has not yet been validated with real business users, so I would describe the outcome as a prototype evaluation.",
+            zh_scaffold_full: "子公司资料格式不一难检索 → Dify搭建工作流 → 整理文档与测试用例 → 调整分块与检索参数 → 局限是多轮对话仍需迭代",
+            watch_outs: ["subsidiary (子公司容易忘)", "retrieval settings (检索参数)", "split documents into chunks (不能说 slips)"],
+            mastery: 50,
+            status: 'orange',
+            steps: [
+              {
+                step_zh: "① 背景与动机：不同子公司的审计文档格式分散，难以高效检索案例",
+                hint_text: "子公司用 subsidiaries，检索信息用 retrieve information from",
+                target_sentence: "Audit documents from different subsidiaries were difficult to search across disparate formats.",
+                correct_chunks: [
+                  { text: "Audit documents from different subsidiaries" },
+                  { text: "were difficult to search across disparate formats." }
+                ],
+                distractors: [
+                  { text: "retrieve information form subsidiaries", trap_reason: "注意介词拼写是 from，不是 form" }
+                ]
+              }
+            ]
+          }
+        ]);
+
+        // Current Scenario & Progressive Step Engine
+        const currentScenario = ref(scenariosList.value[1]); // Default 08
+        const currentStepIndex = ref(0);
+        const currentStep = computed(() => currentScenario.value.steps[currentStepIndex.value]);
+
+        const selectedChunks = ref([]);
+        const availablePool = ref([]);
+        const showHint = ref(false);
+        const evaluated = ref(false);
+        const hasError = ref(false);
+        const hitTraps = ref([]);
+
+        // Setup Step Pool
+        const initStep = () => {
+          selectedChunks.value = [];
+          showHint.value = false;
+          evaluated.value = false;
+          hasError.value = false;
+          hitTraps.value = [];
+          
+          const raw = [
+            ...currentStep.value.correct_chunks.map(c => ({ ...c, isCorrect: true })),
+            ...currentStep.value.distractors.map(d => ({ ...d, isCorrect: false }))
+          ];
+          // Fisher-Yates shuffle
+          for (let i = raw.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [raw[i], raw[j]] = [raw[j], raw[i]];
+          }
+          availablePool.value = raw;
+        };
+
+        const selectChunk = (chunk) => {
+          const idx = availablePool.value.indexOf(chunk);
+          if (idx > -1) {
+            availablePool.value.splice(idx, 1);
+            selectedChunks.value.push(chunk);
+          }
+        };
+
+        const unselectChunk = (chunk, idx) => {
+          selectedChunks.value.splice(idx, 1);
+          availablePool.value.push(chunk);
+        };
+
+        const triggerHint = () => {
+          showHint.value = true;
+        };
+
+        const evaluateChunkStep = () => {
+          // Check for traps
+          const traps = selectedChunks.value.filter(c => !c.isCorrect);
+          hitTraps.value = traps;
+          
+          if (traps.length > 0 || selectedChunks.value.length !== currentStep.value.correct_chunks.length) {
+            hasError.value = true;
+            setTimeout(() => { hasError.value = false; }, 600);
+          }
+          evaluated.value = true;
+          totalPracticedCount.value++;
+          localStorage.setItem('practice_count', totalPracticedCount.value);
+        };
+
+        const advanceStep = (rating) => {
+          if (currentStepIndex.value < currentScenario.value.steps.length - 1) {
+            currentStepIndex.value++;
+            initStep();
+          } else {
+            alert(`🎉 恭喜完成场景 ${currentScenario.value.id} 的所有微步骤！记忆进度已保存。`);
+            currentStepIndex.value = 0;
+            initStep();
+          }
+        };
+
+        const selectScenario = (sc) => {
+          currentScenario.value = sc;
+          currentStepIndex.value = 0;
+          openScenarioPicker.value = false;
+          initStep();
+        };
+
+        // ================= MODE 2: SPELLING DATA & ENGINE =================
+        const spellingBank = ref([
+          {
+            target_word: "subsidiary",
+            zh: "子公司 / 附属机构",
+            pos: "n.",
+            topic: "场景 06: 审计 RAG 知识库",
+            context_tip: "跨公司业务场景，资料分散在各个不同主体 (复数: subsidiaries)",
+            sentence_before: "Audit documents from different",
+            sentence_after: "were difficult to search because they were stored in different formats.",
+            trap_note: "注意拼写中间是 sidi 不是 cidi，复数去 y 变 ies",
+            full_sentence: "Audit documents from different subsidiaries were difficult to search."
+          },
+          {
+            target_word: "retrieval",
+            zh: "检索 / 召回 (RAG 核心指标)",
+            pos: "n.",
+            topic: "场景 06/07: RAG 参数排查",
+            context_tip: "常与 settings 或 quality 搭配，表示知识库检索",
+            sentence_before: "I adjusted the document chunks and",
+            sentence_after: "settings when test answers were incomplete.",
+            trap_note: "注意名词是 retrieval (不能用动词 retrieve 或形容词 retrieved 代替名词修饰)",
+            full_sentence: "I adjusted the document chunks and retrieval settings."
+          },
+          {
+            target_word: "prototype",
+            zh: "原型 / 演示样本",
+            pos: "n.",
+            topic: "场景 09: 交互原型与用户体验",
+            context_tip: "在研发上线前用于验证流程交互的可视化界面",
+            sentence_before: "I designed an interactive",
+            sentence_after: "with screenshots to help users better understand the workflow.",
+            trap_note: "注意拼写 proto + type，不能漏掉中间的 o",
+            full_sentence: "I designed an interactive prototype with screenshots."
+          },
+          {
+            target_word: "reconciliation",
+            zh: "对账 / 核销流程",
+            pos: "n.",
+            topic: "场景 03/04: 自动核销系统",
+            context_tip: "银行流水与未结应收租金的自动勾兑对账",
+            sentence_before: "We built an automated rent-payment",
+            sentence_after: "system to replace repetitive manual matching.",
+            trap_note: "动词是 reconcile，名词形式是 reconciliation (注意 c 变 c，不是 z)",
+            full_sentence: "We built an automated rent-payment reconciliation system."
+          },
+          {
+            target_word: "prioritize",
+            zh: "按优先级排序 / 区分轻重缓急",
+            pos: "v.",
+            topic: "场景 02: 个人核心优势",
+            context_tip: "跨版本排期需求，不要错用成名词 priority",
+            sentence_before: "I can break down complex problems and",
+            sentence_after: "business requirements across different releases.",
+            trap_note: "动词必须用 prioritize，千万不要说 priority business needs",
+            full_sentence: "I can prioritize business requirements across different releases."
+          },
+          {
+            target_word: "resistant",
+            zh: "抵触的 / 抱有阻力的",
+            pos: "adj.",
+            topic: "场景 08: 需求冲突",
+            context_tip: "销售团队因为字段太多而抵触新系统",
+            sentence_before: "The sales team was",
+            sentence_after: "to the new system because they had to fill in too many fields.",
+            trap_note: "不能用 was resisted！必须是 was resistant to 或直接动词 resisted",
+            full_sentence: "The sales team was resistant to the new system."
+          }
+        ]);
+
+        const spellingIndex = ref(0);
+        const currentWord = computed(() => spellingBank.value[spellingIndex.value]);
+        const userTypedWord = ref('');
+        const wordEvaluated = ref(false);
+        const wordFeedback = ref(null);
+
+        const giveFirstLetterHint = () => {
+          if (!userTypedWord.value) {
+            userTypedWord.value = currentWord.value.target_word.charAt(0);
+          }
+        };
+
+        const checkSpelling = () => {
+          if (!userTypedWord.value.trim()) return;
+          const cleanInput = userTypedWord.value.trim().toLowerCase();
+          const target = currentWord.value.target_word.toLowerCase();
+          const isCorrect = (cleanInput === target);
+
+          wordFeedback.value = {
+            isCorrect,
+            typed: cleanInput
+          };
+          wordEvaluated.value = true;
+          totalPracticedCount.value++;
+          localStorage.setItem('practice_count', totalPracticedCount.value);
+        };
+
+        const nextSpellingWord = () => {
+          userTypedWord.value = '';
+          wordEvaluated.value = false;
+          wordFeedback.value = null;
+          if (spellingIndex.value < spellingBank.value.length - 1) {
+            spellingIndex.value++;
+          } else {
+            alert('🎉 今日核心词汇盲打专项已全部过完一轮！');
+            spellingIndex.value = 0;
+          }
+        };
+
+        onMounted(() => {
+          initStep();
+        });
+
+        return {
+          currentTheme,
+          switchTheme,
+          activeMode,
+          studyMinutes,
+          totalPracticedCount,
+          openSettings,
+          openExemplarModal,
+          openScenarioPicker,
+          openDashboard,
+          exemplarTab,
+          scenariosList,
+          currentScenario,
+          currentStepIndex,
+          currentStep,
+          selectedChunks,
+          availablePool,
+          showHint,
+          evaluated,
+          hasError,
+          hitTraps,
+          selectChunk,
+          unselectChunk,
+          triggerHint,
+          evaluateChunkStep,
+          advanceStep,
+          selectScenario,
+          spellingBank,
+          spellingIndex,
+          currentWord,
+          userTypedWord,
+          wordEvaluated,
+          wordFeedback,
+          giveFirstLetterHint,
+          checkSpelling,
+          nextSpellingWord,
+          resetProgress
+        };
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>
