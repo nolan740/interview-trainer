@@ -552,6 +552,25 @@
           </div>
 
           <!-- OPTION 2: PASTE TEXT (FALLBACK) -->
+          <!-- PROMPT COPY BOX -->
+          <div class="p-3 bg-indigo-50/70 rounded-2xl border border-indigo-200 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-indigo-900 flex items-center space-x-1">
+                <i class="fa-solid fa-wand-magic-sparkles text-indigo-600"></i>
+                <span>想要生成自己的专属题库？</span>
+              </span>
+              <button 
+                @click="copyAiPrompt" 
+                class="px-2.5 py-1 rounded-lg bg-indigo-600 text-white font-bold text-[10px] hover:bg-indigo-700 active:scale-95 transition flex items-center space-x-1">
+                <i :class="copied ? 'fa-solid fa-check' : 'fa-regular fa-copy'"></i>
+                <span>{{ copied ? '已复制 Prompt' : '复制 AI 提示词' }}</span>
+              </button>
+            </div>
+            <p class="text-[10px] text-indigo-700 leading-relaxed">
+              点击上方按钮复制专用提示词，发给 ChatGPT 或 Claude，即可将你的业务痛点或邮件转化为标准 JSON 题库。
+            </p>
+          </div>
+
           <div class="space-y-1.5">
             <label class="block font-bold text-gray-700">方法二：手动粘贴 JSON 文本</label>
             <textarea 
@@ -856,6 +875,65 @@
         const importJsonText = ref('');
         const fileInputRef = ref(null);
         const uploadedFileName = ref('');
+        const copied = ref(false);
+
+        const aiPromptTemplate = `你是一位资深的职场外语培训专家与产品逻辑架构师。请根据我提供的【岗位角色、业务场景、常见沟通痛点或中英文对话素材】，帮我将其提炼并转化为专属于「ScenarioHQ 脱稿训练器」的标准 JSON 题库格式。
+
+【生成规则】
+1. 脱稿思考链（zh_scaffold_full）：必须将回答逻辑拆解为极简的中文思维链条（用 → 连接），帮助我在英文卡顿前先理清中文表达逻辑。
+2. 渐进拼句步骤（steps）：将每个场景的核心回复拆解为 2~3 个微步骤。每个步骤提供 2 个地道的核心动宾词块（correct_chunks），以及 1~2 个该角色极易犯的中式口误/时态错误/介词混淆干扰项（distractors），并注明针对性的避坑解析（trap_reason）。
+3. 高频盲打词汇（spelling_bank）：提炼 3~5 个该岗位最核心、最容易拼错或词性混淆的专有名词与高频动词。
+4. 输出要求：必须输出严格合法的 JSON 格式，不要包含任何额外的解释说明或 Markdown 外挂包裹。
+
+【JSON 格式模板】
+{
+  "version": "1.0.0",
+  "updated_at": "2026-11-05",
+  "scenarios": [
+    {
+      "id": "01",
+      "title": "场景名称",
+      "interviewer_q": "对方提问或业务诉求（英文）",
+      "foundation_text": "基础版英文回复（约80-100词）",
+      "advanced_text": "进阶版英文回复（约100-120词）",
+      "zh_scaffold_full": "中文思维链条：步骤1 → 步骤2 → 步骤3",
+      "watch_outs": ["避坑提示1", "避坑提示2"],
+      "mastery": 50,
+      "status": "orange",
+      "steps": [
+        {
+          "step_zh": "① 步骤一中文说明",
+          "hint_text": "语法或固定搭配提示",
+          "target_sentence": "标准英文整句",
+          "correct_chunks": [{"text": "正确词块前半句"}, {"text": "正确词块后半句"}],
+          "distractors": [{"text": "易错干扰词块", "trap_reason": "错误原因解析"}]
+        }
+      ]
+    }
+  ],
+  "spelling_bank": [
+    {
+      "target_word": "consignment",
+      "zh": "托运货物 / 寄售",
+      "pos": "n.",
+      "topic": "外贸核心词",
+      "context_tip": "海运提单与交货术语",
+      "sentence_before": "The entire",
+      "sentence_after": "was held at customs.",
+      "trap_note": "注意中间有 g 不发音",
+      "full_sentence": "The entire consignment was held at customs."
+    }
+  ]
+}`;
+
+        const copyAiPrompt = () => {
+          navigator.clipboard.writeText(aiPromptTemplate).then(() => {
+            copied.value = true;
+            setTimeout(() => { copied.value = false; }, 2500);
+          }).catch(() => {
+            alert('复制失败，请手动在 README.md 中复制提示词。');
+          });
+        };
 
         const processBankData = (parsed, sourceName = '') => {
           if (!parsed.scenarios || !Array.isArray(parsed.scenarios)) {
@@ -1096,6 +1174,8 @@
           fileInputRef,
           uploadedFileName,
           handleFileUpload,
+          copied,
+          copyAiPrompt,
           isCustomBank,
           applyImportJson,
           restoreDefaultBank,
