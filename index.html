@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>B2B & AI PM 面试场景化脱稿训练器</title>
+  <title>JobScenario Trainer - 职场外语场景化脱稿训练器</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -119,7 +119,7 @@
       border-radius: 8px;
     }
 
-    /* Shake Animation for wrong answers */
+    /* Shake Animation */
     @keyframes shake {
       0%, 100% { transform: translateX(0); }
       20%, 60% { transform: translateX(-6px); }
@@ -140,15 +140,24 @@
           <i class="fa-solid fa-bolt-lightning text-amber-400"></i>
           <span>ScenarioHQ</span>
         </span>
-        <span class="text-xs px-2 py-0.5 rounded-full font-bold bg-amber-100 text-amber-800">D1-D14</span>
+        <span v-if="isUsingCustomBank" class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-800 flex items-center space-x-0.5">
+          <i class="fa-solid fa-lock text-[9px]"></i>
+          <span>私有题库 ({{ scenariosList.length }})</span>
+        </span>
+        <span v-else class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-gray-100 text-gray-600">
+          公开示例库
+        </span>
       </div>
 
-      <div class="flex items-center space-x-3 text-sm">
-        <div class="flex items-center space-x-1 font-bold text-gray-600 bg-gray-100 px-2 py-1 rounded-full">
+      <div class="flex items-center space-x-2 text-sm">
+        <div class="flex items-center space-x-1 font-bold text-gray-600 bg-gray-100 px-2 py-1 rounded-full text-xs">
           <i class="fa-regular fa-clock text-blue-500"></i>
           <span>{{ studyMinutes }}m</span>
         </div>
-        <button @click="openSettings = true" class="text-gray-500 hover:text-gray-800 p-1 text-lg">
+        <button @click="openImportModal = true" class="text-emerald-600 hover:text-emerald-700 p-1 text-base" title="导入私有题库">
+          <i class="fa-solid fa-file-import"></i>
+        </button>
+        <button @click="openSettings = true" class="text-gray-500 hover:text-gray-800 p-1 text-base">
           <i class="fa-solid fa-gear"></i>
         </button>
       </div>
@@ -181,7 +190,7 @@
     <!-- MAIN BODY -->
     <main class="flex-1 p-4 overflow-y-auto pb-28">
 
-      <!-- ================= MODE 1: CHUNK BUILDER (渐进词块拼装) ================= -->
+      <!-- ================= MODE 1: CHUNK BUILDER ================= -->
       <div v-if="activeMode === 'chunks'" class="space-y-4">
         
         <!-- Scenario Switcher Pill -->
@@ -191,7 +200,7 @@
             <span class="truncate max-w-[170px]">{{ currentScenario.title }}</span>
           </div>
           <button @click="openScenarioPicker = true" class="text-blue-600 font-bold hover:underline flex items-center space-x-0.5">
-            <span>切换场景 (10)</span>
+            <span>所有场景 ({{ scenariosList.length }})</span>
             <i class="fa-solid fa-chevron-right text-[10px]"></i>
           </button>
         </div>
@@ -247,7 +256,7 @@
           <p>{{ currentStep.hint_text }}</p>
         </div>
 
-        <!-- Assembly Target Box (组装答题槽) -->
+        <!-- Assembly Target Box -->
         <div 
           :class="[hasError ? 'animate-shake border-red-400 bg-red-50/30' : 'border-gray-200 bg-white']"
           class="min-h-[105px] p-3 rounded-2xl border-2 border-dashed flex flex-wrap gap-2 items-start content-start transition-all">
@@ -264,7 +273,7 @@
           </button>
         </div>
 
-        <!-- Chunk Selection Pool (词块备选池，含易错干扰项) -->
+        <!-- Chunk Selection Pool -->
         <div class="space-y-2">
           <div class="text-[11px] font-bold text-gray-500 uppercase tracking-wider flex justify-between">
             <span>备选词块库 (含真实高频易错项)</span>
@@ -339,7 +348,7 @@
       </div>
 
 
-      <!-- ================= MODE 2: SPELLING SPRINT (核心词汇键盘盲打) ================= -->
+      <!-- ================= MODE 2: SPELLING SPRINT ================= -->
       <div v-if="activeMode === 'spelling'" class="space-y-4">
         
         <!-- Word Progress Tracker -->
@@ -481,12 +490,64 @@
         @click="openScenarioPicker = true" 
         class="flex flex-col items-center space-y-0.5 text-xs text-gray-400 font-medium hover:text-gray-700">
         <i class="fa-solid fa-list-check text-lg"></i>
-        <span>10大场景</span>
+        <span>场景目录</span>
       </button>
     </nav>
 
 
-    <!-- ================= MODAL: 10 大场景完整范文即时查阅 ================= -->
+    <!-- ================= MODAL: 题库数据导入与管理 (解决隐私核心弹窗) ================= -->
+    <div v-if="openImportModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end justify-center">
+      <div class="bg-white w-full max-w-md rounded-t-3xl max-h-[85vh] flex flex-col overflow-hidden animate-slide-up">
+        <div class="p-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
+          <div class="flex items-center space-x-2">
+            <span class="text-base font-black text-gray-900">📥 导入私有专属题库</span>
+            <span class="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full">数据仅存本地</span>
+          </div>
+          <button @click="openImportModal = false" class="text-gray-400 hover:text-gray-600 text-lg p-1">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <div class="p-4 overflow-y-auto space-y-4 text-xs">
+          <div class="p-3 bg-emerald-50 rounded-2xl border border-emerald-200 text-emerald-900 space-y-1">
+            <p class="font-bold flex items-center space-x-1">
+              <i class="fa-solid fa-shield-halved"></i>
+              <span>100% 隐私安全保证</span>
+            </p>
+            <p class="text-[11px] leading-relaxed">
+              开源代码中仅包含演示样本。将你的专属场景 JSON 粘贴在此处后，数据将<strong>仅保存在你当前手机浏览器的 LocalStorage 中</strong>，任何第三方、爬虫或访问你 GitHub 仓库的人均无法查看你的个人业务细节。
+            </p>
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="block font-bold text-gray-700">请粘贴私有题库 JSON 文本：</label>
+            <textarea 
+              v-model="importJsonText" 
+              placeholder="在此处粘贴 my_scenarios.json 的全部内容..." 
+              rows="7"
+              class="w-full p-3 border-2 border-gray-300 rounded-2xl font-mono text-[11px] focus:outline-none focus:border-emerald-500 bg-gray-50"></textarea>
+          </div>
+
+          <div class="flex space-x-2">
+            <button 
+              @click="applyImportedJson" 
+              class="flex-1 btn-3d-primary py-3 rounded-2xl font-bold text-xs flex items-center justify-center space-x-1">
+              <i class="fa-solid fa-circle-check"></i>
+              <span>确认导入并生效</span>
+            </button>
+            <button 
+              v-if="isUsingCustomBank" 
+              @click="revertToDefaultBank" 
+              class="px-3 py-3 rounded-2xl border border-gray-300 font-bold text-gray-600 hover:bg-gray-100">
+              恢复默认示例
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- ================= MODAL: 完整范文查阅 ================= -->
     <div v-if="openExemplarModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end justify-center">
       <div class="bg-white w-full max-w-md rounded-t-3xl max-h-[85vh] flex flex-col overflow-hidden animate-slide-up">
         <div class="p-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
@@ -499,7 +560,6 @@
           </button>
         </div>
 
-        <!-- Sub Tabs for Foundation vs Advanced -->
         <div class="p-3 bg-white border-b border-gray-200 flex space-x-2">
           <button 
             @click="exemplarTab = 'foundation'" 
@@ -516,7 +576,6 @@
         </div>
 
         <div class="p-4 overflow-y-auto space-y-4 text-xs leading-relaxed">
-          <!-- Text Body -->
           <div class="p-3.5 bg-gray-50 rounded-2xl border border-gray-200 text-gray-800 space-y-2">
             <div class="font-bold text-gray-500 uppercase tracking-wider text-[10px]">
               {{ exemplarTab === 'foundation' ? 'Foundation Script (~100 words)' : 'Advanced Script (~110 words)' }}
@@ -526,7 +585,6 @@
             </p>
           </div>
 
-          <!-- Chinese Scaffold Recall -->
           <div class="p-3.5 bg-amber-50 rounded-2xl border border-amber-200 text-amber-900 space-y-1">
             <div class="font-bold flex items-center space-x-1">
               <i class="fa-solid fa-brain"></i>
@@ -535,11 +593,10 @@
             <p>{{ currentScenario.zh_scaffold_full }}</p>
           </div>
 
-          <!-- Watch out points -->
           <div class="p-3.5 bg-rose-50 rounded-2xl border border-rose-200 text-rose-900 space-y-1.5">
             <div class="font-bold flex items-center space-x-1 text-rose-700">
               <i class="fa-solid fa-triangle-exclamation"></i>
-              <span>历史高频易错警报</span>
+              <span>高频易错警报</span>
             </div>
             <ul class="list-disc list-inside space-y-1">
               <li v-for="(tip, tidx) in currentScenario.watch_outs" :key="tidx">{{ tip }}</li>
@@ -556,11 +613,11 @@
     </div>
 
 
-    <!-- ================= MODAL: 10 大场景目录导航 ================= -->
+    <!-- ================= MODAL: 场景目录导航 ================= -->
     <div v-if="openScenarioPicker" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end justify-center">
       <div class="bg-white w-full max-w-md rounded-t-3xl max-h-[85vh] flex flex-col overflow-hidden animate-slide-up">
         <div class="p-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
-          <span class="text-base font-black text-gray-900">10 大面试场景导航库</span>
+          <span class="text-base font-black text-gray-900">场景目录导航 ({{ scenariosList.length }})</span>
           <button @click="openScenarioPicker = false" class="text-gray-400 hover:text-gray-600 text-lg p-1">
             <i class="fa-solid fa-xmark"></i>
           </button>
@@ -594,7 +651,7 @@
     </div>
 
 
-    <!-- ================= MODAL: 成果大盘 (Dashboard) ================= -->
+    <!-- ================= MODAL: 成果大盘 ================= -->
     <div v-if="openDashboard" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end justify-center">
       <div class="bg-white w-full max-w-md rounded-t-3xl max-h-[85vh] flex flex-col overflow-hidden animate-slide-up">
         <div class="p-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
@@ -605,7 +662,6 @@
         </div>
 
         <div class="p-4 overflow-y-auto space-y-4 text-xs">
-          <!-- Big KPI Cards -->
           <div class="grid grid-cols-3 gap-2">
             <div class="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-center">
               <div class="text-lg font-black text-emerald-600">{{ studyMinutes }}m</div>
@@ -616,53 +672,21 @@
               <div class="text-[10px] text-blue-800 font-bold mt-0.5">刷题总数</div>
             </div>
             <div class="p-3 rounded-2xl bg-purple-50 border border-purple-200 text-center">
-              <div class="text-lg font-black text-purple-600">30%</div>
+              <div class="text-lg font-black text-purple-600">{{ scenariosList.length > 0 ? Math.round((scenariosList.filter(s=>s.status==='green').length / scenariosList.length)*100) : 0 }}%</div>
               <div class="text-[10px] text-purple-800 font-bold mt-0.5">就绪率</div>
             </div>
           </div>
 
-          <!-- Erroneous Top 4 Rank -->
           <div class="p-3.5 rounded-2xl bg-white border border-gray-200 shadow-sm space-y-2">
-            <div class="font-bold text-gray-800 flex items-center justify-between">
-              <span>⚠️ 顽疾错题高频榜 (Top Traps)</span>
-              <span class="text-[10px] text-rose-500 font-bold">优先攻坚</span>
-            </div>
-            <div class="space-y-1.5">
-              <div class="p-2 rounded-xl bg-rose-50/70 border border-rose-200 flex justify-between items-center">
-                <div>
-                  <div class="font-bold text-rose-900">had been live for 3 months</div>
-                  <div class="text-[10px] text-rose-600">曾错用为 has went live / has launched</div>
-                </div>
-                <span class="text-xs font-black text-rose-600">错 4 次</span>
-              </div>
-              <div class="p-2 rounded-xl bg-rose-50/70 border border-rose-200 flex justify-between items-center">
-                <div>
-                  <div class="font-bold text-rose-900">populate fields using APIs</div>
-                  <div class="text-[10px] text-rose-600">曾错用为 fielded some data / fill up</div>
-                </div>
-                <span class="text-xs font-black text-rose-600">错 3 次</span>
-              </div>
-              <div class="p-2 rounded-xl bg-amber-50/70 border border-amber-200 flex justify-between items-center">
-                <div>
-                  <div class="font-bold text-amber-900">subsidiaries / retrieval</div>
-                  <div class="text-[10px] text-amber-600">首轮作答经常遗忘专业词</div>
-                </div>
-                <span class="text-xs font-black text-amber-600">错 2 次</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Scenario Readiness Bars -->
-          <div class="p-3.5 rounded-2xl bg-white border border-gray-200 shadow-sm space-y-2">
-            <div class="font-bold text-gray-800">10 大场景脱稿就绪度</div>
+            <div class="font-bold text-gray-800">各场景脱稿就绪度</div>
             <div class="space-y-2">
-              <div v-for="sc in scenariosList.slice(0, 5)" :key="sc.id" class="space-y-0.5">
+              <div v-for="sc in scenariosList.slice(0, 6)" :key="sc.id" class="space-y-0.5">
                 <div class="flex justify-between text-[11px] font-medium text-gray-600">
                   <span>#{{ sc.id }} {{ sc.title }}</span>
-                  <span class="font-bold">{{ sc.mastery }}%</span>
+                  <span class="font-bold">{{ sc.mastery || 40 }}%</span>
                 </div>
                 <div class="w-full bg-gray-100 h-1.5 rounded-full overflow-hidden">
-                  <div class="bg-emerald-500 h-full rounded-full" :style="{ width: sc.mastery + '%' }"></div>
+                  <div class="bg-emerald-500 h-full rounded-full" :style="{ width: (sc.mastery || 40) + '%' }"></div>
                 </div>
               </div>
             </div>
@@ -672,7 +696,7 @@
     </div>
 
 
-    <!-- ================= MODAL: 设置与风格选择 ================= -->
+    <!-- ================= MODAL: 设置 ================= -->
     <div v-if="openSettings" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end justify-center">
       <div class="bg-white w-full max-w-md rounded-t-3xl max-h-[85vh] flex flex-col overflow-hidden animate-slide-up">
         <div class="p-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
@@ -683,9 +707,8 @@
         </div>
 
         <div class="p-5 space-y-4 text-xs">
-          <!-- Theme Picker -->
           <div class="space-y-2">
-            <label class="block font-bold text-gray-700">视觉主题风格 (Theme Selection)</label>
+            <label class="block font-bold text-gray-700">视觉主题风格</label>
             <div class="grid grid-cols-3 gap-2">
               <button 
                 @click="switchTheme('duo')"
@@ -693,7 +716,6 @@
                 class="p-3 rounded-2xl border-2 text-center transition">
                 <div class="text-base text-emerald-500 mb-1"><i class="fa-solid fa-shapes"></i></div>
                 <div class="text-xs">多邻国风</div>
-                <div class="text-[9px] text-gray-400 mt-0.5">趣味3D</div>
               </button>
               <button 
                 @click="switchTheme('apple')"
@@ -701,7 +723,6 @@
                 class="p-3 rounded-2xl border-2 text-center transition">
                 <div class="text-base text-blue-500 mb-1"><i class="fa-brands fa-apple"></i></div>
                 <div class="text-xs">苹果极简</div>
-                <div class="text-[9px] text-gray-400 mt-0.5">流线克制</div>
               </button>
               <button 
                 @click="switchTheme('nordic')"
@@ -709,21 +730,19 @@
                 class="p-3 rounded-2xl border-2 text-center transition">
                 <div class="text-base text-amber-700 mb-1"><i class="fa-solid fa-leaf"></i></div>
                 <div class="text-xs">北欧有机</div>
-                <div class="text-[9px] text-gray-400 mt-0.5">舒适低疲劳</div>
               </button>
             </div>
           </div>
 
-          <!-- Data Storage info -->
           <div class="p-3.5 bg-gray-50 rounded-2xl border border-gray-200 space-y-1">
-            <div class="font-bold text-gray-700">本地存储与 GitHub Pages 说明</div>
-            <p class="text-gray-500">所有练习进度、错题统计均保存在手机浏览器的 localStorage 中。断网离线亦可使用。</p>
+            <div class="font-bold text-gray-700">隐私与数据存储机制</div>
+            <p class="text-gray-500">本应用采用零后端纯静态运行架构。所有私有题库、练习进度全部写入手机本地存储，绝不上云。</p>
           </div>
 
           <button 
             @click="resetProgress" 
             class="w-full py-3 rounded-xl border border-rose-300 text-rose-700 font-bold hover:bg-rose-50 transition">
-            重置全部学习进度数据
+            重置全部本地练习数据
           </button>
         </div>
       </div>
@@ -731,190 +750,198 @@
 
   </div>
 
-  <!-- APPLICATION VUE SCRIPT -->
   <script>
     const { createApp, ref, computed, onMounted } = Vue;
 
+    // Generic, non-sensitive demo database for the public open-source repository
+    const defaultOpenSourceScenarios = [
+      {
+        id: 'DEMO-01',
+        title: '每日站会与工作进展 (Daily Standup)',
+        interviewer_q: 'Could you give us a quick update on your current sprint progress and blockers?',
+        foundation_text: "Yesterday I completed the requirement analysis for the new module. Today I am collaborating with the engineering team to finalize the API schema. Currently, there are no major blockers, and we are on track for release.",
+        advanced_text: "Yesterday my primary focus was wrapping up the edge-case specifications for the core module. Today I am syncing with our backend developers to ensure alignment on the API contracts. Everything is tracking smoothly against our milestones.",
+        zh_scaffold_full: "昨日完成分析 → 今日协同研发梳理接口契约 → 目前无阻塞点并按期推进",
+        watch_outs: ["focus on doing (不能用 focus do)", "be on track for (按计划推进)", "sync with the team"],
+        mastery: 70,
+        status: 'green',
+        steps: [
+          {
+            step_zh: "① 进展汇报：昨天我完成了新模块的需求分析与边界定义",
+            hint_text: "完成分析: completed the requirement analysis",
+            target_sentence: "Yesterday I completed the requirement analysis for the core module.",
+            correct_chunks: [
+              { text: "Yesterday I completed the" },
+              { text: "requirement analysis for the core module." }
+            ],
+            distractors: [
+              { text: "competed the analysis", trap_reason: "注意拼写是 completed (完成)，不是 competed (竞争)" }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'DEMO-02',
+        title: '敏捷排期与优先级沟通 (Prioritization Sync)',
+        interviewer_q: 'How do you handle unexpected feature requests from executive stakeholders during a sprint?',
+        foundation_text: "First, I clarify the core business objective and urgency with the stakeholder. Then, I assess the technical feasibility and impact on the sprint backlog. If urgent, we negotiate de-scoping lower-priority tasks.",
+        advanced_text: "I start by evaluating the strategic rationale and timeline sensitivity behind the request. Next, I conduct a rapid trade-off assessment with the team to determine whether to pivot the sprint backlog or defer it.",
+        zh_scaffold_full: "评估战略价值与紧迫度 → 与研发评估排期影响 → 协商置换低优先级任务",
+        watch_outs: ["prioritize tasks (动词)", "assess the impact on", "clarify the requirement"],
+        mastery: 50,
+        status: 'orange',
+        steps: [
+          {
+            step_zh: "① 需求响应：首先明确核心业务目标，并评估对当前迭代的影响",
+            hint_text: "澄清需求: clarify the core objective",
+            target_sentence: "First, I clarify the business objective and assess the impact on current tasks.",
+            correct_chunks: [
+              { text: "First, I clarify the business objective" },
+              { text: "and assess the impact on current tasks." }
+            ],
+            distractors: [
+              { text: "and assess the impacts in current tasks", trap_reason: "固定搭配为 impact on something" }
+            ]
+          }
+        ]
+      }
+    ];
+
+    const defaultOpenSourceSpelling = [
+      {
+        target_word: "prioritize",
+        zh: "按优先级排序 / 区分轻重缓急",
+        pos: "v.",
+        topic: "通用协作: 敏捷排期",
+        context_tip: "把需求按重要度排序，动词形式",
+        sentence_before: "We need to",
+        sentence_after: "critical tasks to meet the sprint deadline.",
+        trap_note: "动词必须用 prioritize，不能用名词 priority 代替",
+        full_sentence: "We need to prioritize critical tasks."
+      },
+      {
+        target_word: "collaboration",
+        zh: "跨部门协同 / 合作",
+        pos: "n.",
+        topic: "通用协作: 团队合作",
+        context_tip: "团队跨职能配合沟通",
+        sentence_before: "Cross-functional",
+        sentence_after: "is essential for product success.",
+        trap_note: "名词是 collaboration，动词是 collaborate",
+        full_sentence: "Cross-functional collaboration is essential for product success."
+      }
+    ];
+
     createApp({
       setup() {
-        // State
         const currentTheme = ref(localStorage.getItem('app_theme') || 'duo');
-        const activeMode = ref('chunks'); // 'chunks' | 'spelling'
+        const activeMode = ref('chunks');
         const studyMinutes = ref(parseInt(localStorage.getItem('study_mins') || '12'));
-        const totalPracticedCount = ref(parseInt(localStorage.getItem('practice_count') || '38'));
+        const totalPracticedCount = ref(parseInt(localStorage.getItem('practice_count') || '15'));
 
-        // Modals
         const openSettings = ref(false);
         const openExemplarModal = ref(false);
         const openScenarioPicker = ref(false);
         const openDashboard = ref(false);
+        const openImportModal = ref(false);
         const exemplarTab = ref('foundation');
+        const importJsonText = ref('');
 
-        // Study Timer
+        const isUsingCustomBank = ref(!!localStorage.getItem('custom_user_scenarios'));
+
+        // Load scenarios: prefer custom local storage if exists, else public demo
+        const getInitialScenarios = () => {
+          const saved = localStorage.getItem('custom_user_scenarios');
+          if (saved) {
+            try {
+              const parsed = JSON.parse(saved);
+              if (parsed.scenarios && parsed.scenarios.length > 0) {
+                return parsed.scenarios;
+              }
+            } catch (e) {
+              console.error("Failed to parse custom scenarios", e);
+            }
+          }
+          return defaultOpenSourceScenarios;
+        };
+
+        const getInitialSpelling = () => {
+          const saved = localStorage.getItem('custom_user_scenarios');
+          if (saved) {
+            try {
+              const parsed = JSON.parse(saved);
+              if (parsed.spelling_bank && parsed.spelling_bank.length > 0) {
+                return parsed.spelling_bank;
+              }
+            } catch (e) {}
+          }
+          return defaultOpenSourceSpelling;
+        };
+
+        const scenariosList = ref(getInitialScenarios());
+        const spellingBank = ref(getInitialSpelling());
+
         setInterval(() => {
           studyMinutes.value++;
           localStorage.setItem('study_mins', studyMinutes.value);
         }, 60000);
 
-        // Theme Switch
         const switchTheme = (t) => {
           currentTheme.value = t;
           localStorage.setItem('app_theme', t);
         };
 
         const resetProgress = () => {
-          if (confirm('确认清空本地所有做题记录与时长吗？')) {
-            localStorage.clear();
+          if (confirm('确认清空本地所有做题记录吗？')) {
+            localStorage.removeItem('study_mins');
+            localStorage.removeItem('practice_count');
             location.reload();
           }
         };
 
-        // 10 Major Scenarios Database (Extracted from D1-D14 Markdown)
-        const scenariosList = ref([
-          {
-            id: '01',
-            title: '自我介绍 (Tell me about yourself)',
-            interviewer_q: 'Could you briefly introduce yourself and your professional background?',
-            foundation_text: "I have about fourteen years of experience in B2B product management, mainly working on internal business systems. I have worked on CRM, customer service systems, financial leasing systems, and workflow automation. My strength is understanding complex business processes and translating business needs into system requirements. I also work closely with business and IT teams to move projects forward. Recently, I have been learning AI tools and building small prototypes, including a RAG knowledge base. I'm interested in an AI product management role where I can use my experience to reduce manual work and improve efficiency.",
-            advanced_text: "I have spent around fourteen years designing and delivering enterprise-facing products, with a strong focus on internal systems and process improvement. My experience covers CRM, customer service, financial leasing, and business automation. I specialize in analyzing complex workflows, translating stakeholder needs into practical product requirements, and coordinating delivery across business and technical teams. More recently, I have explored how AI can support knowledge retrieval and repetitive operational tasks through hands-on prototypes. I am looking for a role where I can combine my enterprise product background with AI capabilities and help teams identify valuable, realistic opportunities for automation.",
-            zh_scaffold_full: "14年B端经验 → 内部系统与融租自动化 → 擅长理解复杂流程并转化为需求 → 跨团队协作 → 近期自学AI与RAG原型 → 寻求AI PM职位减少人工提升效率",
-            watch_outs: ["have fourteen years OF experience in (不能漏 of)", "be good at designing (doing)", "specialize in + 名词/doing"],
-            mastery: 85,
-            status: 'green',
-            steps: [
-              {
-                step_zh: "14年B端产品经验，主攻内部业务系统与自动化流程",
-                hint_text: "注意 experience 搭配: have 14 years of experience in...",
-                target_sentence: "I have about fourteen years of experience in B2B product management, focusing on workflow automation.",
-                correct_chunks: [
-                  { text: "I have about fourteen years of experience in" },
-                  { text: "B2B product management, focusing on workflow automation." }
-                ],
-                distractors: [
-                  { text: "have fourteen years experience in", trap_reason: "漏了介词 of！必须是 years OF experience" }
-                ]
-              }
-            ]
-          },
-          {
-            id: '08',
-            title: '跨部门需求冲突 (Conflicting Requirements)',
-            interviewer_q: 'Describe a time when different teams had conflicting requirements. How did you reach agreement?',
-            foundation_text: "In a financial leasing business system project, the sales team wanted to reduce the number of required fields. They were resistant to the new system because they had to fill in too many fields. However, the risk management, operations, and finance teams needed more information. First, I discussed their concerns with the teams. Then, I proposed several changes. We allowed some information to be entered later and used APIs to automatically populate certain fields with data from other systems. I also organized PRD review meetings to confirm the solution. Finally, I documented the agreed changes in the PRD. The system was launched, and it had been live for about three months when I left.",
-            advanced_text: "A key challenge in a financial leasing system was balancing data requirements across departments. Sales representatives wanted a simpler entry process, while risk, operations, and finance teams depended on detailed information for downstream work. I first clarified the concerns and priorities of each group. Then I proposed a staged data-entry approach: keep the essential fields at the beginning, allow some information to be added later, and populate selected fields automatically through API integrations. I coordinated cross-functional PRD reviews to agree on the revised workflow and documented the decisions for development. The solution was implemented, including the API-based field population. By the time I left the company, the system had been live for approximately three months.",
-            zh_scaffold_full: "销售嫌字段多抵触新系统 → 风控要完整信息 → 听取各方顾虑 → 阶段录入 + API 自动填充 → PRD 评审达成一致 → 离职前已上线三个月",
-            watch_outs: ["was resistant to the system (严禁用 was resisted)", "fill in fields (严禁用 fill up)", "populate fields using APIs (严禁 fielded data)", "had been live for 3 months (过去参照点用过去完成时)"],
-            mastery: 40,
-            status: 'red',
-            steps: [
-              {
-                step_zh: "① 痛点阐述：销售团队抵触新系统，因为需要填写太多必填字段",
-                hint_text: "抵触用 resistant to，填写字段用 fill in，不可数 information 不能加 s",
-                target_sentence: "The sales team was resistant to the system because they had to fill in too many fields.",
-                correct_chunks: [
-                  { text: "The sales team was resistant to the system" },
-                  { text: "because they had to fill in too many fields." }
-                ],
-                distractors: [
-                  { text: "was resisted the system", trap_reason: "不能用 was resisted，应使用形容词短语 was resistant to 或动词 resisted" },
-                  { text: "fill up too many fields", trap_reason: "填写表单字段应用 fill in，不是 fill up" }
-                ]
-              },
-              {
-                step_zh: "② 解决方案：允许部分信息后续补充，并利用 API 自动从其他系统填充字段",
-                hint_text: "接口自动填充用 populate fields using APIs，信息是 information 永远不可数",
-                target_sentence: "We allowed some information to be entered later, and used APIs to automatically populate certain fields.",
-                correct_chunks: [
-                  { text: "We allowed some information to be entered later," },
-                  { text: "and used APIs to automatically populate certain fields." }
-                ],
-                distractors: [
-                  { text: "approved some informations can be submitted", trap_reason: "information 是不可数名词，且结构应为 allow sth to be done" },
-                  { text: "fielded some data by API", trap_reason: "数据填充标准行业表达是 populate fields using APIs" }
-                ]
-              },
-              {
-                step_zh: "③ 项目结果：PRD 评审达成一致，在我离职时系统已稳定上线运行了三个月",
-                hint_text: "过去某个时间点之前持续的状态，强制用 had been live for...",
-                target_sentence: "I documented the agreed changes in the PRD. By the time I left, the system had been live for three months.",
-                correct_chunks: [
-                  { text: "I documented the agreed changes in the PRD." },
-                  { text: "By the time I left, the system had been live for three months." }
-                ],
-                distractors: [
-                  { text: "agreement changes into PRD", trap_reason: "动宾搭配应为 document the agreed changes in the PRD" },
-                  { text: "has launched for three months", trap_reason: "离职是过去时 left，在其之前已上线必须用过去完成时 had been live" }
-                ]
-              }
-            ]
-          },
-          {
-            id: '04',
-            title: '核销规则与异常追问 (Matching Rules)',
-            interviewer_q: 'How did you define the matching rules, and what happened when the system could not find an exact match?',
-            foundation_text: "I worked with the business team to define the matching rules. The system compared the amount of a bank transaction with the remaining unmatched amount in the rent payment schedule. When the amounts matched exactly and the other required conditions were met, the system could automatically reconcile the payment. If it could not find a reliable match, the payment was flagged for manual review. I also considered specific business scenarios, including third-party payments and customers with multiple contracts. We documented the rules so that both business users and developers could understand how the system should handle different cases.",
-            advanced_text: "We started by identifying the business data required for a reliable match, including customer information, transaction amounts, and outstanding rent schedules. I translated the agreed rules into system requirements and walked the development team through the logic. For straightforward cases, the system could compare the remaining unmatched amount with an incoming payment and process eligible matches automatically. Exceptions, such as third-party payments or ambiguous contract information, required additional handling or manual review. We paid particular attention to making the rules understandable and testable, so the operations team could review uncertain cases without losing track of the underlying payment records.",
-            zh_scaffold_full: "银行流水对比剩余未核销金额 → 完全匹配则自动核销 → 异常标记人工核查 → 覆盖第三方代付与多合同场景",
-            watch_outs: ["an exact match / match exactly (词性混淆)", "payment would be flagged for review (被动语态)", "remaining unmatched amount (剩余未核销金额)"],
-            mastery: 60,
-            status: 'orange',
-            steps: [
-              {
-                step_zh: "① 规则定义：比对银行流水金额与租金计划中的剩余未核销金额",
-                hint_text: "剩余未核销金额: remaining unmatched amount",
-                target_sentence: "The system compared bank transaction amounts with the remaining unmatched amount in the payment schedule.",
-                correct_chunks: [
-                  { text: "The system compared bank transaction amounts with" },
-                  { text: "the remaining unmatched amount in the payment schedule." }
-                ],
-                distractors: [
-                  { text: "the two amount match", trap_reason: "注意单复数与搭配: two amounts" }
-                ]
-              },
-              {
-                step_zh: "② 自动与异常：完全匹配时自动核销，无法可靠匹配则标记进入人工复核",
-                hint_text: "形容词修饰 match: an exact match；副词修饰动词: match exactly；被标记: be flagged for",
-                target_sentence: "When amounts matched exactly, it reconciled automatically; otherwise, it was flagged for manual review.",
-                correct_chunks: [
-                  { text: "When amounts matched exactly, it reconciled automatically;" },
-                  { text: "otherwise, it was flagged for manual review." }
-                ],
-                distractors: [
-                  { text: "an exactly match", trap_reason: "名词 match 前面必须用形容词 exact，不能用副词 exactly" },
-                  { text: "would flag for manual review", trap_reason: "款项是被标记，必须用被动语态: would be flagged for" }
-                ]
-              }
-            ]
-          },
-          {
-            id: '06',
-            title: '审计 RAG 知识库项目 (Audit RAG)',
-            interviewer_q: 'Tell me about an AI project you built and what motivated you to build it.',
-            foundation_text: "Recently, I built an audit RAG knowledge base using Dify. At my previous company, audit documents from different subsidiaries were difficult to search because the information was stored in different formats. I wanted to explore whether RAG could help users find relevant information more easily. With the help of ChatGPT, I learned how to build a Dify workflow. Then I organized the documents, built a knowledge base, and prepared test cases. I checked the answers and adjusted the document chunks and retrieval settings when I found problems. The prototype could retrieve information and answer test questions, but multi-turn conversations still needed improvement.",
-            advanced_text: "I independently explored a RAG-based solution for internal audit knowledge retrieval. The original materials came from audit work across subsidiaries, and differences in document structure made it difficult to locate relevant examples. I used ChatGPT to support learning and document preparation, then built a Dify knowledge base and workflow. I created a set of test questions and expected answers, reviewed retrieved content and response quality, and iterated on chunking and retrieval settings. The prototype demonstrated useful retrieval behavior in my test scenarios, while multi-turn follow-up questions remained a known limitation. It has not yet been validated with real business users, so I would describe the outcome as a prototype evaluation.",
-            zh_scaffold_full: "子公司资料格式不一难检索 → Dify搭建工作流 → 整理文档与测试用例 → 调整分块与检索参数 → 局限是多轮对话仍需迭代",
-            watch_outs: ["subsidiary (子公司容易忘)", "retrieval settings (检索参数)", "split documents into chunks (不能说 slips)"],
-            mastery: 50,
-            status: 'orange',
-            steps: [
-              {
-                step_zh: "① 背景与动机：不同子公司的审计文档格式分散，难以高效检索案例",
-                hint_text: "子公司用 subsidiaries，检索信息用 retrieve information from",
-                target_sentence: "Audit documents from different subsidiaries were difficult to search across disparate formats.",
-                correct_chunks: [
-                  { text: "Audit documents from different subsidiaries" },
-                  { text: "were difficult to search across disparate formats." }
-                ],
-                distractors: [
-                  { text: "retrieve information form subsidiaries", trap_reason: "注意介词拼写是 from，不是 form" }
-                ]
-              }
-            ]
+        const applyImportedJson = () => {
+          if (!importJsonText.value.trim()) {
+            alert('请先粘贴 JSON 内容');
+            return;
           }
-        ]);
+          try {
+            const parsed = JSON.parse(importJsonText.value.trim());
+            if (!parsed.scenarios || !Array.isArray(parsed.scenarios)) {
+              alert('JSON 格式有误：缺少 scenarios 数组');
+              return;
+            }
+            localStorage.setItem('custom_user_scenarios', JSON.stringify(parsed));
+            isUsingCustomBank.value = true;
+            scenariosList.value = parsed.scenarios;
+            if (parsed.spelling_bank) {
+              spellingBank.value = parsed.spelling_bank;
+            }
+            currentScenario.value = scenariosList.value[0];
+            currentStepIndex.value = 0;
+            initStep();
+            openImportModal.value = false;
+            importJsonText.value = '';
+            alert(`🎉 成功导入 ${scenariosList.value.length} 个私有场景与 ${spellingBank.value.length} 个盲打词汇！数据已完全离线保存在本地。`);
+          } catch (e) {
+            alert('JSON 解析失败，请检查是否完整复制！错误: ' + e.message);
+          }
+        };
 
-        // Current Scenario & Progressive Step Engine
-        const currentScenario = ref(scenariosList.value[1]); // Default 08
+        const revertToDefaultBank = () => {
+          if (confirm('确认清除本地私有题库，切回公开示例库吗？')) {
+            localStorage.removeItem('custom_user_scenarios');
+            isUsingCustomBank.value = false;
+            scenariosList.value = defaultOpenSourceScenarios;
+            spellingBank.value = defaultOpenSourceSpelling;
+            currentScenario.value = scenariosList.value[0];
+            currentStepIndex.value = 0;
+            initStep();
+            openImportModal.value = false;
+          }
+        };
+
+        // Engine State
+        const currentScenario = ref(scenariosList.value[0]);
         const currentStepIndex = ref(0);
         const currentStep = computed(() => currentScenario.value.steps[currentStepIndex.value]);
 
@@ -925,7 +952,6 @@
         const hasError = ref(false);
         const hitTraps = ref([]);
 
-        // Setup Step Pool
         const initStep = () => {
           selectedChunks.value = [];
           showHint.value = false;
@@ -933,11 +959,12 @@
           hasError.value = false;
           hitTraps.value = [];
           
+          if (!currentStep.value) return;
+
           const raw = [
             ...currentStep.value.correct_chunks.map(c => ({ ...c, isCorrect: true })),
             ...currentStep.value.distractors.map(d => ({ ...d, isCorrect: false }))
           ];
-          // Fisher-Yates shuffle
           for (let i = raw.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [raw[i], raw[j]] = [raw[j], raw[i]];
@@ -963,7 +990,6 @@
         };
 
         const evaluateChunkStep = () => {
-          // Check for traps
           const traps = selectedChunks.value.filter(c => !c.isCorrect);
           hitTraps.value = traps;
           
@@ -981,7 +1007,7 @@
             currentStepIndex.value++;
             initStep();
           } else {
-            alert(`🎉 恭喜完成场景 ${currentScenario.value.id} 的所有微步骤！记忆进度已保存。`);
+            alert(`🎉 完成场景 ${currentScenario.value.id} 的所有微步骤！`);
             currentStepIndex.value = 0;
             initStep();
           }
@@ -994,76 +1020,7 @@
           initStep();
         };
 
-        // ================= MODE 2: SPELLING DATA & ENGINE =================
-        const spellingBank = ref([
-          {
-            target_word: "subsidiary",
-            zh: "子公司 / 附属机构",
-            pos: "n.",
-            topic: "场景 06: 审计 RAG 知识库",
-            context_tip: "跨公司业务场景，资料分散在各个不同主体 (复数: subsidiaries)",
-            sentence_before: "Audit documents from different",
-            sentence_after: "were difficult to search because they were stored in different formats.",
-            trap_note: "注意拼写中间是 sidi 不是 cidi，复数去 y 变 ies",
-            full_sentence: "Audit documents from different subsidiaries were difficult to search."
-          },
-          {
-            target_word: "retrieval",
-            zh: "检索 / 召回 (RAG 核心指标)",
-            pos: "n.",
-            topic: "场景 06/07: RAG 参数排查",
-            context_tip: "常与 settings 或 quality 搭配，表示知识库检索",
-            sentence_before: "I adjusted the document chunks and",
-            sentence_after: "settings when test answers were incomplete.",
-            trap_note: "注意名词是 retrieval (不能用动词 retrieve 或形容词 retrieved 代替名词修饰)",
-            full_sentence: "I adjusted the document chunks and retrieval settings."
-          },
-          {
-            target_word: "prototype",
-            zh: "原型 / 演示样本",
-            pos: "n.",
-            topic: "场景 09: 交互原型与用户体验",
-            context_tip: "在研发上线前用于验证流程交互的可视化界面",
-            sentence_before: "I designed an interactive",
-            sentence_after: "with screenshots to help users better understand the workflow.",
-            trap_note: "注意拼写 proto + type，不能漏掉中间的 o",
-            full_sentence: "I designed an interactive prototype with screenshots."
-          },
-          {
-            target_word: "reconciliation",
-            zh: "对账 / 核销流程",
-            pos: "n.",
-            topic: "场景 03/04: 自动核销系统",
-            context_tip: "银行流水与未结应收租金的自动勾兑对账",
-            sentence_before: "We built an automated rent-payment",
-            sentence_after: "system to replace repetitive manual matching.",
-            trap_note: "动词是 reconcile，名词形式是 reconciliation (注意 c 变 c，不是 z)",
-            full_sentence: "We built an automated rent-payment reconciliation system."
-          },
-          {
-            target_word: "prioritize",
-            zh: "按优先级排序 / 区分轻重缓急",
-            pos: "v.",
-            topic: "场景 02: 个人核心优势",
-            context_tip: "跨版本排期需求，不要错用成名词 priority",
-            sentence_before: "I can break down complex problems and",
-            sentence_after: "business requirements across different releases.",
-            trap_note: "动词必须用 prioritize，千万不要说 priority business needs",
-            full_sentence: "I can prioritize business requirements across different releases."
-          },
-          {
-            target_word: "resistant",
-            zh: "抵触的 / 抱有阻力的",
-            pos: "adj.",
-            topic: "场景 08: 需求冲突",
-            context_tip: "销售团队因为字段太多而抵触新系统",
-            sentence_before: "The sales team was",
-            sentence_after: "to the new system because they had to fill in too many fields.",
-            trap_note: "不能用 was resisted！必须是 was resistant to 或直接动词 resisted",
-            full_sentence: "The sales team was resistant to the new system."
-          }
-        ]);
-
+        // Spelling Engine
         const spellingIndex = ref(0);
         const currentWord = computed(() => spellingBank.value[spellingIndex.value]);
         const userTypedWord = ref('');
@@ -1071,7 +1028,7 @@
         const wordFeedback = ref(null);
 
         const giveFirstLetterHint = () => {
-          if (!userTypedWord.value) {
+          if (!userTypedWord.value && currentWord.value) {
             userTypedWord.value = currentWord.value.target_word.charAt(0);
           }
         };
@@ -1082,10 +1039,7 @@
           const target = currentWord.value.target_word.toLowerCase();
           const isCorrect = (cleanInput === target);
 
-          wordFeedback.value = {
-            isCorrect,
-            typed: cleanInput
-          };
+          wordFeedback.value = { isCorrect, typed: cleanInput };
           wordEvaluated.value = true;
           totalPracticedCount.value++;
           localStorage.setItem('practice_count', totalPracticedCount.value);
@@ -1098,7 +1052,7 @@
           if (spellingIndex.value < spellingBank.value.length - 1) {
             spellingIndex.value++;
           } else {
-            alert('🎉 今日核心词汇盲打专项已全部过完一轮！');
+            alert('🎉 词汇盲打已过完一轮！');
             spellingIndex.value = 0;
           }
         };
@@ -1117,6 +1071,11 @@
           openExemplarModal,
           openScenarioPicker,
           openDashboard,
+          openImportModal,
+          importJsonText,
+          isUsingCustomBank,
+          applyImportedJson,
+          revertToDefaultBank,
           exemplarTab,
           scenariosList,
           currentScenario,
