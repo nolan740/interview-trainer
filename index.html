@@ -885,35 +885,42 @@
     </div>
 
 
-    <!-- ================= MODAL: 导入私有题库 (严格结构与路径校验) ================= -->
+    <!-- ================= MODAL: 导入专属题库 (V1.1.1 增量合并与预览确认) ================= -->
     <div v-if="openImportModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end justify-center">
-      <div class="bg-white w-full max-w-md rounded-t-3xl max-h-[90vh] flex flex-col overflow-hidden animate-slide-up">
-        <div class="p-4 border-b border-gray-200 flex items-center justify-between bg-indigo-50/60">
+      <div class="bg-white w-full max-w-md rounded-t-3xl max-h-[92vh] flex flex-col overflow-hidden animate-slide-up">
+        
+        <!-- Header -->
+        <div class="p-4 border-b border-gray-200 flex items-center justify-between bg-indigo-50/60 shrink-0">
           <div class="flex items-center space-x-2">
-            <span class="text-base font-black text-indigo-950">📥 导入专属题库</span>
-            <span class="text-[10px] bg-indigo-100 text-indigo-800 font-bold px-2 py-0.5 rounded-full">本地隐私保护</span>
+            <span class="text-base font-black text-indigo-950">
+              {{ importPhase === 'input' ? '📥 导入专属题库' : '🔍 导入差异预览与确认' }}
+            </span>
+            <span class="text-[10px] bg-indigo-100 text-indigo-800 font-bold px-2 py-0.5 rounded-full">
+              {{ importPhase === 'input' ? '本地存储' : '增量安全保护' }}
+            </span>
           </div>
-          <button @click="openImportModal = false" class="text-gray-400 hover:text-gray-600 text-lg p-1">
+          <button @click="closeImportModal" class="text-gray-400 hover:text-gray-600 text-lg p-1">
             <i class="fa-solid fa-xmark"></i>
           </button>
         </div>
 
-        <div class="p-4 overflow-y-auto space-y-4 text-xs">
+        <!-- PHASE 1: INPUT VIEW (选文件 / 贴文本) -->
+        <div v-if="importPhase === 'input'" class="p-4 overflow-y-auto space-y-4 text-xs">
           <!-- Privacy Note -->
           <div class="p-3 bg-amber-50 rounded-2xl border border-amber-200 text-amber-900 space-y-1">
             <div class="font-bold flex items-center space-x-1">
               <i class="fa-solid fa-shield-halved text-amber-600"></i>
-              <span>本地隐私保护说明</span>
+              <span>本地隐私与增量安全</span>
             </div>
             <p class="leading-relaxed">
-              题库由手机浏览器直接解析并存储于本地 localStorage，不上传任何云端服务器。换浏览器或清理缓存可能导致记录清除，请适时在设置中导出备份。
+              题库仅在当前设备浏览器解析存储。系统支持<strong>增量合并</strong>，再次导入时旧知识点与历史进度默认完整保留。
             </p>
           </div>
 
           <!-- OPTION 1: FILE UPLOAD -->
           <div class="space-y-2">
             <label class="block font-bold text-gray-800 flex items-center justify-between">
-              <span>方法一：选择 JSON 文件上传（推荐）</span>
+              <span>方法一：选择 JSON 文件解析</span>
               <span class="text-[10px] text-emerald-600 font-bold">无字数截断限制</span>
             </label>
             <div class="relative">
@@ -926,15 +933,11 @@
                 id="jsonFileInput">
               <label 
                 for="jsonFileInput" 
-                class="w-full btn-3d-primary py-3.5 px-4 rounded-2xl font-black text-xs uppercase tracking-wide flex items-center justify-center space-x-2 cursor-pointer shadow-md">
+                class="w-full btn-3d-primary py-3 px-4 rounded-2xl font-black text-xs uppercase tracking-wide flex items-center justify-center space-x-2 cursor-pointer shadow-md">
                 <i class="fa-solid fa-folder-open text-base"></i>
-                <span>选择本地 JSON 文件导入</span>
+                <span>选择本地 JSON 文件对比</span>
               </label>
             </div>
-            <p v-if="uploadedFileName" class="text-[11px] font-bold text-emerald-600 text-center flex items-center justify-center space-x-1">
-              <i class="fa-solid fa-circle-check"></i>
-              <span>已载入文件: {{ uploadedFileName }}</span>
-            </p>
           </div>
 
           <div class="relative flex py-1 items-center">
@@ -948,7 +951,7 @@
             <div class="flex items-center justify-between">
               <span class="font-bold text-indigo-900 flex items-center space-x-1">
                 <i class="fa-solid fa-wand-magic-sparkles text-indigo-600"></i>
-                <span>用外部 AI 依据简历与 JD 生成题库</span>
+                <span>用外部 AI 生成合规题库</span>
               </span>
               <button 
                 @click="copyAiPrompt" 
@@ -958,7 +961,7 @@
               </button>
             </div>
             <p class="text-[10px] text-indigo-700 leading-relaxed">
-              复制提示词发给 ChatGPT 或 Claude，填入你的简历经历与应聘岗位要求，即可生成完全合规的专属题库 JSON。
+              将提示词与你的简历经历、目标岗位 JD 发给 ChatGPT 或 Claude，即可生成可增量导入的标准 JSON。
             </p>
           </div>
 
@@ -971,12 +974,12 @@
               placeholder='将 json 内容复制粘贴到这里...' 
               class="w-full p-2.5 font-mono text-[11px] border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none bg-gray-50"></textarea>
             <button 
-              @click="applyImportJson" 
+              @click="handlePasteCompare" 
               :disabled="!importJsonText.trim()"
               :class="!importJsonText.trim() ? 'opacity-40 cursor-not-allowed' : ''"
               class="w-full btn-3d-accent py-2.5 rounded-xl font-bold text-xs flex items-center justify-center space-x-1">
-              <i class="fa-solid fa-paste"></i>
-              <span>校验并载入粘贴文本</span>
+              <i class="fa-solid fa-magnifying-glass"></i>
+              <span>解析并查看差异预览</span>
             </button>
           </div>
 
@@ -988,9 +991,133 @@
             </button>
           </div>
         </div>
+
+        <!-- PHASE 2: DIFF PREVIEW & CONFIRMATION VIEW (V1.1.1 增量/全量选择与明细) -->
+        <div v-else-if="importPhase === 'preview'" class="p-4 overflow-y-auto space-y-3.5 text-xs">
+          <!-- Target Bank Info -->
+          <div class="p-3 bg-gray-50 rounded-2xl border border-gray-200 space-y-1">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-gray-800">目标题库身份</span>
+              <span class="font-mono text-[10px] px-2 py-0.5 rounded bg-white border border-gray-300 text-gray-600">{{ importDiffInfo.targetBankId }}</span>
+            </div>
+            <div class="text-[11px] text-gray-500">
+              来源标识: {{ importDiffInfo.sourceName || '手动输入' }} · 版本: v{{ importDiffInfo.incomingVersion || '1.0' }}
+            </div>
+          </div>
+
+          <!-- Mode Selector (增量合并 vs 全量替换) -->
+          <div class="space-y-1.5">
+            <label class="block font-bold text-gray-800">选择导入方式：</label>
+            <div class="grid grid-cols-2 gap-2">
+              <div 
+                @click="importMode = 'incremental'"
+                :class="importMode === 'incremental' ? 'border-emerald-500 bg-emerald-50/60 ring-2 ring-emerald-300' : 'border-gray-200 bg-white'"
+                class="p-2.5 rounded-xl border-2 cursor-pointer transition">
+                <div class="font-bold text-emerald-900 flex items-center space-x-1">
+                  <i class="fa-solid fa-code-merge"></i>
+                  <span>增量合并 (推荐)</span>
+                </div>
+                <p class="text-[10px] text-gray-500 mt-0.5">追加新题，更新已有题，原有未包含题目继续保留</p>
+              </div>
+
+              <div 
+                @click="importMode = 'replace'"
+                :class="importMode === 'replace' ? 'border-rose-500 bg-rose-50/60 ring-2 ring-rose-300' : 'border-gray-200 bg-white'"
+                class="p-2.5 rounded-xl border-2 cursor-pointer transition">
+                <div class="font-bold text-rose-900 flex items-center space-x-1">
+                  <i class="fa-solid fa-arrows-rotate"></i>
+                  <span>全量替换</span>
+                </div>
+                <p class="text-[10px] text-gray-500 mt-0.5">整库替换，新文件中未出现的题目将被移出可见列表</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Scenario Diff Stats -->
+          <div class="p-3 bg-white rounded-2xl border border-gray-200 shadow-sm space-y-2">
+            <div class="font-bold text-gray-800 flex items-center justify-between">
+              <span>面试场景变动 (Scenarios)</span>
+              <span class="text-gray-500 font-normal">当前库已有 {{ importDiffInfo.existingScCount }} 题</span>
+            </div>
+            <div class="grid grid-cols-4 gap-1.5 text-center text-[11px]">
+              <div class="p-1.5 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200">
+                <div class="font-black text-sm">{{ currentDiff.scenarios.added }}</div>
+                <div>新增</div>
+              </div>
+              <div class="p-1.5 rounded-lg bg-blue-50 text-blue-800 border border-blue-200">
+                <div class="font-black text-sm">{{ currentDiff.scenarios.updated_core + currentDiff.scenarios.updated_noncore }}</div>
+                <div>更新</div>
+              </div>
+              <div class="p-1.5 rounded-lg bg-gray-50 text-gray-700 border border-gray-200">
+                <div class="font-black text-sm">{{ currentDiff.scenarios.unchanged }}</div>
+                <div>无变化</div>
+              </div>
+              <div class="p-1.5 rounded-lg" :class="currentDiff.scenarios.removed > 0 ? 'bg-rose-50 text-rose-800 border border-rose-200' : 'bg-gray-50 text-gray-400 border border-gray-100'">
+                <div class="font-black text-sm">{{ currentDiff.scenarios.removed }}</div>
+                <div>移除</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Spelling Diff Stats (if present) -->
+          <div v-if="importDiffInfo.incomingSpCount > 0 || importDiffInfo.existingSpCount > 0" class="p-3 bg-white rounded-2xl border border-gray-200 shadow-sm space-y-2">
+            <div class="font-bold text-gray-800 flex items-center justify-between">
+              <span>核心词汇变动 (Spelling Bank)</span>
+              <span class="text-gray-500 font-normal">当前库已有 {{ importDiffInfo.existingSpCount }} 词</span>
+            </div>
+            <div class="grid grid-cols-4 gap-1.5 text-center text-[11px]">
+              <div class="p-1.5 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200">
+                <div class="font-black text-sm">{{ currentDiff.spelling.added }}</div>
+                <div>新增</div>
+              </div>
+              <div class="p-1.5 rounded-lg bg-blue-50 text-blue-800 border border-blue-200">
+                <div class="font-black text-sm">{{ currentDiff.spelling.updated_core + currentDiff.spelling.updated_noncore }}</div>
+                <div>更新</div>
+              </div>
+              <div class="p-1.5 rounded-lg bg-gray-50 text-gray-700 border border-gray-200">
+                <div class="font-black text-sm">{{ currentDiff.spelling.unchanged }}</div>
+                <div>无变化</div>
+              </div>
+              <div class="p-1.5 rounded-lg" :class="currentDiff.spelling.removed > 0 ? 'bg-rose-50 text-rose-800 border border-rose-200' : 'bg-gray-50 text-gray-400 border border-gray-100'">
+                <div class="font-black text-sm">{{ currentDiff.spelling.removed }}</div>
+                <div>移除</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Impact & Progress Inheritance Explanation (INC-03) -->
+          <div class="p-3 rounded-xl border text-[11px] leading-relaxed space-y-1" :class="currentDiff.need_reverification > 0 ? 'bg-amber-50 border-amber-300 text-amber-900' : 'bg-emerald-50 border-emerald-200 text-emerald-900'">
+            <div class="font-bold flex items-center space-x-1">
+              <i :class="currentDiff.need_reverification > 0 ? 'fa-solid fa-triangle-exclamation text-amber-600' : 'fa-solid fa-circle-check text-emerald-600'"></i>
+              <span>进度继承说明</span>
+            </div>
+            <p v-if="currentDiff.need_reverification > 0">
+              检测到 <strong>{{ currentDiff.need_reverification }} 个知识点的核心训练内容发生实质修改</strong>（英文提问或正确词块变化）。系统将完整保留历史练习次数与首答统计，并将当前掌握状态标记为「需重新验证」，安排重新复测。
+            </p>
+            <p v-else>
+              所有未修改及仅说明微调的题目，将<strong>100% 继承原有的掌握阶段与下次复习排期</strong>，训练进度平稳无损。
+            </p>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="pt-2 flex space-x-2">
+            <button 
+              @click="cancelImportPreview" 
+              class="w-1/3 py-3 rounded-2xl border border-gray-300 text-gray-600 font-bold hover:bg-gray-100 transition">
+              取消
+            </button>
+            <button 
+              @click="confirmAndExecuteImport" 
+              :disabled="isImportExecuting"
+              class="flex-1 btn-3d-primary py-3 rounded-2xl font-black text-xs uppercase tracking-wide flex items-center justify-center space-x-1.5 shadow-md">
+              <i class="fa-solid fa-check"></i>
+              <span>{{ importMode === 'incremental' ? '确认增量合并写入' : '确认全量替换写入' }}</span>
+            </button>
+          </div>
+        </div>
+
       </div>
     </div>
-
 
     <!-- ================= MODAL: 设置与备份 (SETTINGS & BACKUP) ================= -->
     <div v-if="openSettings" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end justify-center">
@@ -1629,66 +1756,263 @@
           }
         };
 
-        // P0-06 Strict Import Validation with detailed error paths
-        const importJsonText = ref('');
-        const fileInputRef = ref(null);
-        const uploadedFileName = ref('');
-        const copied = ref(false);
+        // V1.1.1 增量合并与两阶段导入机制 (INC-02, INC-03, INC-04, INC-05)
+        const importPhase = ref('input'); // 'input' | 'preview'
+        const importMode = ref('incremental'); // 'incremental' | 'replace'
+        const importDiffInfo = ref({
+          targetBankId: '',
+          incomingVersion: '1.0',
+          sourceName: '',
+          existingScCount: 0,
+          existingSpCount: 0,
+          incomingScCount: 0,
+          incomingSpCount: 0
+        });
+        const currentDiff = ref({
+          scenarios: { added: 0, updated_core: 0, updated_noncore: 0, unchanged: 0, removed: 0 },
+          spelling: { added: 0, updated_core: 0, updated_noncore: 0, unchanged: 0, removed: 0 },
+          need_reverification: 0
+        });
+        const parsedIncomingData = ref(null);
+        const isImportExecuting = ref(false);
 
-        const validateAndLoadBankData = (parsed, sourceName = '') => {
+        const normalizeText = (text) => {
+          if (!text) return '';
+          return String(text).replace(/\s+/g, ' ').trim().toLowerCase();
+        };
+
+        const isScenarioCoreChanged = (oldSc, newSc) => {
+          if (normalizeText(oldSc.interviewer_q) !== normalizeText(newSc.interviewer_q)) return true;
+          const oldSteps = oldSc.steps || [];
+          const newSteps = newSc.steps || [];
+          if (oldSteps.length !== newSteps.length) return true;
+          for (let i = 0; i < oldSteps.length; i++) {
+            const os = oldSteps[i];
+            const ns = newSteps[i];
+            if (normalizeText(os.target_sentence) !== normalizeText(ns.target_sentence)) return true;
+            const oc = os.correct_chunks || [];
+            const nc = ns.correct_chunks || [];
+            if (oc.length !== nc.length) return true;
+            for (let j = 0; j < oc.length; j++) {
+              if (normalizeText(oc[j].text) !== normalizeText(nc[j].text)) return true;
+            }
+          }
+          return false;
+        };
+
+        const getWordStableId = (w) => {
+          return w.id || normalizeText(w.target_word);
+        };
+
+        const isWordCoreChanged = (oldW, newW) => {
+          if (normalizeText(oldW.target_word) !== normalizeText(newW.target_word)) return true;
+          if (normalizeText(oldW.sentence_before) !== normalizeText(newW.sentence_before)) return true;
+          if (normalizeText(oldW.sentence_after) !== normalizeText(newW.sentence_after)) return true;
+          return false;
+        };
+
+        // 校验输入 JSON（支持增量只含 scenarios 或只含 spelling_bank）
+        const validateIncomingJson = (parsed, sourceName = '') => {
           if (!parsed || typeof parsed !== 'object') {
             alert('导入失败：JSON 内容不是合法的对象！');
             return false;
           }
-          if (!Array.isArray(parsed.scenarios) || parsed.scenarios.length === 0) {
-            alert('导入失败：scenarios 字段必须是非空数组！');
+
+          const hasSc = Array.isArray(parsed.scenarios) && parsed.scenarios.length > 0;
+          const hasSp = Array.isArray(parsed.spelling_bank) && parsed.spelling_bank.length > 0;
+
+          if (!hasSc && !hasSp) {
+            alert('导入校验失败：文件必须包含非空的 scenarios 或 spelling_bank 数组！');
             return false;
           }
 
-          const idSet = new Set();
-          for (let i = 0; i < parsed.scenarios.length; i++) {
-            const sc = parsed.scenarios[i];
-            const p = `scenarios[${i}]`;
-            if (!sc.id || typeof sc.id !== 'string') {
-              alert(`校验失败：${p}.id 缺失或不是字符串！`);
-              return false;
-            }
-            if (idSet.has(sc.id)) {
-              alert(`校验失败：发现重复的场景 ID [${sc.id}]！每个场景 ID 必须唯一。`);
-              return false;
-            }
-            idSet.add(sc.id);
-
-            if (!sc.title) { alert(`校验失败：${p}.title 缺失！`); return false; }
-            if (!sc.interviewer_q) { alert(`校验失败：${p}.interviewer_q 缺失！`); return false; }
-            if (!Array.isArray(sc.steps) || sc.steps.length === 0) {
-              alert(`校验失败：${p}.steps 必须为非空数组！`);
-              return false;
-            }
-            for (let j = 0; j < sc.steps.length; j++) {
-              const st = sc.steps[j];
-              const sp = `${p}.steps[${j}]`;
-              if (!Array.isArray(st.correct_chunks) || st.correct_chunks.length === 0) {
-                alert(`校验失败：${sp}.correct_chunks 必须为非空数组！`);
+          if (hasSc) {
+            const idSet = new Set();
+            for (let i = 0; i < parsed.scenarios.length; i++) {
+              const sc = parsed.scenarios[i];
+              const p = `scenarios[${i}]`;
+              if (!sc || typeof sc !== 'object') {
+                alert(`校验失败：${p} 必须是有效对象！`);
                 return false;
+              }
+              if (!sc.id || typeof sc.id !== 'string') {
+                alert(`校验失败：${p}.id 缺失或不是字符串！`);
+                return false;
+              }
+              if (idSet.has(sc.id)) {
+                alert(`校验失败：发现重复的场景 ID [${sc.id}]！同文件内 ID 必须唯一。`);
+                return false;
+              }
+              idSet.add(sc.id);
+
+              if (!sc.title) { alert(`校验失败：${p}.title 缺失！`); return false; }
+              if (!sc.interviewer_q) { alert(`校验失败：${p}.interviewer_q 缺失！`); return false; }
+              if (!Array.isArray(sc.steps) || sc.steps.length === 0) {
+                alert(`校验失败：${p}.steps 必须为非空数组！`);
+                return false;
+              }
+              for (let j = 0; j < sc.steps.length; j++) {
+                const st = sc.steps[j];
+                const sp = `${p}.steps[${j}]`;
+                if (!Array.isArray(st.correct_chunks) || st.correct_chunks.length === 0) {
+                  alert(`校验失败：${sp}.correct_chunks 必须为非空数组！`);
+                  return false;
+                }
               }
             }
           }
 
-          // Ensure bankId exists
-          if (!parsed.bankId) {
-            parsed.bankId = 'custom_bank_' + Date.now();
+          if (hasSp) {
+            const wIdSet = new Set();
+            for (let i = 0; i < parsed.spelling_bank.length; i++) {
+              const w = parsed.spelling_bank[i];
+              const p = `spelling_bank[${i}]`;
+              const wid = getWordStableId(w);
+              if (!wid) {
+                alert(`校验失败：${p} 缺少 target_word 或 id！`);
+                return false;
+              }
+              if (wIdSet.has(wid)) {
+                alert(`校验失败：发现重复的词汇 ID/单词 [${wid}]！`);
+                return false;
+              }
+              wIdSet.add(wid);
+              if (!w.target_word) { alert(`校验失败：${p}.target_word 缺失！`); return false; }
+              if (!w.zh) { alert(`校验失败：${p}.zh 缺失！`); return false; }
+            }
           }
 
-          // Save custom bank
-          localStorage.setItem('it_custom_bank_content', JSON.stringify(parsed));
-          customBankObj.value = parsed;
-          uploadedFileName.value = sourceName;
-          switchBank('custom');
-          openImportModal.value = false;
-          importJsonText.value = '';
-          alert(`🎉 专属题库导入成功！共通过校验 ${parsed.scenarios.length} 个场景。数据完全隔离存储在本地。`);
           return true;
+        };
+
+        const computeDiffAndShowPreview = (parsed, sourceName = '') => {
+          if (!validateIncomingJson(parsed, sourceName)) return;
+
+          // 保护内置通用题库不被非法覆盖 (P0-06, INC-02)
+          if (parsed.bankId === 'builtin-interview-v1') {
+            alert('注意：检测到题库使用了官方内置题库 ID (builtin-interview-v1)。为防止官方题库被篡改，系统将为其自动分配独立的专属私人题库身份。');
+            parsed.bankId = 'custom_bank_' + Date.now();
+          } else if (!parsed.bankId) {
+            // 没有 bankId 时，若当前已有 customBankObj 则询问或匹配现有
+            if (customBankObj.value && customBankObj.value.bankId) {
+              parsed.bankId = customBankObj.value.bankId;
+            } else {
+              parsed.bankId = 'custom_bank_' + Date.now();
+            }
+          }
+
+          // 确定对比基线
+          let baseScenarios = [];
+          let baseSpelling = [];
+          if (customBankObj.value && customBankObj.value.bankId === parsed.bankId) {
+            baseScenarios = customBankObj.value.scenarios || [];
+            baseSpelling = customBankObj.value.spelling_bank || [];
+          }
+
+          const existingScMap = new Map();
+          baseScenarios.forEach(s => existingScMap.set(s.id, s));
+
+          const incomingScList = parsed.scenarios || [];
+          const incomingScMap = new Map();
+          incomingScList.forEach(s => incomingScMap.set(s.id, s));
+
+          let scAdded = 0, scUpdatedCore = 0, scUpdatedNoncore = 0, scUnchanged = 0, scRemoved = 0;
+
+          incomingScList.forEach(s => {
+            if (!existingScMap.has(s.id)) {
+              scAdded++;
+            } else {
+              const oldS = existingScMap.get(s.id);
+              if (isScenarioCoreChanged(oldS, s)) {
+                scUpdatedCore++;
+              } else if (
+                normalizeText(oldS.title) !== normalizeText(s.title) ||
+                normalizeText(oldS.foundation_text) !== normalizeText(s.foundation_text) ||
+                normalizeText(oldS.advanced_text) !== normalizeText(s.advanced_text) ||
+                normalizeText(oldS.zh_scaffold_full) !== normalizeText(s.zh_scaffold_full)
+              ) {
+                scUpdatedNoncore++;
+              } else {
+                scUnchanged++;
+              }
+            }
+          });
+
+          // 全量替换模式下的预计移除
+          baseScenarios.forEach(s => {
+            if (!incomingScMap.has(s.id)) {
+              scRemoved++;
+            }
+          });
+
+          // 词汇对比
+          const existingWMap = new Map();
+          baseSpelling.forEach(w => existingWMap.set(getWordStableId(w), w));
+
+          const incomingSpList = parsed.spelling_bank || [];
+          const incomingWMap = new Map();
+          incomingSpList.forEach(w => incomingWMap.set(getWordStableId(w), w));
+
+          let wAdded = 0, wUpdatedCore = 0, wUpdatedNoncore = 0, wUnchanged = 0, wRemoved = 0;
+
+          incomingSpList.forEach(w => {
+            const wid = getWordStableId(w);
+            if (!existingWMap.has(wid)) {
+              wAdded++;
+            } else {
+              const oldW = existingWMap.get(wid);
+              if (isWordCoreChanged(oldW, w)) {
+                wUpdatedCore++;
+              } else if (
+                normalizeText(oldW.zh) !== normalizeText(w.zh) ||
+                normalizeText(oldW.topic) !== normalizeText(w.topic) ||
+                normalizeText(oldW.context_tip) !== normalizeText(w.context_tip)
+              ) {
+                wUpdatedNoncore++;
+              } else {
+                wUnchanged++;
+              }
+            }
+          });
+
+          baseSpelling.forEach(w => {
+            const wid = getWordStableId(w);
+            if (!incomingWMap.has(wid)) {
+              wRemoved++;
+            }
+          });
+
+          importDiffInfo.value = {
+            targetBankId: parsed.bankId,
+            incomingVersion: parsed.version || '1.0',
+            sourceName: sourceName,
+            existingScCount: baseScenarios.length,
+            existingSpCount: baseSpelling.length,
+            incomingScCount: incomingScList.length,
+            incomingSpCount: incomingSpList.length
+          };
+
+          currentDiff.value = {
+            scenarios: {
+              added: scAdded,
+              updated_core: scUpdatedCore,
+              updated_noncore: scUpdatedNoncore,
+              unchanged: scUnchanged,
+              removed: scRemoved
+            },
+            spelling: {
+              added: wAdded,
+              updated_core: wUpdatedCore,
+              updated_noncore: wUpdatedNoncore,
+              unchanged: wUnchanged,
+              removed: wRemoved
+            },
+            need_reverification: scUpdatedCore + wUpdatedCore
+          };
+
+          parsedIncomingData.value = parsed;
+          importMode.value = 'incremental'; // 默认增量合并 (INC-02)
+          importPhase.value = 'preview'; // 进入两阶段预览 (INC-04)
         };
 
         const handleFileUpload = (event) => {
@@ -1698,7 +2022,7 @@
           reader.onload = (e) => {
             try {
               const parsed = JSON.parse(e.target.result);
-              validateAndLoadBankData(parsed, file.name);
+              computeDiffAndShowPreview(parsed, file.name);
             } catch (err) {
               alert('读取或解析 JSON 失败！请确保文件内容是合法的 JSON。\n错误信息: ' + err.message);
             }
@@ -1706,12 +2030,181 @@
           reader.readAsText(file, 'utf-8');
         };
 
-        const applyImportJson = () => {
+        const handlePasteCompare = () => {
           try {
             const parsed = JSON.parse(importJsonText.value);
-            validateAndLoadBankData(parsed, '粘贴导入');
-          } catch(err) {
+            computeDiffAndShowPreview(parsed, '粘贴输入');
+          } catch (err) {
             alert('解析 JSON 失败，请检查复制内容是否完整！\n错误信息: ' + err.message);
+          }
+        };
+
+        const cancelImportPreview = () => {
+          importPhase.value = 'input';
+          parsedIncomingData.value = null;
+        };
+
+        const closeImportModal = () => {
+          importPhase.value = 'input';
+          parsedIncomingData.value = null;
+          openImportModal.value = false;
+        };
+
+        // 执行导入合并 / 替换并继承进度 (INC-02, INC-03, INC-04, INC-05)
+        const confirmAndExecuteImport = () => {
+          if (!parsedIncomingData.value || isImportExecuting.value) return;
+          isImportExecuting.value = true;
+
+          const incoming = parsedIncomingData.value;
+          const bId = incoming.bankId;
+
+          // 全量替换时的校验 (INC-02 4.3: 必须提供完整题库，不能用只含几条的增量文件静默替换)
+          if (importMode.value === 'replace') {
+            if (!Array.isArray(incoming.scenarios) || incoming.scenarios.length === 0) {
+              alert('全量替换失败：全量替换必须提供包含完整 scenarios 数组的题库文件！');
+              isImportExecuting.value = false;
+              return;
+            }
+            if (!confirm(`警告：全量替换将移出当前题库中未包含的 ${currentDiff.value.scenarios.removed} 个场景和 ${currentDiff.value.spelling.removed} 个词汇。确认执行吗？`)) {
+              isImportExecuting.value = false;
+              return;
+            }
+          }
+
+          try {
+            // 写入前安全快照 (INC-04 6.2)
+            const preImportSnapshotKey = `it_backup_pre_import_${Date.now()}`;
+            const currentBankRaw = localStorage.getItem('it_custom_bank_content');
+            const currentProgRaw = localStorage.getItem(getProgressStorageKey(bId));
+            localStorage.setItem(preImportSnapshotKey, JSON.stringify({
+              time: new Date().toISOString(),
+              bank: currentBankRaw,
+              progress: currentProgRaw
+            }));
+
+            // 获取或初始化旧进度
+            let existingBank = { scenarios: [], spelling_bank: [] };
+            if (customBankObj.value && customBankObj.value.bankId === bId) {
+              existingBank = customBankObj.value;
+            }
+
+            let progressData = loadProgressData(bId);
+            if (!progressData.scenarios) progressData.scenarios = {};
+
+            let mergedScenarios = [];
+            let mergedSpelling = [];
+
+            if (importMode.value === 'incremental') {
+              // 增量合并模式 (INC-02)
+              // 1. 处理 Scenarios
+              const existingScMap = new Map();
+              (existingBank.scenarios || []).forEach(s => existingScMap.set(s.id, s));
+
+              const incomingScList = incoming.scenarios || [];
+              const incomingScIds = new Set();
+
+              incomingScList.forEach(s => {
+                incomingScIds.add(s.id);
+                if (!existingScMap.has(s.id)) {
+                  // 新增场景
+                  mergedScenarios.push(s);
+                } else {
+                  // 已有场景更新
+                  const oldS = existingScMap.get(s.id);
+                  mergedScenarios.push(s);
+                  // 核心更新重验逻辑 (INC-03)
+                  if (isScenarioCoreChanged(oldS, s)) {
+                    if (progressData.scenarios[s.id]) {
+                      progressData.scenarios[s.id].memoryLevel = 'needsReview';
+                      progressData.scenarios[s.id].greenReviewStreak = 0;
+                      progressData.scenarios[s.id].nextReviewDate = getTodayDateStr(); // 立即需要复测
+                    }
+                  }
+                }
+              });
+
+              // 保留新文件中未出现的老场景
+              (existingBank.scenarios || []).forEach(s => {
+                if (!incomingScIds.has(s.id)) {
+                  mergedScenarios.push(s);
+                }
+              });
+
+              // 2. 处理 Spelling
+              const existingWMap = new Map();
+              (existingBank.spelling_bank || []).forEach(w => existingWMap.set(getWordStableId(w), w));
+
+              const incomingSpList = incoming.spelling_bank || [];
+              const incomingWIds = new Set();
+
+              incomingSpList.forEach(w => {
+                const wid = getWordStableId(w);
+                incomingWIds.add(wid);
+                mergedSpelling.push(w);
+              });
+
+              (existingBank.spelling_bank || []).forEach(w => {
+                const wid = getWordStableId(w);
+                if (!incomingWIds.has(wid)) {
+                  mergedSpelling.push(w);
+                }
+              });
+
+            } else {
+              // 全量替换模式 (INC-02 4.3)
+              mergedScenarios = incoming.scenarios || [];
+              mergedSpelling = incoming.spelling_bank || [];
+
+              // 对保留的场景检查核心更新
+              const oldScMap = new Map();
+              (existingBank.scenarios || []).forEach(s => oldScMap.set(s.id, s));
+
+              mergedScenarios.forEach(s => {
+                if (oldScMap.has(s.id)) {
+                  const oldS = oldScMap.get(s.id);
+                  if (isScenarioCoreChanged(oldS, s)) {
+                    if (progressData.scenarios[s.id]) {
+                      progressData.scenarios[s.id].memoryLevel = 'needsReview';
+                      progressData.scenarios[s.id].greenReviewStreak = 0;
+                      progressData.scenarios[s.id].nextReviewDate = getTodayDateStr();
+                    }
+                  }
+                }
+              });
+            }
+
+            // 组装最终题库对象
+            const finalBank = {
+              version: incoming.version || '1.1.0',
+              bankId: bId,
+              updated_at: getTodayDateStr(),
+              scenarios: mergedScenarios,
+              spelling_bank: mergedSpelling
+            };
+
+            // 原子化提交持久层
+            localStorage.setItem('it_custom_bank_content', JSON.stringify(finalBank));
+            localStorage.setItem(getProgressStorageKey(bId), JSON.stringify(progressData));
+
+            // 更新响应式状态
+            customBankObj.value = finalBank;
+            currentProgress.value = progressData;
+            activeBankType.value = 'custom';
+            localStorage.setItem('it_active_bank_type', 'custom');
+
+            currentScenarioIndex.value = 0;
+            currentStepIndex.value = 0;
+            inRecallPhase.value = false;
+            initStep();
+
+            alert(`🎉 题库导入成功！\n操作方式: ${importMode.value === 'incremental' ? '增量合并' : '全量替换'}\n最终场景总数: ${mergedScenarios.length} 个\n最终核心词汇: ${mergedSpelling.length} 个\n学习记录已成功继承与同步。`);
+
+            closeImportModal();
+            importJsonText.value = '';
+          } catch (err) {
+            alert('写入存储失败！已保持原题库与进度不变。\n错误信息: ' + err.message);
+          } finally {
+            isImportExecuting.value = false;
           }
         };
 
@@ -1909,6 +2402,15 @@
           statusStats,
           // Import & Backup
           importJsonText,
+          importPhase,
+          importMode,
+          importDiffInfo,
+          currentDiff,
+          isImportExecuting,
+          handlePasteCompare,
+          cancelImportPreview,
+          confirmAndExecuteImport,
+          closeImportModal,
           fileInputRef,
           uploadedFileName,
           copied,
