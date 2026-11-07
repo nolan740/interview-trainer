@@ -4,28 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>interview-trainer - 职场面试场景化脱稿训练器</title>
-  <!-- 全局错误捕获，避免白屏无响应 -->
-  <script>
-    window.onerror = function(msg, url, lineNo, columnNo, error) {
-      var errDiv = document.getElementById('fatal-error-box');
-      if (!errDiv) {
-        errDiv = document.createElement('div');
-        errDiv.id = 'fatal-error-box';
-        errDiv.style = 'position:fixed;top:0;left:0;right:0;background:#ffebee;color:#c62828;padding:12px;font-size:12px;z-index:99999;border-bottom:1px solid #ef9a9a;';
-        document.body.appendChild(errDiv);
-      }
-      errDiv.innerHTML = '<strong>加载异常:</strong> ' + msg + ' (Line: ' + lineNo + ')<br><button onclick="localStorage.clear();location.reload();" style="margin-top:6px;padding:4px 8px;background:#c62828;color:#fff;border-radius:4px;border:none;">清空本地缓存并重试</button>';
-      return false;
-    };
-  </script>
-  <!-- 高可靠 CDN，带备用源 -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
-  <script>
-    if (typeof Vue === 'undefined') {
-      document.write('<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"><\/script>');
-    }
-  </script>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     /* Duolingo Style */
@@ -1303,20 +1283,30 @@
         const exemplarTab = ref('foundation');
 
         // Bank State & Identity Management (P0-06)
+                // Safe load helper
+        const safeGetJSON = (key, fallback) => {
+          try {
+            const raw = localStorage.getItem(key);
+            if (!raw) return fallback;
+            const res = JSON.parse(raw);
+            return (res && typeof res === 'object') ? res : fallback;
+          } catch(e) {
+            return fallback;
+          }
+        };
+
         const activeBankType = ref(localStorage.getItem('it_active_bank_type') || 'builtin'); // 'builtin' | 'custom'
         
-        // Load Banks from storage
+        // Load Banks from storage safely
         const loadCustomBankData = () => {
-          const raw = localStorage.getItem('it_custom_bank_content');
-          if (raw) {
-            try { return JSON.parse(raw); } catch(e) { console.error('Parse custom bank error:', e); }
-          }
-          return null;
+          return safeGetJSON('it_custom_bank_content', null);
         };
 
         const customBankObj = ref(loadCustomBankData());
         const hasCustomBank = computed(() => !!customBankObj.value);
-        const customBankScenariosCount = computed(() => (customBankObj.value && customBankObj.value.scenarios ? customBankObj.value.scenarios.length : 0) || 0);
+        const customBankScenariosCount = computed(() => {
+          return (customBankObj.value && Array.isArray(customBankObj.value.scenarios)) ? customBankObj.value.scenarios.length : 0;
+        });
 
         const currentBankData = computed(() => {
           if (activeBankType.value === 'custom' && customBankObj.value) {
@@ -1325,26 +1315,27 @@
           return BUILTIN_BANK;
         });
 
-        const bankId = computed(() => currentBankData.value.bankId || 'builtin-interview-v1');
-        const scenariosList = computed(() => currentBankData.value.scenarios || []);
-        const spellingBank = computed(() => currentBankData.value.spelling_bank || []);
-        const hasSpelling = computed(() => spellingBank.value && spellingBank.value.length > 0);
+        const bankId = computed(() => (currentBankData.value && currentBankData.value.bankId) ? currentBankData.value.bankId : 'builtin-interview-v1');
+        const scenariosList = computed(() => (currentBankData.value && Array.isArray(currentBankData.value.scenarios)) ? currentBankData.value.scenarios : []);
+        const spellingBank = computed(() => (currentBankData.value && Array.isArray(currentBankData.value.spelling_bank)) ? currentBankData.value.spelling_bank : []);
+        const hasSpelling = computed(() => spellingBank.value.length > 0);
 
-        // Progress Storage Namespaces (Isolated by bankId)
+        // Progress Storage Namespaces
         const getProgressStorageKey = (bId) => `it_progress_${bId}`;
 
         const loadProgressData = (bId) => {
-          const raw = localStorage.getItem(getProgressStorageKey(bId));
-          if (raw) {
-            try { return JSON.parse(raw); } catch(e) { console.error(e); }
-          }
-          return {
+          const fallback = {
             schemaVersion: "1.1",
             bankId: bId,
-            scenarios: {}, // scenarioId -> { lastPracticedDate, lastRecallRating, nextReviewDate, memoryLevel, greenReviewStreak, lastGreenDate }
-            sessions: {},  // sessionId -> { scenarioId, completed, microSteps: { stepIdx: { attempts, firstTryCorrect, passed, skipped } }, recallAttempted, recallAssisted, revealed, recallOutcome, recallRating }
-            stepStats: {}  // scenarioId_stepIdx -> { attempts, firstTryCorrect: boolean | null }
+            scenarios: {},
+            sessions: {},
+            stepStats: {}
           };
+          const data = safeGetJSON(getProgressStorageKey(bId), fallback);
+          if (!data.scenarios) data.scenarios = {};
+          if (!data.sessions) data.sessions = {};
+          if (!data.stepStats) data.stepStats = {};
+          return data;
         };
 
         const currentProgress = ref(loadProgressData(bankId.value));
