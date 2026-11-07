@@ -4,8 +4,28 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>interview-trainer - 职场面试场景化脱稿训练器</title>
+  <!-- 全局错误捕获，避免白屏无响应 -->
+  <script>
+    window.onerror = function(msg, url, lineNo, columnNo, error) {
+      var errDiv = document.getElementById('fatal-error-box');
+      if (!errDiv) {
+        errDiv = document.createElement('div');
+        errDiv.id = 'fatal-error-box';
+        errDiv.style = 'position:fixed;top:0;left:0;right:0;background:#ffebee;color:#c62828;padding:12px;font-size:12px;z-index:99999;border-bottom:1px solid #ef9a9a;';
+        document.body.appendChild(errDiv);
+      }
+      errDiv.innerHTML = '<strong>加载异常:</strong> ' + msg + ' (Line: ' + lineNo + ')<br><button onclick="localStorage.clear();location.reload();" style="margin-top:6px;padding:4px 8px;background:#c62828;color:#fff;border-radius:4px;border:none;">清空本地缓存并重试</button>';
+      return false;
+    };
+  </script>
+  <!-- 高可靠 CDN，带备用源 -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js"></script>
+  <script>
+    if (typeof Vue === 'undefined') {
+      document.write('<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"><\/script>');
+    }
+  </script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     /* Duolingo Style */
@@ -1296,7 +1316,7 @@
 
         const customBankObj = ref(loadCustomBankData());
         const hasCustomBank = computed(() => !!customBankObj.value);
-        const customBankScenariosCount = computed(() => customBankObj.value?.scenarios?.length || 0);
+        const customBankScenariosCount = computed(() => (customBankObj.value && customBankObj.value.scenarios ? customBankObj.value.scenarios.length : 0) || 0);
 
         const currentBankData = computed(() => {
           if (activeBankType.value === 'custom' && customBankObj.value) {
@@ -1711,7 +1731,7 @@
         });
 
         const getScenarioMemoryBadgeText = (scId) => {
-          const rec = currentProgress.value.scenarios?.[scId];
+          const rec = (currentProgress.value.scenarios ? currentProgress.value.scenarios[scId] : null);
           if (!rec || !rec.memoryLevel) return '未验证';
           if (rec.memoryLevel === 'reinforced') return '自评已巩固';
           if (rec.memoryLevel === 'firstPass') return '待巩固';
@@ -1719,7 +1739,7 @@
         };
 
         const getScenarioMemoryBadgeClass = (scId) => {
-          const rec = currentProgress.value.scenarios?.[scId];
+          const rec = (currentProgress.value.scenarios ? currentProgress.value.scenarios[scId] : null);
           if (!rec || !rec.memoryLevel) return 'bg-gray-100 text-gray-700 border-gray-200';
           if (rec.memoryLevel === 'reinforced') return 'bg-emerald-100 text-emerald-800 border-emerald-300';
           if (rec.memoryLevel === 'firstPass') return 'bg-amber-100 text-amber-800 border-amber-300';
@@ -1727,7 +1747,7 @@
         };
 
         const getScenarioDueText = (scId) => {
-          const rec = currentProgress.value.scenarios?.[scId];
+          const rec = (currentProgress.value.scenarios ? currentProgress.value.scenarios[scId] : null);
           if (!rec || !rec.nextReviewDate) return '尚未开始';
           const today = getTodayDateStr();
           if (rec.nextReviewDate <= today) return '今日到期待复习';
@@ -1749,7 +1769,7 @@
         const removeCustomBank = () => {
           if (confirm('确认删除当前的专属题库吗？该专属题库的进度将被永久清理。')) {
             localStorage.removeItem('it_custom_bank_content');
-            localStorage.removeItem(getProgressStorageKey(customBankObj.value?.bankId || 'custom'));
+            localStorage.removeItem(getProgressStorageKey((customBankObj.value ? customBankObj.value.bankId : 'custom') || 'custom'));
             customBankObj.value = null;
             switchBank('builtin');
             openImportModal.value = false;
