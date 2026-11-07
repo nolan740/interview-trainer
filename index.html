@@ -1283,6 +1283,11 @@
         const openBankSwitcherModal = ref(false);
         const exemplarTab = ref('foundation');
 
+        // Import modal state (restored after V1.1.1 refactor)
+        const importJsonText = ref('');
+        const fileInputRef = ref(null);
+        const copied = ref(false);
+
         // Bank State & Identity Management (P0-06)
                 // Safe load helper
         const safeGetJSON = (key, fallback) => {
@@ -1795,28 +1800,7 @@
         };
 
         // V1.1.1 增量合并与两阶段导入机制 (INC-02, INC-03, INC-04, INC-05)
-        const importJsonText = ref('');
-        const fileInputRef = ref(null);
-        const uploadedFileName = ref('');
-        const copied = ref(false);
         const importPhase = ref('input'); // 'input' | 'preview'
-        const importMode = ref('incremental'); // 'incremental' | 'replace'
-        const importDiffInfo = ref({
-          targetBankId: '',
-          incomingVersion: '1.0',
-          sourceName: '',
-          existingScCount: 0,
-          existingSpCount: 0,
-          incomingScCount: 0,
-          incomingSpCount: 0
-        });
-        const currentDiff = ref({
-          scenarios: { added: 0, updated_core: 0, updated_noncore: 0, unchanged: 0, removed: 0 },
-          spelling: { added: 0, updated_core: 0, updated_noncore: 0, unchanged: 0, removed: 0 },
-          need_reverification: 0
-        });
-        const parsedIncomingData = ref(null);
-        const isImportExecuting = ref(false);
         const importMode = ref('incremental'); // 'incremental' | 'replace'
         const importDiffInfo = ref({
           targetBankId: '',
@@ -2089,7 +2073,6 @@
           reader.readAsText(file, 'utf-8');
         };
 
-        const applyImportJson = () => handlePasteCompare();
         const handlePasteCompare = () => {
           try {
             const parsed = JSON.parse(importJsonText.value);
@@ -2472,11 +2455,9 @@
           confirmAndExecuteImport,
           closeImportModal,
           fileInputRef,
-          uploadedFileName,
           copied,
           copyAiPrompt,
           handleFileUpload,
-          applyImportJson,
           exportBackupFile,
           handleRestoreBackup,
           resetAllData,
