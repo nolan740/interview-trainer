@@ -252,7 +252,7 @@
             <div class="flex items-center justify-between text-amber-800 font-bold">
               <span class="flex items-center space-x-1">
                 <i class="fa-regular fa-lightbulb"></i>
-                <span>思考步骤 ({{ currentStepIndex + 1 }}/{{ currentScenario.steps.length }}):</span>
+                <span>思考步骤 ({{ currentStepIndex + 1 }}/{{ (currentScenario && currentScenario.steps) ? currentScenario.steps.length : 1 }}):</span>
               </span>
               <button 
                 v-if="!currentStepAssisted" 
@@ -299,7 +299,7 @@
           <div v-if="!evaluated" class="space-y-2">
             <div class="text-[11px] font-bold text-gray-500 uppercase tracking-wider flex justify-between">
               <span>备选词块库 (含易错干扰项)</span>
-              <span>已选 {{ selectedChunks.length }} / {{ currentStep.correct_chunks.length }}</span>
+              <span>已选 {{ selectedChunks.length }} / {{ (currentStep && currentStep.correct_chunks) ? currentStep.correct_chunks.length : 0 }}</span>
             </div>
             <div class="flex flex-wrap gap-2">
               <button 
@@ -1268,8 +1268,9 @@
 目标岗位信息 / JD 如下：
 [请在此粘贴你要应聘的岗位职责、要求或面试官常见追问]`;
 
-    createApp({
+    const app = createApp({
       setup() {
+
         // Theme & Main Tabs
         const currentTheme = ref(localStorage.getItem('it_theme') || 'duo');
         const currentMainTab = ref('practice'); // 'practice' | 'scenarios' | 'dashboard'
@@ -1309,7 +1310,7 @@
         });
 
         const currentBankData = computed(() => {
-          if (activeBankType.value === 'custom' && customBankObj.value) {
+          if (activeBankType.value === 'custom' && customBankObj.value && Array.isArray(customBankObj.value.scenarios) && customBankObj.value.scenarios.length > 0) {
             return customBankObj.value;
           }
           return BUILTIN_BANK;
@@ -1378,11 +1379,37 @@
 
         // Current Scenario & Practice Session State (P0-01, P0-02)
         const currentScenarioIndex = ref(0);
-        const currentScenario = computed(() => scenariosList.value[currentScenarioIndex.value] || scenariosList.value[0]);
+        const fallbackScenario = {
+          id: '01',
+          title: '通用场景',
+          interviewer_q: '准备中...',
+          foundation_text: '',
+          advanced_text: '',
+          zh_scaffold_full: '',
+          watch_outs: [],
+          steps: [{
+          step_zh: '加载中...',
+          hint_text: '',
+          target_sentence: '',
+          correct_chunks: [],
+          distractors: []
+        }]
+        };
+        const currentScenario = computed(() => {
+          const list = scenariosList.value;
+          if (Array.isArray(list) && list.length > 0) {
+            return list[currentScenarioIndex.value] || list[0];
+          }
+          return (BUILTIN_BANK && BUILTIN_BANK.scenarios && BUILTIN_BANK.scenarios[0]) ? BUILTIN_BANK.scenarios[0] : fallbackScenario;
+        });
+
         const currentStepIndex = ref(0);
         const currentStep = computed(() => {
-          if (!currentScenario.value || !currentScenario.value.steps) return null;
-          return currentScenario.value.steps[currentStepIndex.value];
+          const sc = currentScenario.value;
+          if (sc && Array.isArray(sc.steps) && sc.steps.length > 0) {
+            return sc.steps[currentStepIndex.value] || sc.steps[0];
+          }
+          return fallbackScenario.steps[0];
         });
 
         // Chunks interaction
@@ -2442,7 +2469,11 @@
           nextSpellingWord
         };
       }
-    }).mount('#app');
+    });
+    app.config.errorHandler = (err, instance, info) => {
+      console.error('Vue Runtime Caught Error:', err, info);
+    };
+    app.mount('#app');
   </script>
 </body>
 </html>
