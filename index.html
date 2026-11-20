@@ -5,9 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>interview-trainer - 职场面试场景化脱稿训练器</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue@3.4.21/dist/vue.global.prod.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
+    [v-cloak] { display: none !important; }
+
     /* Duolingo Style */
     .theme-duo {
       --bg-main: #f7f9fa;
@@ -80,19 +82,13 @@
       color: white;
       border-radius: 9999px;
     }
-    .theme-apple .btn-3d-primary:active {
-      opacity: 0.85;
-      transform: none;
-    }
     .theme-apple .btn-3d-accent {
       background-color: #5e5ce6;
-      box-shadow: none;
       color: white;
       border-radius: 9999px;
     }
     .theme-apple .btn-3d-warn {
       background-color: #ff3b30;
-      box-shadow: none;
       color: white;
       border-radius: 9999px;
     }
@@ -123,24 +119,20 @@
     }
     .theme-nordic .btn-3d-accent {
       background-color: #7c6a59;
-      box-shadow: none;
       color: #fbf9f5;
       border-radius: 12px;
     }
     .theme-nordic .btn-3d-warn {
       background-color: #a34843;
-      box-shadow: none;
       color: #fbf9f5;
       border-radius: 12px;
     }
     .theme-nordic .btn-3d-chunk {
       background: #fbf9f5;
       border: 1px solid #ded7ce;
-      box-shadow: none;
       border-radius: 10px;
     }
 
-    /* Shake Animation */
     @keyframes shake {
       0%, 100% { transform: translateX(0); }
       20%, 60% { transform: translateX(-6px); }
@@ -152,7 +144,7 @@
   </style>
 </head>
 <body class="bg-gray-50 text-gray-800 antialiased select-none font-sans">
-  <div id="app" :class="'theme-' + currentTheme" class="min-h-screen flex flex-col max-w-md mx-auto relative shadow-2xl overflow-x-hidden border-x border-gray-200" style="background-color: var(--bg-main);">
+  <div id="app" v-cloak :class="'theme-' + currentTheme" class="min-h-screen flex flex-col max-w-md mx-auto relative shadow-2xl overflow-x-hidden border-x border-gray-200" style="background-color: var(--bg-main);">
 
     <!-- ================= TOP HEADER ================= -->
     <header class="px-3.5 py-2.5 bg-white/95 backdrop-blur border-b border-gray-200 sticky top-0 z-40 flex items-center justify-between">
@@ -326,7 +318,7 @@
             </p>
           </div>
 
-          <!-- Logic Scaffold (中文表达意图提示) -->
+          <!-- Logic Scaffold -->
           <div class="p-3.5 rounded-2xl bg-amber-50/90 border border-amber-200 text-xs space-y-1">
             <div class="flex items-center justify-between text-amber-800 font-bold">
               <span class="flex items-center space-x-1">
@@ -356,7 +348,7 @@
             <p>{{ currentStep.hint_text }}</p>
           </div>
 
-          <!-- Assembly Target Box (点选词块槽) -->
+          <!-- Assembly Target Box -->
           <div 
             :class="[hasError ? 'animate-shake border-red-400 bg-red-50/30' : 'border-gray-300 bg-white']"
             class="min-h-[92px] p-3 rounded-2xl border-2 border-dashed flex flex-wrap gap-2 items-center content-start transition-all">
@@ -374,7 +366,7 @@
             </button>
           </div>
 
-          <!-- Chunk Pool (高颗粒度备选词块池) -->
+          <!-- Chunk Pool -->
           <div v-if="!evaluated" class="space-y-2">
             <div class="text-[11px] font-bold text-gray-500 flex justify-between">
               <span>备选词块池（已拆出核心易错动词/介词）</span>
@@ -391,7 +383,7 @@
             </div>
           </div>
 
-          <!-- High-Contrast Check Answer Action Area (强视觉凸显核对按钮，弱化跳过) -->
+          <!-- High-Contrast Check Answer Action Area -->
           <div v-if="!evaluated" class="pt-3 space-y-2.5">
             <button 
               @click="evaluateChunkStep"
@@ -415,7 +407,6 @@
 
           <!-- Evaluation Feedback Section -->
           <div v-if="evaluated" class="space-y-3 pt-2">
-            <!-- Wrong Feedback -->
             <div v-if="!isCurrentStepSuccess" class="p-3.5 rounded-2xl bg-rose-50 border-2 border-rose-300 text-rose-900 space-y-2.5">
               <div class="flex items-center space-x-1.5 font-black text-xs text-rose-700">
                 <i class="fa-solid fa-triangle-exclamation text-rose-600 text-sm"></i>
@@ -435,7 +426,6 @@
               </button>
             </div>
 
-            <!-- Success Feedback + Auto Read & Shadowing -->
             <div v-else class="space-y-3">
               <div class="p-3.5 rounded-2xl bg-emerald-50 border-2 border-emerald-300 text-emerald-900 space-y-2">
                 <div class="flex items-center justify-between">
@@ -592,7 +582,7 @@
           </div>
         </div>
 
-        <!-- ================= MODE B: 词汇消消乐配对 (MATCHING GAME & MISTAKE BOOK) ================= -->
+        <!-- ================= MODE B: 词汇消消乐配对 ================= -->
         <div v-if="activePracticeMode === 'match'" class="space-y-4">
           <div class="p-3 rounded-2xl bg-white border border-gray-200 shadow-sm space-y-2.5">
             <div class="flex items-center justify-between">
@@ -774,376 +764,4 @@
             <div class="text-[10px] text-gray-400 mt-0.5">错题词汇待消: {{ mistakeWordsCount }} 词</div>
           </div>
           <div class="p-3.5 rounded-2xl bg-white border border-gray-200 shadow-sm">
-            <div class="text-[11px] font-bold text-gray-500">今日到期需复测</div>
-            <div class="text-2xl font-black text-rose-600 mt-1">
-              {{ todayDueCount }}<span class="text-xs font-normal text-gray-500 ml-1">题</span>
-            </div>
-            <div class="text-[10px] text-gray-400 mt-0.5">含隔天强化与一周抽查</div>
-          </div>
-        </div>
-
-        <div class="p-4 rounded-2xl bg-white border border-gray-200 shadow-sm space-y-3">
-          <div class="flex items-center justify-between">
-            <span class="font-bold text-gray-900 text-xs">当前题库记忆阶段分布</span>
-            <span class="text-[10px] text-gray-500">共 {{ scenariosList.length }} 题</span>
-          </div>
-
-          <div class="grid grid-cols-4 gap-1.5 text-center text-xs">
-            <div class="p-2 bg-gray-50 rounded-xl border border-gray-200">
-              <div class="font-black text-gray-700">{{ statusStats.unverified }}</div>
-              <div class="text-[10px] text-gray-400">未学习</div>
-            </div>
-            <div class="p-2 bg-rose-50 rounded-xl border border-rose-200">
-              <div class="font-black text-rose-700">{{ statusStats.needsReview }}</div>
-              <div class="text-[10px] text-rose-500">隔天强化</div>
-            </div>
-            <div class="p-2 bg-amber-50 rounded-xl border border-amber-200">
-              <div class="font-black text-amber-700">{{ statusStats.firstPass }}</div>
-              <div class="text-[10px] text-amber-600">一周抽查</div>
-            </div>
-            <div class="p-2 bg-emerald-50 rounded-xl border border-emerald-200">
-              <div class="font-black text-emerald-700">{{ statusStats.reinforced }}</div>
-              <div class="text-[10px] text-emerald-600">已巩固</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="p-4 rounded-2xl bg-white border border-gray-200 shadow-sm space-y-3">
-          <div class="font-bold text-gray-900 text-xs">各场景复习排期明细</div>
-          <div class="space-y-2">
-            <div v-for="sc in scenariosList" :key="sc.id" @click="selectScenarioAndTrain(sc)" class="p-2.5 rounded-xl bg-gray-50 hover:bg-gray-100 cursor-pointer border border-gray-200 flex items-center justify-between text-xs">
-              <div class="space-y-0.5 pr-2">
-                <div class="font-bold text-gray-800 truncate max-w-[180px]">#{{ sc.id }} {{ sc.title }}</div>
-                <div class="text-[10px] text-gray-500">{{ getScenarioDueText(sc.id) }}</div>
-              </div>
-              <span :class="getScenarioMemoryBadgeClass(sc.id)" class="text-[10px] font-bold px-2 py-0.5 rounded-full border shrink-0">
-                {{ getScenarioMemoryBadgeText(sc.id) }}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </main>
-
-
-    <!-- ================= BOTTOM NAVIGATION BAR ================= -->
-    <nav class="fixed bottom-0 left-0 right-0 max-w-md mx-auto bg-white/95 backdrop-blur border-t border-gray-200 px-6 py-2 flex justify-between items-center z-30 shadow-lg">
-      <button 
-        @click="currentMainTab = 'practice'" 
-        :class="currentMainTab === 'practice' ? 'text-emerald-600 font-black' : 'text-gray-400 font-medium'"
-        class="flex flex-col items-center space-y-0.5 text-xs">
-        <i class="fa-solid fa-graduation-cap text-lg"></i>
-        <span>每日闯关</span>
-      </button>
-
-      <button 
-        @click="currentMainTab = 'scenarios'" 
-        :class="currentMainTab === 'scenarios' ? 'text-indigo-600 font-black' : 'text-gray-400 font-medium'"
-        class="flex flex-col items-center space-y-0.5 text-xs">
-        <i class="fa-solid fa-list-check text-lg"></i>
-        <span>场景全景库</span>
-      </button>
-
-      <button 
-        @click="currentMainTab = 'dashboard'" 
-        :class="currentMainTab === 'dashboard' ? 'text-purple-600 font-black' : 'text-gray-400 font-medium'"
-        class="flex flex-col items-center space-y-0.5 text-xs">
-        <i class="fa-solid fa-chart-pie text-lg"></i>
-        <span>掌握大盘</span>
-      </button>
-    </nav>
-
-
-    <!-- ================= MODAL: 题库切换器 ================= -->
-    <div v-if="openBankSwitcherModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end justify-center">
-      <div class="bg-white w-full max-w-md rounded-t-3xl max-h-[85vh] flex flex-col overflow-hidden">
-        <div class="p-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
-          <span class="text-base font-black text-gray-900">切换训练题库</span>
-          <button @click="openBankSwitcherModal = false" class="text-gray-400 hover:text-gray-600 text-lg p-1">
-            <i class="fa-solid fa-xmark"></i>
-          </button>
-        </div>
-
-        <div class="p-4 overflow-y-auto space-y-3 text-xs">
-          <div 
-            @click="switchBank('builtin')"
-            :class="activeBankType === 'builtin' ? 'border-blue-500 bg-blue-50/60 ring-2 ring-blue-300' : 'border-gray-200 bg-white hover:bg-gray-50'"
-            class="p-4 rounded-2xl border-2 cursor-pointer transition space-y-1">
-            <div class="flex items-center justify-between">
-              <span class="font-black text-sm text-gray-900">官方通用职场题库 (Built-in)</span>
-              <span v-if="activeBankType === 'builtin'" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-600 text-white">当前使用中</span>
-            </div>
-            <p class="text-gray-500 text-[11px]">已升级高颗粒度易错词块拆解，包含 10 个核心场景与易错搭配库。</p>
-          </div>
-
-          <div 
-            v-if="hasCustomBank"
-            @click="switchBank('custom')"
-            :class="activeBankType === 'custom' ? 'border-emerald-500 bg-emerald-50/60 ring-2 ring-emerald-300' : 'border-gray-200 bg-white hover:bg-gray-50'"
-            class="p-4 rounded-2xl border-2 cursor-pointer transition space-y-1">
-            <div class="flex items-center justify-between">
-              <span class="font-black text-sm text-gray-900">我的专属题库 (Custom Bank)</span>
-              <span v-if="activeBankType === 'custom'" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-600 text-white">当前使用中</span>
-            </div>
-            <p class="text-gray-500 text-[11px]">包含 {{ customBankScenariosCount }} 个专属面试场景。进度独立保存。</p>
-          </div>
-
-          <div v-else class="p-4 rounded-2xl border-2 border-dashed border-gray-300 text-center space-y-2">
-            <p class="text-gray-500">暂无已导入的专属题库</p>
-            <button 
-              @click="openBankSwitcherModal = false; openImportModal = true;"
-              class="px-3 py-1.5 rounded-xl bg-indigo-50 text-indigo-700 font-bold border border-indigo-200 text-xs">
-              导入我的专属题库
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-
-    <!-- ================= MODAL: 完整范文即时查阅 ================= -->
-    <div v-if="openExemplarModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end justify-center">
-      <div class="bg-white w-full max-w-md rounded-t-3xl max-h-[88vh] flex flex-col overflow-hidden">
-        <div class="p-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
-          <div class="flex items-center space-x-2">
-            <span class="text-base font-black text-gray-900">场景 {{ currentScenario.id }} 完整范文</span>
-            <button 
-              @click="speakUS(exemplarTab === 'foundation' ? currentScenario.foundation_text : currentScenario.advanced_text, 1.0)"
-              class="text-xs bg-emerald-500 text-white font-bold px-2.5 py-0.5 rounded-full flex items-center space-x-1">
-              <i class="fa-solid fa-volume-high"></i>
-              <span>美音朗读</span>
-            </button>
-          </div>
-          <button @click="openExemplarModal = false" class="text-gray-400 hover:text-gray-600 text-lg p-1">
-            <i class="fa-solid fa-xmark"></i>
-          </button>
-        </div>
-
-        <div class="p-3 bg-white border-b border-gray-200 flex space-x-2">
-          <button 
-            @click="exemplarTab = 'foundation'" 
-            :class="exemplarTab === 'foundation' ? 'bg-emerald-500 text-white font-bold' : 'bg-gray-100 text-gray-600'"
-            class="flex-1 py-1.5 rounded-xl text-xs transition">
-            基础版（先跟读这版）
-          </button>
-          <button 
-            @click="exemplarTab = 'advanced'" 
-            :class="exemplarTab === 'advanced' ? 'bg-indigo-600 text-white font-bold' : 'bg-gray-100 text-gray-600'"
-            class="flex-1 py-1.5 rounded-xl text-xs transition">
-            进阶版（理解选用）
-          </button>
-        </div>
-
-        <div class="p-4 overflow-y-auto space-y-4 text-xs leading-relaxed">
-          <div class="p-3.5 bg-gray-50 rounded-2xl border border-gray-200 text-gray-800 space-y-2">
-            <div class="font-bold text-gray-500 uppercase tracking-wider text-[10px]">
-              {{ exemplarTab === 'foundation' ? 'Foundation Script (~100 words)' : 'Advanced Script (~110 words)' }}
-            </div>
-            <p class="text-sm font-medium leading-relaxed font-sans">
-              {{ exemplarTab === 'foundation' ? currentScenario.foundation_text : currentScenario.advanced_text }}
-            </p>
-          </div>
-
-          <div class="p-3.5 bg-amber-50 rounded-2xl border border-amber-200 text-amber-900 space-y-1">
-            <div class="font-bold flex items-center space-x-1">
-              <i class="fa-solid fa-brain"></i>
-              <span>脱稿中文思路骨架</span>
-            </div>
-            <p>{{ currentScenario.zh_scaffold_full }}</p>
-          </div>
-
-          <div class="p-3.5 bg-rose-50 rounded-2xl border border-rose-200 text-rose-900 space-y-1.5">
-            <div class="font-bold flex items-center space-x-1 text-rose-700">
-              <i class="fa-solid fa-triangle-exclamation"></i>
-              <span>高频易错警报</span>
-            </div>
-            <ul class="list-disc list-inside space-y-1">
-              <li v-for="(tip, tidx) in currentScenario.watch_outs" :key="tidx">{{ tip }}</li>
-            </ul>
-          </div>
-        </div>
-
-        <div class="p-3 bg-gray-50 border-t border-gray-200">
-          <button @click="openExemplarModal = false" class="w-full py-2.5 rounded-xl bg-gray-800 text-white font-bold text-xs">
-            回到练习
-          </button>
-        </div>
-      </div>
-    </div>
-
-
-    <!-- ================= MODAL: 导入专属题库 ================= -->
-    <div v-if="openImportModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end justify-center">
-      <div class="bg-white w-full max-w-md rounded-t-3xl max-h-[92vh] flex flex-col overflow-hidden">
-        <div class="p-4 border-b border-gray-200 flex items-center justify-between bg-indigo-50/60 shrink-0">
-          <div class="flex items-center space-x-2">
-            <span class="text-base font-black text-indigo-950">
-              {{ importPhase === 'input' ? '📥 导入专属题库' : '🔍 导入差异预览与确认' }}
-            </span>
-          </div>
-          <button @click="closeImportModal" class="text-gray-400 hover:text-gray-600 text-lg p-1">
-            <i class="fa-solid fa-xmark"></i>
-          </button>
-        </div>
-
-        <div v-if="importPhase === 'input'" class="p-4 overflow-y-auto space-y-4 text-xs">
-          <div class="p-3 bg-amber-50 rounded-2xl border border-amber-200 text-amber-900 space-y-1">
-            <div class="font-bold flex items-center space-x-1">
-              <i class="fa-solid fa-shield-halved text-amber-600"></i>
-              <span>本地隐私与增量安全</span>
-            </div>
-            <p class="leading-relaxed">
-              题库仅在当前设备浏览器解析存储，支持<strong>增量合并</strong>，旧进度完整保留。
-            </p>
-          </div>
-
-          <div class="space-y-2">
-            <label class="block font-bold text-gray-800">方法一：选择 JSON 文件解析</label>
-            <input type="file" ref="fileInputRef" accept=".json,application/json" @change="handleFileUpload" class="hidden" id="jsonFileInput">
-            <label for="jsonFileInput" class="w-full btn-3d-primary py-3 px-4 rounded-2xl font-black text-xs flex items-center justify-center space-x-2 cursor-pointer shadow-md">
-              <i class="fa-solid fa-folder-open text-base"></i>
-              <span>选择本地 JSON 文件对比</span>
-            </label>
-          </div>
-
-          <div class="p-3 bg-indigo-50/70 rounded-2xl border border-indigo-200 space-y-2">
-            <div class="flex items-center justify-between">
-              <span class="font-bold text-indigo-900">用 AI 生成专属题库 JSON</span>
-              <button @click="copyAiPrompt" class="px-2.5 py-1 rounded-lg bg-indigo-600 text-white font-bold text-[10px]">
-                {{ copied ? '已复制 Prompt' : '复制 AI 提示词' }}
-              </button>
-            </div>
-            <p class="text-[10px] text-indigo-700 leading-relaxed">
-              已升级为“高颗粒度易错词块拆解”提示词，生成的 JSON 会单独拆出易错动词与介词搭配。
-            </p>
-          </div>
-
-          <div class="space-y-1.5">
-            <label class="block font-bold text-gray-700">方法二：手动粘贴 JSON 文本</label>
-            <textarea v-model="importJsonText" rows="3" placeholder='粘贴 JSON 内容...' class="w-full p-2.5 font-mono text-[11px] border-2 border-gray-200 rounded-xl bg-gray-50"></textarea>
-            <button @click="handlePasteCompare" :disabled="!importJsonText.trim()" class="w-full btn-3d-accent py-2.5 rounded-xl font-bold text-xs">
-              解析并查看差异预览
-            </button>
-          </div>
-
-          <div v-if="activeBankType === 'custom'" class="pt-2">
-            <button @click="removeCustomBank" class="w-full py-2.5 rounded-xl border border-rose-300 text-rose-700 font-bold hover:bg-rose-50">
-              删除此专属题库并切回通用题库
-            </button>
-          </div>
-        </div>
-
-        <div v-else-if="importPhase === 'preview'" class="p-4 overflow-y-auto space-y-3.5 text-xs">
-          <div class="p-3 bg-gray-50 rounded-2xl border border-gray-200 space-y-1">
-            <div class="font-bold text-gray-800">目标题库: {{ importDiffInfo.targetBankId }}</div>
-            <div class="text-[11px] text-gray-500">来源: {{ importDiffInfo.sourceName }}</div>
-          </div>
-
-          <div class="grid grid-cols-2 gap-2">
-            <div @click="importMode = 'incremental'" :class="importMode === 'incremental' ? 'border-emerald-500 bg-emerald-50/60 ring-2 ring-emerald-300' : 'border-gray-200'" class="p-2.5 rounded-xl border-2 cursor-pointer">
-              <div class="font-bold text-emerald-900">增量合并 (推荐)</div>
-              <p class="text-[10px] text-gray-500 mt-0.5">追加新题，保留原有进度</p>
-            </div>
-            <div @click="importMode = 'replace'" :class="importMode === 'replace' ? 'border-rose-500 bg-rose-50/60 ring-2 ring-rose-300' : 'border-gray-200'" class="p-2.5 rounded-xl border-2 cursor-pointer">
-              <div class="font-bold text-rose-900">全量替换</div>
-              <p class="text-[10px] text-gray-500 mt-0.5">新文件覆盖当前专属库</p>
-            </div>
-          </div>
-
-          <div class="p-3 bg-white rounded-2xl border border-gray-200 space-y-2">
-            <div class="font-bold text-gray-800">场景变动: 新增 {{ currentDiff.scenarios.added }} · 更新 {{ currentDiff.scenarios.updated_core + currentDiff.scenarios.updated_noncore }} · 移除 {{ currentDiff.scenarios.removed }}</div>
-          </div>
-
-          <div class="pt-2 flex space-x-2">
-            <button @click="cancelImportPreview" class="w-1/3 py-3 rounded-2xl border border-gray-300 text-gray-600 font-bold">取消</button>
-            <button @click="confirmAndExecuteImport" class="flex-1 btn-3d-primary py-3 rounded-2xl font-black text-xs">确认导入</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ================= MODAL: 设置与备份 ================= -->
-    <div v-if="openSettings" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end justify-center">
-      <div class="bg-white w-full max-w-md rounded-t-3xl max-h-[85vh] flex flex-col overflow-hidden">
-        <div class="p-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
-          <span class="text-base font-black text-gray-900">设置与学习偏好</span>
-          <button @click="openSettings = false" class="text-gray-400 hover:text-gray-600 text-lg p-1">
-            <i class="fa-solid fa-xmark"></i>
-          </button>
-        </div>
-
-        <div class="p-5 overflow-y-auto space-y-4 text-xs">
-          <div class="p-3.5 bg-amber-50/70 rounded-2xl border border-amber-200 space-y-2">
-            <div class="flex items-center justify-between">
-              <span class="font-bold text-amber-950">每日闯关目标（场景数/天）</span>
-              <span class="font-black text-amber-700">{{ dailyTarget }} 个场景</span>
-            </div>
-            <div class="grid grid-cols-4 gap-2">
-              <button v-for="num in [3, 5, 8, 10]" :key="num" @click="setDailyTarget(num)" :class="dailyTarget === num ? 'bg-amber-500 text-white font-bold' : 'bg-white border border-amber-200 text-amber-900'" class="py-1.5 rounded-xl text-xs transition">
-                {{ num }} 个
-              </button>
-            </div>
-          </div>
-
-          <div class="p-3.5 bg-blue-50/70 rounded-2xl border border-blue-200 flex items-center justify-between">
-            <div>
-              <div class="font-bold text-blue-950">美式发音引擎 (en-US)</div>
-              <div class="text-[10px] text-blue-700 mt-0.5">{{ currentVoiceName || '默认系统美音' }}</div>
-            </div>
-            <button @click="speakUS('Hello! Let us practice your interview scenarios today.', 1.0)" class="px-3 py-1.5 rounded-xl bg-blue-600 text-white font-bold text-xs">
-              试听美音
-            </button>
-          </div>
-
-          <div class="space-y-2">
-            <label class="block font-bold text-gray-700">视觉主题风格</label>
-            <div class="grid grid-cols-3 gap-2">
-              <button @click="switchTheme('duo')" :class="currentTheme === 'duo' ? 'border-emerald-500 ring-2 ring-emerald-300 font-bold bg-emerald-50' : 'border-gray-200'" class="p-3 rounded-2xl border-2 text-center">
-                <div class="text-base text-emerald-500 mb-1"><i class="fa-solid fa-shapes"></i></div>
-                <div class="text-xs">多邻国风</div>
-              </button>
-              <button @click="switchTheme('apple')" :class="currentTheme === 'apple' ? 'border-blue-500 ring-2 ring-blue-300 font-bold bg-blue-50' : 'border-gray-200'" class="p-3 rounded-2xl border-2 text-center">
-                <div class="text-base text-blue-500 mb-1"><i class="fa-brands fa-apple"></i></div>
-                <div class="text-xs">苹果极简</div>
-              </button>
-              <button @click="switchTheme('nordic')" :class="currentTheme === 'nordic' ? 'border-amber-700 ring-2 ring-amber-300 font-bold bg-amber-50' : 'border-gray-200'" class="p-3 rounded-2xl border-2 text-center">
-                <div class="text-base text-amber-700 mb-1"><i class="fa-solid fa-leaf"></i></div>
-                <div class="text-xs">北欧有机</div>
-              </button>
-            </div>
-          </div>
-
-          <div class="p-3.5 bg-gray-50 rounded-2xl border border-gray-200 space-y-2">
-            <div class="font-bold text-gray-800">本地数据备份与恢复</div>
-            <div class="flex space-x-2">
-              <button @click="exportBackupFile" class="flex-1 py-2 rounded-xl bg-indigo-600 text-white font-bold text-xs">导出备份</button>
-              <label for="restoreFileInput" class="flex-1 py-2 rounded-xl bg-white border border-gray-300 text-gray-700 font-bold text-xs text-center cursor-pointer">恢复备份</label>
-              <input type="file" id="restoreFileInput" accept=".json,application/json" @change="handleRestoreBackup" class="hidden">
-            </div>
-          </div>
-
-          <button @click="resetAllData" class="w-full py-3 rounded-xl border border-rose-300 text-rose-700 font-bold hover:bg-rose-50">
-            清空所有学习记录并恢复初始状态
-          </button>
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- APPLICATION VUE SCRIPT -->
-  <script>
-    const { createApp, ref, computed, onMounted, onUnmounted } = Vue;
-
-    // Embedded Universal Bank JSON (Upgraded to Granular High-Frequency Chunks)
-    const BUILTIN_BANK = {
-      "version": "1.2.0",
-      "bankId": "builtin-interview-v2",
-      "updated_at": "2026-11-20",
-      "scenarios": [
-        {
-          "id": "UNIV-01",
-          "title": "自我介绍 (Tell me about yourself)",
-          "interviewer_q": "Could you walk me through your background and key experience?",
-          "foundation_text": "I have extensive experience
+            <div class="text-[11px] font-bold text-gray-500">
