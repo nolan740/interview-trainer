@@ -55,7 +55,7 @@
       background-color: #ffffff;
       border: 2px solid #e5e5e5;
       box-shadow: 0 3px 0 #cfcfcf;
-      color: #4b4b4b;
+      color: #3c3c3c;
     }
     .theme-duo .btn-3d-chunk:active {
       transform: translateY(3px);
@@ -76,7 +76,7 @@
     }
     .theme-apple .btn-3d-primary {
       background-color: #0071e3;
-      box-shadow: none;
+      box-shadow: 0 4px 12px rgba(0, 113, 227, 0.3);
       color: white;
       border-radius: 9999px;
     }
@@ -117,27 +117,27 @@
     }
     .theme-nordic .btn-3d-primary {
       background-color: #4a6b5d;
-      box-shadow: none;
+      box-shadow: 0 4px 10px rgba(74, 107, 93, 0.25);
       color: #fbf9f5;
-      border-radius: 8px;
+      border-radius: 12px;
     }
     .theme-nordic .btn-3d-accent {
       background-color: #7c6a59;
       box-shadow: none;
       color: #fbf9f5;
-      border-radius: 8px;
+      border-radius: 12px;
     }
     .theme-nordic .btn-3d-warn {
       background-color: #a34843;
       box-shadow: none;
       color: #fbf9f5;
-      border-radius: 8px;
+      border-radius: 12px;
     }
     .theme-nordic .btn-3d-chunk {
       background: #fbf9f5;
       border: 1px solid #ded7ce;
       box-shadow: none;
-      border-radius: 8px;
+      border-radius: 10px;
     }
 
     /* Shake Animation */
@@ -171,7 +171,6 @@
       </div>
 
       <div class="flex items-center space-x-1.5 shrink-0">
-        <!-- Bank Switcher -->
         <button 
           @click="openBankSwitcherModal = true" 
           title="切换题库"
@@ -179,7 +178,6 @@
           <i class="fa-solid fa-layer-group text-xs"></i>
         </button>
 
-        <!-- Import -->
         <button 
           @click="openImportModal = true" 
           title="导入题库"
@@ -187,13 +185,11 @@
           <i class="fa-solid fa-file-import text-xs"></i>
         </button>
 
-        <!-- Daily Goal Pill -->
         <div class="h-8 px-2.5 rounded-full bg-amber-50 border border-amber-200 font-bold text-amber-800 text-xs flex items-center space-x-1" title="今日闯关进度">
           <i class="fa-solid fa-fire text-amber-500 text-[11px]"></i>
           <span>{{ todayCompletedCount }}/{{ dailyTarget }}</span>
         </div>
 
-        <!-- Settings -->
         <button 
           @click="openSettings = true" 
           title="设置与备份"
@@ -234,10 +230,10 @@
       <!-- ================= TAB 1: 练习主控台 (PRACTICE) ================= -->
       <div v-if="currentMainTab === 'practice'" class="space-y-4">
 
-        <!-- ================= MODE A: 每日场景闯关 (CHUNKS + AUDIO + NAVIGATION) ================= -->
+        <!-- ================= MODE A: 每日场景闯关 ================= -->
         <div v-if="activePracticeMode === 'chunks' && !inRecallPhase" class="space-y-3.5">
           
-          <!-- Daily Goal Banner (达成今日目标提示) -->
+          <!-- Daily Goal Banner -->
           <div v-if="todayCompletedCount >= dailyTarget && !dismissedDailyBanner" class="p-3 rounded-2xl bg-gradient-to-r from-amber-100 to-yellow-50 border border-amber-300 flex items-center justify-between text-xs text-amber-950 shadow-sm">
             <div class="flex items-center space-x-2">
               <span class="text-lg">🏆</span>
@@ -267,7 +263,6 @@
               </span>
             </div>
 
-            <!-- Prev / Next Scenario Navigation -->
             <div class="flex items-center justify-between pt-1.5 border-t border-gray-100 text-[11px]">
               <button 
                 @click="goPrevScenario"
@@ -306,11 +301,11 @@
           </div>
 
           <!-- Interviewer Question Card + US Audio Playback -->
-          <div class="p-4 rounded-2xl bg-white border border-gray-200 shadow-sm space-y-2.5">
+          <div class="p-3.5 rounded-2xl bg-white border border-gray-200 shadow-sm space-y-2">
             <div class="flex items-center justify-between">
               <div class="flex items-center space-x-1.5 text-xs font-bold text-indigo-600">
                 <i class="fa-solid fa-user-tie"></i>
-                <span>面试官提问 (Interviewer)</span>
+                <span>面试官提问</span>
               </div>
               <div class="flex items-center space-x-1.5">
                 <button 
@@ -326,7 +321,7 @@
                 </button>
               </div>
             </div>
-            <p class="text-sm font-bold text-gray-800 leading-snug">
+            <p class="text-[13px] font-bold text-gray-800 leading-snug">
               "{{ currentScenario.interviewer_q }}"
             </p>
           </div>
@@ -336,14 +331,14 @@
             <div class="flex items-center justify-between text-amber-800 font-bold">
               <span class="flex items-center space-x-1">
                 <i class="fa-regular fa-lightbulb"></i>
-                <span>你的回复意图 ({{ currentStepIndex + 1 }}/{{ (currentScenario && currentScenario.steps) ? currentScenario.steps.length : 1 }}):</span>
+                <span>拼出这句话 ({{ currentStepIndex + 1 }}/{{ (currentScenario && currentScenario.steps) ? currentScenario.steps.length : 1 }}):</span>
               </span>
               <button 
                 v-if="!currentStepAssisted" 
                 @click="triggerStepHint" 
                 class="text-amber-700 hover:text-amber-900 underline flex items-center space-x-1">
                 <i class="fa-solid fa-key text-[10px]"></i>
-                <span>语法/搭配提示</span>
+                <span>易错点提示</span>
               </button>
               <span v-else class="text-amber-600 italic">已展开提示</span>
             </div>
@@ -356,81 +351,85 @@
           <div v-if="currentStepAssisted" class="p-3 rounded-xl bg-orange-100/90 border border-orange-300 text-xs text-orange-900 space-y-1">
             <div class="font-bold flex items-center space-x-1">
               <i class="fa-solid fa-circle-info"></i>
-              <span>地道搭配提示 (Watch Out)</span>
+              <span>核心易错点解析 (Watch Out)</span>
             </div>
             <p>{{ currentStep.hint_text }}</p>
           </div>
 
           <!-- Assembly Target Box (点选词块槽) -->
           <div 
-            :class="[hasError ? 'animate-shake border-red-400 bg-red-50/30' : 'border-gray-200 bg-white']"
-            class="min-h-[100px] p-3 rounded-2xl border-2 border-dashed flex flex-wrap gap-2 items-start content-start transition-all">
+            :class="[hasError ? 'animate-shake border-red-400 bg-red-50/30' : 'border-gray-300 bg-white']"
+            class="min-h-[92px] p-3 rounded-2xl border-2 border-dashed flex flex-wrap gap-2 items-center content-start transition-all">
             <div v-if="selectedChunks.length === 0" class="text-xs text-gray-400 my-auto w-full text-center py-4">
-              手点下方英文词块拼出句子（点击即自动播放美式发音）
+              按正确语序点选下方词块（重点留意动词时态与介词搭配）
             </div>
             <button 
               v-for="(chunk, idx) in selectedChunks" 
               :key="idx" 
               @click="unselectChunk(chunk, idx)"
               :disabled="evaluated"
-              class="px-3 py-2 rounded-xl text-xs font-semibold bg-emerald-100 text-emerald-900 border border-emerald-300 shadow-sm flex items-center space-x-1.5 hover:bg-emerald-200 transition">
+              class="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-100 text-emerald-950 border border-emerald-300 shadow-sm flex items-center space-x-1 hover:bg-emerald-200 transition">
               <span>{{ chunk.text }}</span>
               <i v-if="!evaluated" class="fa-solid fa-xmark text-[10px] text-emerald-600"></i>
             </button>
           </div>
 
-          <!-- Chunk Pool (备选词块池) -->
+          <!-- Chunk Pool (高颗粒度备选词块池) -->
           <div v-if="!evaluated" class="space-y-2">
             <div class="text-[11px] font-bold text-gray-500 flex justify-between">
-              <span>备选词块池（点选拼句，含易错干扰项）</span>
-              <span>已选 {{ selectedChunks.length }} / {{ (currentStep && currentStep.correct_chunks) ? currentStep.correct_chunks.length : 0 }}</span>
+              <span>备选词块池（已拆出核心易错动词/介词）</span>
+              <span class="text-emerald-700">已选 {{ selectedChunks.length }} / {{ (currentStep && currentStep.correct_chunks) ? currentStep.correct_chunks.length : 0 }}</span>
             </div>
             <div class="flex flex-wrap gap-2">
               <button 
                 v-for="(chunk, idx) in availablePool" 
                 :key="chunk.id || idx" 
                 @click="selectChunk(chunk)"
-                class="btn-3d-chunk px-3 py-2.5 rounded-xl text-xs font-semibold leading-tight text-left transition transform active:scale-95 flex items-center space-x-1.5">
-                <i class="fa-solid fa-volume-low text-gray-400 text-[10px]"></i>
+                class="btn-3d-chunk px-3 py-2 rounded-xl text-xs font-bold leading-tight text-left transition transform active:scale-95 flex items-center space-x-1">
                 <span>{{ chunk.text }}</span>
               </button>
             </div>
           </div>
 
-          <!-- Check Answer Button -->
-          <div v-if="!evaluated" class="pt-2 flex space-x-2">
+          <!-- High-Contrast Check Answer Action Area (强视觉凸显核对按钮，弱化跳过) -->
+          <div v-if="!evaluated" class="pt-3 space-y-2.5">
             <button 
               @click="evaluateChunkStep"
               :disabled="selectedChunks.length === 0 || isSubmitting"
-              :class="selectedChunks.length === 0 ? 'opacity-40 cursor-not-allowed' : ''"
-              class="flex-1 btn-3d-primary py-3.5 rounded-2xl font-black text-sm tracking-wide flex items-center justify-center space-x-2">
-              <i class="fa-solid fa-check-double"></i>
-              <span>核对答案</span>
+              :class="selectedChunks.length === 0 
+                ? 'bg-gray-200 text-gray-400 cursor-not-allowed shadow-none' 
+                : 'btn-3d-primary ring-4 ring-emerald-500/20 scale-[1.01]'"
+              class="w-full py-4 rounded-2xl font-black text-base tracking-wider flex items-center justify-center space-x-2 transition-all">
+              <i class="fa-solid fa-circle-check text-lg"></i>
+              <span>{{ selectedChunks.length === 0 ? '请先点选上方词块' : '核对答案 (CHECK)' }}</span>
             </button>
-            <button 
-              @click="skipCurrentStep"
-              class="px-4 py-3.5 rounded-2xl border border-gray-300 text-gray-500 hover:bg-gray-100 text-xs font-bold">
-              跳过
-            </button>
+
+            <div class="text-center">
+              <button 
+                @click="skipCurrentStep"
+                class="text-[11px] text-gray-400 hover:text-gray-600 underline py-1 px-3 transition">
+                暂时不会，跳过此句（自动记入错题本）
+              </button>
+            </div>
           </div>
 
           <!-- Evaluation Feedback Section -->
           <div v-if="evaluated" class="space-y-3 pt-2">
             <!-- Wrong Feedback -->
-            <div v-if="!isCurrentStepSuccess" class="p-3.5 rounded-2xl bg-rose-50 border-2 border-rose-300 text-rose-900 space-y-2">
-              <div class="flex items-center space-x-1.5 font-bold text-xs text-rose-700">
-                <i class="fa-solid fa-triangle-exclamation text-rose-600"></i>
-                <span>{{ errorReasonText }}（已加入隔天强化复习）</span>
+            <div v-if="!isCurrentStepSuccess" class="p-3.5 rounded-2xl bg-rose-50 border-2 border-rose-300 text-rose-900 space-y-2.5">
+              <div class="flex items-center space-x-1.5 font-black text-xs text-rose-700">
+                <i class="fa-solid fa-triangle-exclamation text-rose-600 text-sm"></i>
+                <span>{{ errorReasonText }}（已加入错题本与隔天强化）</span>
               </div>
-              <div v-if="hitTraps.length > 0" class="space-y-1">
-                <div v-for="(trap, tidx) in hitTraps" :key="tidx" class="text-xs bg-white/80 p-2 rounded-xl border border-rose-200">
-                  <p class="font-bold text-red-700 line-through">❌ 干扰项: "{{ trap.text }}"</p>
-                  <p class="text-gray-800 mt-0.5">⚠️ 避坑解析: {{ trap.trap_reason }}</p>
+              <div v-if="hitTraps.length > 0" class="space-y-1.5">
+                <div v-for="(trap, tidx) in hitTraps" :key="tidx" class="text-xs bg-white/90 p-2.5 rounded-xl border border-rose-200">
+                  <p class="font-bold text-red-700 line-through">❌ 错选干扰词: "{{ trap.text }}"</p>
+                  <p class="text-gray-800 mt-1 font-medium">⚠️ 易错解析: {{ trap.trap_reason }}</p>
                 </div>
               </div>
               <button 
                 @click="retryCurrentStep"
-                class="w-full btn-3d-warn py-2.5 rounded-xl text-xs font-black flex items-center justify-center space-x-1">
+                class="w-full btn-3d-warn py-3.5 rounded-2xl text-sm font-black flex items-center justify-center space-x-1.5 shadow-md">
                 <i class="fa-solid fa-rotate-left"></i>
                 <span>清空重新拼装</span>
               </button>
@@ -438,7 +437,7 @@
 
             <!-- Success Feedback + Auto Read & Shadowing -->
             <div v-else class="space-y-3">
-              <div class="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-300 text-emerald-900 space-y-2">
+              <div class="p-3.5 rounded-2xl bg-emerald-50 border-2 border-emerald-300 text-emerald-900 space-y-2">
                 <div class="flex items-center justify-between">
                   <span class="text-xs font-black text-emerald-700 flex items-center space-x-1.5">
                     <i class="fa-solid fa-circle-check text-emerald-600 text-base"></i>
@@ -458,14 +457,17 @@
                     </button>
                   </div>
                 </div>
-                <p class="font-bold text-gray-900 text-sm leading-relaxed bg-white/80 p-2.5 rounded-xl border border-emerald-200">
+                <p class="font-bold text-gray-900 text-sm leading-relaxed bg-white/90 p-2.5 rounded-xl border border-emerald-200">
                   {{ currentStep.target_sentence }}
                 </p>
+                <div v-if="currentStep.hint_text" class="text-[11px] text-emerald-800 bg-emerald-100/70 px-2.5 py-1.5 rounded-lg">
+                  <strong>💡 本句核心考点：</strong>{{ currentStep.hint_text }}
+                </div>
               </div>
 
               <button 
                 @click="advanceToNextStepOrRecall"
-                class="w-full btn-3d-primary py-3.5 rounded-2xl text-xs font-black flex items-center justify-center space-x-1.5">
+                class="w-full btn-3d-primary py-4 rounded-2xl text-sm font-black flex items-center justify-center space-x-1.5 shadow-md">
                 <span>{{ currentStepIndex < currentScenario.steps.length - 1 ? '跟读完成，进入下一句' : '跟读完成，进入口头脱稿核对' }}</span>
                 <i class="fa-solid fa-arrow-right"></i>
               </button>
@@ -473,7 +475,7 @@
           </div>
         </div>
 
-        <!-- ================= PHASE 2: NO-HINT ORAL RECALL (纯口头跟读自评，零打字) ================= -->
+        <!-- ================= PHASE 2: NO-HINT ORAL RECALL ================= -->
         <div v-if="activePracticeMode === 'chunks' && inRecallPhase" class="space-y-4">
           <div class="p-4 bg-indigo-50 border border-indigo-200 rounded-2xl flex items-center justify-between">
             <div>
@@ -491,7 +493,6 @@
             </span>
           </div>
 
-          <!-- Question Display + Audio -->
           <div class="p-5 rounded-2xl bg-white border border-gray-200 shadow-sm space-y-3">
             <div class="flex items-center justify-between">
               <span class="text-xs font-bold text-gray-500">面试官提问：</span>
@@ -514,22 +515,22 @@
             </div>
           </div>
 
-          <!-- REVEAL CONTROLS -->
-          <div v-if="!recallRevealed" class="space-y-2 pt-2">
+          <div v-if="!recallRevealed" class="space-y-2.5 pt-2">
             <button 
               @click="revealRecallAnswer('attempted')"
-              class="w-full btn-3d-primary py-3.5 rounded-2xl font-black text-sm tracking-wide flex items-center justify-center space-x-2">
+              class="w-full btn-3d-primary py-4 rounded-2xl font-black text-sm tracking-wide flex items-center justify-center space-x-2">
               <i class="fa-solid fa-eye"></i>
               <span>我已口头说了一遍，核对范文</span>
             </button>
-            <button 
-              @click="revealRecallAnswer('skipped')"
-              class="w-full py-2.5 text-xs text-gray-500 font-bold hover:text-gray-800 transition text-center">
-              说不出来，直接听范文跟读 (安排明天复测)
-            </button>
+            <div class="text-center">
+              <button 
+                @click="revealRecallAnswer('skipped')"
+                class="py-2 text-xs text-gray-400 font-bold hover:text-gray-700 underline transition">
+                说不出来，直接听范文跟读 (安排明天复测)
+              </button>
+            </div>
           </div>
 
-          <!-- REVEALED SECTION -->
           <div v-if="recallRevealed" class="space-y-4 pt-1">
             <div class="p-4 rounded-2xl bg-white border border-gray-200 shadow-sm space-y-3">
               <div class="flex items-center justify-between border-b border-gray-100 pb-2">
@@ -556,7 +557,6 @@
               </div>
             </div>
 
-            <!-- Self Rating Buttons (驱动隔天强化与一周抽查) -->
             <div class="space-y-2">
               <div class="text-xs font-bold text-gray-700 text-center">
                 根据刚才的脱稿流利度，安排下次复习时间：
@@ -592,14 +592,13 @@
           </div>
         </div>
 
-        <!-- ================= MODE B: 多邻国同款错题本与词汇消消乐配对 (MATCHING GAME) ================= -->
+        <!-- ================= MODE B: 词汇消消乐配对 (MATCHING GAME & MISTAKE BOOK) ================= -->
         <div v-if="activePracticeMode === 'match'" class="space-y-4">
-          <!-- Sub-filter: 全部核心词汇 vs 错题强化词汇 -->
           <div class="p-3 rounded-2xl bg-white border border-gray-200 shadow-sm space-y-2.5">
             <div class="flex items-center justify-between">
               <div>
-                <h3 class="text-sm font-black text-gray-900">词汇中英配对消消乐</h3>
-                <p class="text-[11px] text-gray-500">手点左侧中文与右侧英文配对，配对成功自动朗读美音</p>
+                <h3 class="text-sm font-black text-gray-900">易错搭配与词汇消消乐</h3>
+                <p class="text-[11px] text-gray-500">手点左侧中文与右侧英文配对，配对成功自动美音朗读</p>
               </div>
               <button 
                 @click="initMatchRound"
@@ -614,7 +613,7 @@
                 @click="matchFilterMode = 'all'; initMatchRound()"
                 :class="matchFilterMode === 'all' ? 'bg-blue-600 text-white font-bold' : 'bg-gray-100 text-gray-600'"
                 class="flex-1 py-1.5 rounded-xl text-xs transition">
-                全部核心词 ({{ allExtractedVocab.length }})
+                全部核心搭配 ({{ allExtractedVocab.length }})
               </button>
               <button 
                 @click="matchFilterMode = 'mistakes'; initMatchRound()"
@@ -625,22 +624,19 @@
             </div>
           </div>
 
-          <!-- Empty Mistake Book State -->
           <div v-if="matchFilterMode === 'mistakes' && mistakeWordsCount === 0" class="p-8 rounded-2xl bg-white border border-gray-200 text-center space-y-3">
             <div class="text-3xl">🎉</div>
             <div class="text-sm font-black text-gray-800">错题词汇本目前是空的！</div>
-            <p class="text-xs text-gray-500">在配对中点错的词，或者在场景拼装中答错的句子词汇，都会自动收录到这里。</p>
+            <p class="text-xs text-gray-500">在配对中点错的搭配，或者在场景拼装中答错的易错词块，都会自动收录到这里。</p>
             <button 
               @click="matchFilterMode = 'all'; initMatchRound()"
               class="px-4 py-2 rounded-xl bg-blue-600 text-white font-bold text-xs">
-              先练全部核心词汇
+              先练全部核心搭配
             </button>
           </div>
 
-          <!-- Matching Columns (Left ZH, Right EN) -->
           <div v-else-if="matchPairs.length > 0" class="space-y-3">
             <div class="grid grid-cols-2 gap-3">
-              <!-- Left Column: Chinese -->
               <div class="space-y-2.5">
                 <div class="text-[10px] font-bold text-gray-400 text-center uppercase">中文业务释义</div>
                 <button 
@@ -660,9 +656,8 @@
                 </button>
               </div>
 
-              <!-- Right Column: English -->
               <div class="space-y-2.5">
-                <div class="text-[10px] font-bold text-gray-400 text-center uppercase">英文表达 (点击发音)</div>
+                <div class="text-[10px] font-bold text-gray-400 text-center uppercase">英文搭配 (点击发音)</div>
                 <button 
                   v-for="item in matchRightList" 
                   :key="'en_' + item.id"
@@ -681,7 +676,6 @@
               </div>
             </div>
 
-            <!-- Round Complete Banner -->
             <div v-if="isMatchRoundCompleted" class="p-4 rounded-2xl bg-emerald-50 border-2 border-emerald-300 text-center space-y-2.5">
               <div class="text-sm font-black text-emerald-800">✨ 本组配对全部消除！</div>
               <p class="text-xs text-emerald-700">配对答错过的词已自动记入错题词汇本，方便随时强化。</p>
@@ -697,7 +691,7 @@
       </div>
 
 
-      <!-- ================= TAB 2: 全屏场景全景库 (SCENARIOS) ================= -->
+      <!-- ================= TAB 2: 全屏场景全景库 ================= -->
       <div v-if="currentMainTab === 'scenarios'" class="space-y-4">
         <div class="flex items-center justify-between">
           <div>
@@ -752,7 +746,7 @@
       </div>
 
 
-      <!-- ================= TAB 3: 全屏成果大盘 (DASHBOARD) ================= -->
+      <!-- ================= TAB 3: 全屏成果大盘 ================= -->
       <div v-if="currentMainTab === 'dashboard'" class="space-y-4">
         <div>
           <h2 class="text-lg font-black text-gray-900">掌握度与复习大盘</h2>
@@ -788,7 +782,6 @@
           </div>
         </div>
 
-        <!-- Mastery Distribution Breakdown -->
         <div class="p-4 rounded-2xl bg-white border border-gray-200 shadow-sm space-y-3">
           <div class="flex items-center justify-between">
             <span class="font-bold text-gray-900 text-xs">当前题库记忆阶段分布</span>
@@ -815,7 +808,6 @@
           </div>
         </div>
 
-        <!-- Scenarios Progress List -->
         <div class="p-4 rounded-2xl bg-white border border-gray-200 shadow-sm space-y-3">
           <div class="font-bold text-gray-900 text-xs">各场景复习排期明细</div>
           <div class="space-y-2">
@@ -863,7 +855,7 @@
     </nav>
 
 
-    <!-- ================= MODAL: 题库切换器 (Bank Switcher) ================= -->
+    <!-- ================= MODAL: 题库切换器 ================= -->
     <div v-if="openBankSwitcherModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end justify-center">
       <div class="bg-white w-full max-w-md rounded-t-3xl max-h-[85vh] flex flex-col overflow-hidden">
         <div class="p-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
@@ -882,7 +874,7 @@
               <span class="font-black text-sm text-gray-900">官方通用职场题库 (Built-in)</span>
               <span v-if="activeBankType === 'builtin'" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-600 text-white">当前使用中</span>
             </div>
-            <p class="text-gray-500 text-[11px]">包含 10 个通用面试场景与高频职场词汇。</p>
+            <p class="text-gray-500 text-[11px]">已升级高颗粒度易错词块拆解，包含 10 个核心场景与易错搭配库。</p>
           </div>
 
           <div 
@@ -910,7 +902,7 @@
     </div>
 
 
-    <!-- ================= MODAL: 完整范文即时查阅 (EXEMPLARS) ================= -->
+    <!-- ================= MODAL: 完整范文即时查阅 ================= -->
     <div v-if="openExemplarModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end justify-center">
       <div class="bg-white w-full max-w-md rounded-t-3xl max-h-[88vh] flex flex-col overflow-hidden">
         <div class="p-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
@@ -1023,7 +1015,7 @@
               </button>
             </div>
             <p class="text-[10px] text-indigo-700 leading-relaxed">
-              把提示词和你的简历、目标 JD 发给 AI，生成的 JSON 可直接导入本应用。
+              已升级为“高颗粒度易错词块拆解”提示词，生成的 JSON 会单独拆出易错动词与介词搭配。
             </p>
           </div>
 
@@ -1082,7 +1074,6 @@
         </div>
 
         <div class="p-5 overflow-y-auto space-y-4 text-xs">
-          <!-- Daily Target Setting -->
           <div class="p-3.5 bg-amber-50/70 rounded-2xl border border-amber-200 space-y-2">
             <div class="flex items-center justify-between">
               <span class="font-bold text-amber-950">每日闯关目标（场景数/天）</span>
@@ -1095,7 +1086,6 @@
             </div>
           </div>
 
-          <!-- US Voice Test -->
           <div class="p-3.5 bg-blue-50/70 rounded-2xl border border-blue-200 flex items-center justify-between">
             <div>
               <div class="font-bold text-blue-950">美式发音引擎 (en-US)</div>
@@ -1106,7 +1096,6 @@
             </button>
           </div>
 
-          <!-- Theme Picker -->
           <div class="space-y-2">
             <label class="block font-bold text-gray-700">视觉主题风格</label>
             <div class="grid grid-cols-3 gap-2">
@@ -1125,7 +1114,6 @@
             </div>
           </div>
 
-          <!-- Backup & Restore -->
           <div class="p-3.5 bg-gray-50 rounded-2xl border border-gray-200 space-y-2">
             <div class="font-bold text-gray-800">本地数据备份与恢复</div>
             <div class="flex space-x-2">
@@ -1148,1055 +1136,14 @@
   <script>
     const { createApp, ref, computed, onMounted, onUnmounted } = Vue;
 
-    // Embedded Universal Bank JSON
-    const BUILTIN_BANK = {"version": "1.1.0", "bankId": "builtin-interview-v1", "updated_at": "2026-11-06", "scenarios": [{"id": "UNIV-01", "title": "自我介绍 (Tell me about yourself)", "interviewer_q": "Could you walk me through your background and key experience?", "foundation_text": "I have extensive experience in business operations and internal systems. Throughout my career, I have specialized in analyzing complex workflows and translating business needs into practical product requirements. I collaborate closely with engineering and cross-functional teams to deliver scalable solutions. Recently, I have focused on business process automation and data-driven improvements to reduce manual work and increase overall team efficiency.", "advanced_text": "Over the past decade, I have focused on enterprise digital transformation and operational excellence. My core expertise lies in deconstructing multifaceted workflows, aligning cross-departmental priorities, and turning strategic objectives into actionable technical specifications. I take pride in bridging the gap between business stakeholders and engineering teams. In recent roles, I have spearheaded process automation initiatives that measurably minimized human error while scaling operational output.", "zh_scaffold_full": "多年B端与系统经验 → 擅长拆解复杂流程与需求转化 → 跨团队协同交付 → 聚焦流程自动化与降本增效", "watch_outs": ["have extensive experience IN (介词用 in，不要漏掉 of/in)", "specialize in + doing (动名词形式)", "translate needs INTO requirements (介词用 into)"], "steps": [{"step_zh": "① 背景概述：多年B端系统经验，专攻业务流程梳理与需求转化", "hint_text": "专攻用 specialize in + doing，需求转化用 translate needs into requirements", "target_sentence": "I have extensive experience in internal systems, specializing in translating business needs into practical requirements.", "correct_chunks": [{"id": "u1_s1_c1", "text": "I have extensive experience in internal systems,"}, {"id": "u1_s1_c2", "text": "specializing in translating business needs into practical requirements."}], "distractors": [{"id": "u1_s1_d1", "text": "specializing to translate business needs", "trap_reason": "specialize in 后面接动名词形式 doing，不能用 to do"}, {"id": "u1_s1_d2", "text": "translate needs into requirements quick", "trap_reason": "修饰动词应用副词 quickly 而非形容词 quick"}]}, {"step_zh": "② 核心价值：与跨职能团队密切协同，通过流程自动化减少人工耗时", "hint_text": "紧密合作 work closely with；减少人工耗时 reduce manual work", "target_sentence": "I work closely with cross-functional teams to drive process automation and reduce repetitive manual work.", "correct_chunks": [{"id": "u1_s2_c1", "text": "I work closely with cross-functional teams"}, {"id": "u1_s2_c2", "text": "to drive process automation and reduce repetitive manual work."}], "distractors": [{"id": "u1_s2_d1", "text": "to reduce repetitive works by manual", "trap_reason": "work 作为工作/人工不可数，手工应用副词 manually"}]}]}, {"id": "UNIV-02", "title": "代表性项目陈述 (Tell me about a project)", "interviewer_q": "Can you tell me about a representative project you delivered recently?", "foundation_text": "A representative project was an automated workflow system designed to streamline our internal operations. Before the project, the team relied heavily on manual spreadsheets, which led to frequent data delays and discrepancies. I began by shadowing end-users to identify the core bottlenecks. Then, I defined the system logic, coordinated sprint deliveries with engineering, and ran user acceptance testing before rollout. Once deployed, the system significantly reduced processing turnaround time.", "advanced_text": "A marquee initiative was the end-to-end automation of our core operational pipeline. The legacy process was plagued by decentralized spreadsheets and cumbersome manual handoffs, resulting in operational latency. I led the discovery phase by conducting workflow audits with front-line users to pinpoint friction points. Subsequently, I drafted the functional architecture, aligned milestones with technical leads, and spearheaded UAT. Post-launch, the solution cut cycle times and established standardized audit trails.", "zh_scaffold_full": "项目背景与原有痛点（人工表格/耗时） → 现场调研梳理卡点 → 规则定义、研发协同与UAT → 上线成效（周转周期缩短）", "watch_outs": ["rely heavily on (严重依赖)", "conduct UAT (开展用户验收测试，conduct 为高频专业动词)", "processing turnaround time (处理周转时间)"], "steps": [{"step_zh": "① 痛点阐述：原有流程严重依赖人工表格，导致频繁的数据延迟与偏差", "hint_text": "依赖用 rely heavily on；导致用 led to + 名词/doing", "target_sentence": "The team relied heavily on manual spreadsheets, which led to frequent data delays and discrepancies.", "correct_chunks": [{"id": "u2_s1_c1", "text": "The team relied heavily on manual spreadsheets,"}, {"id": "u2_s1_c2", "text": "which led to frequent data delays and discrepancies."}], "distractors": [{"id": "u2_s1_d1", "text": "relied heavy on manual spreadsheets", "trap_reason": "修饰动词 relied 必须用副词 heavily 而不是形容词 heavy"}]}, {"step_zh": "② 执行与交付：与业务用户定义系统规则，并在上线前严密组织UAT", "hint_text": "组织UAT用 conduct UAT；上线前 before the system went live", "target_sentence": "I collaborated with business users to define system logic and conducted UAT before the system went live.", "correct_chunks": [{"id": "u2_s2_c1", "text": "I collaborated with business users to define system logic"}, {"id": "u2_s2_c2", "text": "and conducted UAT before the system went live."}], "distractors": [{"id": "u2_s2_d1", "text": "conducted UAT before the system has gone live", "trap_reason": "过去已完成动作前，上线是过去点，应使用过去式 went live 而不是现在完成时"}]}]}, {"id": "UNIV-03", "title": "项目中的个人职责 (What was your role?)", "interviewer_q": "What specific role did you play in that project, and how did you collaborate with others?", "foundation_text": "My primary role was owning the product requirement definition and coordinating cross-team delivery. On the business side, I gathered user requirements, identified conflicting requests, and prioritized features based on strategic value. On the technical side, I translated complex business rules into structured user stories and clarified edge cases during daily standups. I served as the bridge between business stakeholders and developers to ensure everyone was aligned on scope.", "advanced_text": "I acted as the lead product owner responsible for end-to-end scope governance and cross-functional orchestration. Inwardly, I synthesized disparate stakeholder requests, mediated competing interests, and constructed a phased delivery roadmap. Outwardly, I articulated technical specs, clarified boundary conditions, and resolved requirement ambiguities throughout the sprint lifecycle. My primary value lay in de-risking delivery and maintaining scope fidelity across all collaborating parties.", "zh_scaffold_full": "主导需求定义与交付协调 → 业务端梳理诉求并按价值排序 → 技术端拆解故事与边界场景 → 充当业务与技术桥梁", "watch_outs": ["own the product requirement definition (负责需求定义)", "prioritize features based on (动词 prioritize 不要写成 priority)", "serve as the bridge between A and B (作为沟通桥梁)"], "steps": [{"step_zh": "① 业务端职责：收集利益相关方诉求，并基于业务价值排序需求优先级", "hint_text": "排序优先级是动词 prioritize；基于 based on", "target_sentence": "I gathered user requirements and prioritized features based on their strategic business value.", "correct_chunks": [{"id": "u3_s1_c1", "text": "I gathered user requirements"}, {"id": "u3_s1_c2", "text": "and prioritized features based on their strategic business value."}], "distractors": [{"id": "u3_s1_d1", "text": "priority features based on business value", "trap_reason": "priority 是名词，动作必须用动词 prioritize"}]}, {"step_zh": "② 技术端桥梁：将业务规则转化为系统用户故事，澄清研发中的边缘场景", "hint_text": "转化 translate into；边缘场景 edge cases", "target_sentence": "I translated business rules into structured user stories and clarified edge cases during development.", "correct_chunks": [{"id": "u3_s2_c1", "text": "I translated business rules into structured user stories"}, {"id": "u3_s2_c2", "text": "and clarified edge cases during development."}], "distractors": [{"id": "u3_s2_d1", "text": "translated business rules to structured user story", "trap_reason": "translate 固定搭配 into；可数名词复数 user stories"}]}]}, {"id": "UNIV-04", "title": "业务需求冲突处理 (Handling Conflicting Requirements)", "interviewer_q": "How do you handle conflicting requirements from different stakeholders?", "foundation_text": "When stakeholders have conflicting requirements, I first listen to each group to understand their underlying objectives rather than just their immediate demands. Then, I bring the relevant data to light, such as process impact and technical complexity. I organize joint review sessions to discuss trade-offs openly and propose staged solutions—delivering core shared needs first while deferring niche requests. Finally, I document the agreed scope in the PRD to maintain transparency.", "advanced_text": "My methodology for navigating stakeholder misalignment centers on objective discovery and transparent trade-off analysis. I initiate individual deep-dives to discern fundamental business drivers versus peripheral preferences. Next, I quantify the operational implications and architectural trade-offs to anchor discussions in objective reality. By facilitating consensus workshops, I propose phased compromises—such as decoupling mandatory fields from progressive data entry. Once alignment is achieved, decisions are codified in formal specs.", "zh_scaffold_full": "倾听各方底层目标而非表面诉求 → 拿客观数据与影响面说话 → 组织评审提出分阶段折中方案 → 固化决策至PRD", "watch_outs": ["underlying objectives (底层真实目标)", "discuss trade-offs openly (坦诚权衡取舍)", "document the agreed scope in the PRD (将达成一致的范围固化到PRD)"], "steps": [{"step_zh": "① 调研对齐：深入了解各方底层诉求，而非仅停留在表层争执", "hint_text": "倾听底层目标: understand their underlying objectives", "target_sentence": "I first listen to each group to understand their underlying objectives rather than surface-level demands.", "correct_chunks": [{"id": "u4_s1_c1", "text": "I first listen to each group to understand"}, {"id": "u4_s1_c2", "text": "their underlying objectives rather than surface-level demands."}], "distractors": [{"id": "u4_s1_d1", "text": "their underly objective rather than demands", "trap_reason": "underlying 为形容词修饰复数 objectives"}]}, {"step_zh": "② 提出方案：提出分期交付折中方案，并将达成一致的决策记录入PRD", "hint_text": "折中方案 phased solutions / compromises；记录变更 document agreed changes in the PRD", "target_sentence": "I proposed phased compromises and documented the agreed scope in the PRD.", "correct_chunks": [{"id": "u4_s2_c1", "text": "I proposed phased compromises"}, {"id": "u4_s2_c2", "text": "and documented the agreed scope in the PRD."}], "distractors": [{"id": "u4_s2_d1", "text": "agreement scope into PRD", "trap_reason": "动宾搭配是 document the agreed scope in the PRD"}]}]}, {"id": "UNIV-05", "title": "项目遇到的挑战与克服 (Overcoming a Challenge)", "interviewer_q": "Describe a difficult challenge you encountered during a project and how you resolved it.", "foundation_text": "A major challenge occurred when our primary third-party data feed was delayed right before a scheduled launch. This threatened our release timeline. I immediately evaluated the critical path with technical leads to identify workarounds. We decided to build a temporary mock interface that allowed user testing to proceed while the external team resolved the issue. By communicating the contingency plan transparently to management, we kept the core delivery on track without compromising quality.", "advanced_text": "A pivotal obstacle surfaced when a mission-critical upstream dependency experienced unexpected downtime during our pre-release hardening phase. Rather than accepting a complete schedule derailment, I led an impact assessment to isolate decoupled components. We architected a resilient mock fallback mechanism, which enabled non-dependent workflow validation to continue unabated. I proactively briefed executive stakeholders with scenario forecasts, successfully mitigating delivery panic and preserving the scheduled milestone.", "zh_scaffold_full": "突发挑战（第三方依赖延迟卡住上线） → 立即联合技术梳理关键路径 → 设计替代/容错机制隔离风险 → 向上透明沟通保障里程碑", "watch_outs": ["evaluate the critical path (评估关键路径)", "keep the delivery on track (确保交付不脱轨)", "communicate transparently (透明沟通)"], "steps": [{"step_zh": "① 危机应对：外部数据源突发延迟威胁上线，立即联合技术评估关键路径", "hint_text": "威胁到上线: threatened our release timeline；关键路径: critical path", "target_sentence": "When a third-party dependency was delayed, I immediately evaluated the critical path with technical leads.", "correct_chunks": [{"id": "u5_s1_c1", "text": "When a third-party dependency was delayed,"}, {"id": "u5_s1_c2", "text": "I immediately evaluated the critical path with technical leads."}], "distractors": [{"id": "u5_s1_d1", "text": "I immediately evaluate the critical path", "trap_reason": "过去已发生的事实，动词必须用过去式 evaluated"}]}, {"step_zh": "② 制定替代预案：搭建临时模拟机制保障测试推进，确保核心交付按期达成", "hint_text": "应急方案 contingency plan；确保交付按计划推进 keep delivery on track", "target_sentence": "We built a temporary workaround to keep user testing moving forward and preserve the delivery timeline.", "correct_chunks": [{"id": "u5_s2_c1", "text": "We built a temporary workaround to keep user testing"}, {"id": "u5_s2_c2", "text": "moving forward and preserve the delivery timeline."}], "distractors": [{"id": "u5_s2_d1", "text": "to keep user testing move forward", "trap_reason": "keep sth doing 后面接动名词 moving"}]}]}, {"id": "UNIV-06", "title": "跨部门沟通与干系人协同 (Cross-functional Stakeholder Management)", "interviewer_q": "How do you ensure effective collaboration across diverse teams with different priorities?", "foundation_text": "Effective collaboration relies on proactive communication and shared context. Different departments often speak different professional languages—sales focuses on immediate revenue, operations on stability, and engineering on technical feasibility. I make sure to frame system benefits in terms that matter to each specific audience. I also establish regular cadence meetings, maintain a single source of truth for project status, and address concerns early before they escalate into blockers.", "advanced_text": "Cross-functional stewardship demands communicative empathy and structured alignment rituals. Because disparate functional silos operate under competing KPIs—commercial units optimize for agility while risk teams prioritize compliance—I contextualize value propositions tailored to each stakeholder group. I establish synchronized governance cadences and maintain a transparent project dashboard. Proactively surfacing latent frictions ensures potential impediments are dismantled before impacting delivery velocity.", "zh_scaffold_full": "跨团队说话体系不同（销售重结果/运营重稳定/技术重可行） → 用对方关心的语言阐述价值 → 建立定期同步机制 → 提前化解分歧防升级", "watch_outs": ["speak different professional languages (沟通语境不同)", "frame benefits in terms of (以...的视角阐述收益)", "escalate into blockers (升级成为阻碍)"], "steps": [{"step_zh": "① 认知同理：不同部门关注点不同，针对具体受众用其业务语言阐释价值", "hint_text": "以对方关心的视角: in terms that matter to each specific audience", "target_sentence": "I frame project benefits in terms that matter to each specific stakeholder group.", "correct_chunks": [{"id": "u6_s1_c1", "text": "I frame project benefits in terms"}, {"id": "u6_s1_c2", "text": "that matter to each specific stakeholder group."}], "distractors": [{"id": "u6_s1_d1", "text": "that matters to each stakeholders", "trap_reason": "terms 为复数从句用 matter；each 后面接单数名词 stakeholder"}]}, {"step_zh": "② 预防升级：建立统一的透明信息源，尽早解决各方疑虑以防恶化成卡点", "hint_text": "统一信息源 single source of truth；升级为阻碍 escalate into blockers", "target_sentence": "I maintain clear project visibility and resolve concerns early before they escalate into blockers.", "correct_chunks": [{"id": "u6_s2_c1", "text": "I maintain clear project visibility"}, {"id": "u6_s2_c2", "text": "and resolve concerns early before they escalate into blockers."}], "distractors": [{"id": "u6_s2_d1", "text": "before they escalate in blocker", "trap_reason": "升级成为固定搭配 escalate into + 复数 blockers"}]}]}, {"id": "UNIV-07", "title": "排优先级与取舍权衡 (Prioritizing Work & Trade-offs)", "interviewer_q": "When resources are limited, how do you decide what to build and what to postpone?", "foundation_text": "When resources are constrained, I evaluate requests against business impact and implementation effort. I avoid making decisions based solely on who shouts the loudest. Instead, I use a clear framework to quantify ROI and operational risk. I focus our engineering bandwidth on high-leverage features that solve widespread pain points for the majority of users. For lower-priority items, I communicate the rationale clearly and schedule them for subsequent iterations.", "advanced_text": "Resource scarcity requires ruthless prioritization grounded in objective impact matrices. I benchmark competing features against strategic ROI, regulatory compliance, and architectural cost of delay. Rather than succumbing to organizational noise, I leverage structured scoring models to evaluate bandwidth allocation. We channel delivery capacity toward asymmetric multipliers that unlock substantial operational efficiencies. Marginal or bespoke requests are systematically deferred to future iterations with transparent reasoning provided.", "zh_scaffold_full": "资源受限下不按嗓门大决策 → 借助影响力与投入产出比矩阵量化 → 聚焦高杠杆核心需求 → 延后需求透明解释并排期后续", "watch_outs": ["evaluate requests against business impact (比对商业影响来评估需求)", "engineering bandwidth (研发资源/带宽)", "schedule them for subsequent iterations (排期在后续迭代中)"], "steps": [{"step_zh": "① 评估准则：基于商业影响与交付成本进行客观权衡，杜绝按主观嗓门决策", "hint_text": "权衡评估: evaluate requests against business impact and effort", "target_sentence": "I evaluate requirements against business impact and delivery effort rather than subjective opinions.", "correct_chunks": [{"id": "u7_s1_c1", "text": "I evaluate requirements against business impact"}, {"id": "u7_s1_c2", "text": "and delivery effort rather than subjective opinions."}], "distractors": [{"id": "u7_s1_d1", "text": "evaluate requirements with business impact quick", "trap_reason": "与...做比对评估使用介词 against"}]}, {"step_zh": "② 资源聚焦：将核心研发资源投入高杠杆功能，低优先级需求排入后续迭代", "hint_text": "高杠杆功能 high-leverage features；后续迭代 subsequent iterations", "target_sentence": "We allocate engineering resources to high-impact features and schedule lower-priority items for future releases.", "correct_chunks": [{"id": "u7_s2_c1", "text": "We allocate engineering resources to high-impact features"}, {"id": "u7_s2_c2", "text": "and schedule lower-priority items for future releases."}], "distractors": [{"id": "u7_s2_d1", "text": "and leave for future iterations with no plan", "trap_reason": "搭配不地道，应用 schedule items for future releases"}]}]}, {"id": "UNIV-08", "title": "成果度量与经验反思 (Achievements & Lessons Learned)", "interviewer_q": "How did you measure the success of your project, and what would you do differently in retrospect?", "foundation_text": "We measured success through both quantitative efficiency gains and qualitative user feedback. Quantitatively, the automated system reduced processing cycle time and eliminated common manual entry errors. Qualitatively, user satisfaction improved as operational staff spent less time on tedious tasks. Looking back, I would introduce business users into the prototyping phase even earlier. Getting concrete UI feedback in the first sprint helps uncover edge cases before heavy development begins.", "advanced_text": "Project efficacy was appraised via a dual framework of operational throughput and user adoption velocity. Quantitatively, the solution compressed task completion cycles and eradicated downstream reconciliation discrepancies. Qualitatively, internal team sentiment surged as repetitive burdens were automated away. Retrospectively, my primary takeaway is to accelerate interactive prototyping earlier in discovery. Engaging end-users with tangible interaction flows unearths latent edge cases before engineering commitments solidify.", "zh_scaffold_full": "双重度量：定量（处理周期缩短/录入错误减少）与定性（满意度提升） → 复盘反思：更早拉入用户做原型验证与边界发现", "watch_outs": ["processing cycle time (处理周期时间)", "eliminate manual entry errors (消除手工录入错误)", "Looking back, I would introduce... even earlier (虚拟语气复盘结构)"], "steps": [{"step_zh": "① 成效量化：缩短业务流转处理周期，大幅减少繁琐的人工录入错误", "hint_text": "缩短周期 compress / reduce processing cycle time；消除错误 eliminate manual errors", "target_sentence": "The automated system significantly reduced processing cycle time and eliminated repetitive manual errors.", "correct_chunks": [{"id": "u8_s1_c1", "text": "The automated system significantly reduced processing cycle time"}, {"id": "u8_s1_c2", "text": "and eliminated repetitive manual errors."}], "distractors": [{"id": "u8_s1_d1", "text": "handling-time was reduced quick by manual", "trap_reason": "口语化中式表达，应为 reduced processing cycle time"}]}, {"step_zh": "② 复盘反思：回顾以往，我会更早拉入业务用户参与交互原型测试", "hint_text": "回顾复盘结构: Looking back, I would... even earlier", "target_sentence": "Looking back, I would engage business users in the interactive prototyping phase even earlier.", "correct_chunks": [{"id": "u8_s2_c1", "text": "Looking back, I would engage business users"}, {"id": "u8_s2_c2", "text": "in the interactive prototyping phase even earlier."}], "distractors": [{"id": "u8_s2_d1", "text": "I will engage business users in prototype early", "trap_reason": "复盘假设应用虚拟式 would engage 而不是 will"}]}]}, {"id": "UNIV-09", "title": "求职动机与契合度 (Why are you interested in this role?)", "interviewer_q": "Why are you interested in this position and our company?", "foundation_text": "I am drawn to this role because it directly aligns with my passion for solving complex operational challenges through well-designed systems. Your company has a strong reputation for empowering teams and building robust digital products. In this role, I can leverage my experience in process optimization and cross-team delivery to help streamline internal workflows. I am excited by the prospect of contributing to high-impact initiatives that drive measurable efficiency.", "advanced_text": "This opportunity stands at the intersection of my technical problem-solving background and my dedication to operational transformation. Your organization’s track record in enterprise scaling resonates strongly with my professional philosophy. I am eager to deploy my background in workflow re-engineering and stakeholder alignment to accelerate your product roadmap. I thrive in environments that value pragmatic innovation and look forward to delivering measurable business value here.", "zh_scaffold_full": "职位高度匹配（解决复杂业务问题与系统优化） → 认同公司平台与产品理念 → 结合过往经验贡献价值 → 期待落地高影响项目", "watch_outs": ["align directly with (与...高度吻合对齐)", "leverage my experience in... to do... (撬动过往经验做...)", "drive measurable efficiency (推动可衡量的效率提升)"], "steps": [{"step_zh": "① 岗位契合：该岗位与我通过系统优化解决复杂业务流程的热情高度一致", "hint_text": "高度契合: aligns directly with my passion for solving...", "target_sentence": "This role aligns directly with my passion for solving complex operational challenges through robust systems.", "correct_chunks": [{"id": "u9_s1_c1", "text": "This role aligns directly with my passion for solving"}, {"id": "u9_s1_c2", "text": "complex operational challenges through robust systems."}], "distractors": [{"id": "u9_s1_d1", "text": "is align with my passion to solve", "trap_reason": "动词为 aligns with；介词 for 后面接动名词 solving"}]}, {"step_zh": "② 预期贡献：利用自己在流程优化与跨团队交付的积累，助力企业释放更大产能", "hint_text": "发挥经验: leverage my experience in... to...", "target_sentence": "I want to leverage my experience in process optimization to streamline workflows and drive efficiency.", "correct_chunks": [{"id": "u9_s2_c1", "text": "I want to leverage my experience in process optimization"}, {"id": "u9_s2_c2", "text": "to streamline workflows and drive efficiency."}], "distractors": [{"id": "u9_s2_d1", "text": "want use my experience to optimize process", "trap_reason": "want to use 漏掉 to；行业专业词汇为 leverage experience"}]}]}, {"id": "UNIV-10", "title": "职业空档或转型说明 (Explaining a Transition or Gap)", "interviewer_q": "How do you explain the transition in your career, or what have you focused on during your recent gap?", "foundation_text": "After delivering several major enterprise systems, I intentionally took time to consolidate my experience and upgrade my technical skillset. During this period, I focused on learning emerging workflow automation frameworks and modern AI technologies. I built hands-on prototypes to explore practical use cases in business operations. This deliberate pause allowed me to broaden my technical horizon, and I am now fully energized to bring this updated perspective to a high-performing team.", "advanced_text": "Following a sustained track record of managing enterprise deployments, I took a deliberate hiatus to recalibrate professionally and deepen my technical fluency. I dedicated this window to independent research, upskilling in next-generation process automation and applied AI paradigms through practical prototype builds. This self-directed development broadened my strategic lens. I am returning to the market with refined capabilities, eager to tackle complex enterprise challenges with renewed vigor.", "zh_scaffold_full": "主动选择时间沉淀与技能升级 → 聚焦自动化与AI新技术探索 → 动手搭建原型验证业务场景 → 蓄能完毕期待加入高效团队", "watch_outs": ["intentionally took time to consolidate my experience (主动留出时间沉淀经验)", "upgrade technical skillset (升级技术栈)", "deliberate pause / self-directed development (有目的的蓄能与自主探索)"], "steps": [{"step_zh": "① 主动蓄能：在交付多期大型系统后，主动预留时间沉淀经验并升级技术栈", "hint_text": "主动留出时间: intentionally took time to consolidate...", "target_sentence": "I intentionally took time to consolidate my enterprise experience and upgrade my technical skillset.", "correct_chunks": [{"id": "u10_s1_c1", "text": "I intentionally took time to consolidate my enterprise experience"}, {"id": "u10_s1_c2", "text": "and upgrade my technical skillset."}], "distractors": [{"id": "u10_s1_d1", "text": "I took times to upgrade my skills", "trap_reason": "时间抽象不可数用 time，短语为 take time to do"}]}, {"step_zh": "② 实践产出：动手搭建自动化与AI原型验证实际场景，已做好充分准备投身实战", "hint_text": "动手实践原型: hands-on prototypes；充满动力: fully energized to...", "target_sentence": "I built hands-on prototypes to explore business use cases and am fully prepared to deliver value.", "correct_chunks": [{"id": "u10_s2_c1", "text": "I built hands-on prototypes to explore business use cases"}, {"id": "u10_s2_c2", "text": "and am fully prepared to deliver value."}], "distractors": [{"id": "u10_s2_d1", "text": "built prototypes and has prepared to work", "trap_reason": "主语为第一人称 I，不能用 has prepared"}]}]}], "spelling_bank": [{"target_word": "prioritize", "zh": "按优先级排序", "pos": "v.", "topic": "需求排期与权衡", "context_tip": "根据商业价值和技术可行性确定先后顺序", "sentence_before": "I had to coordinate with stakeholders and", "sentence_after": "the backlog based on technical feasibility.", "trap_note": "注意是动词 prioritize，不要误用为名词 priority", "full_sentence": "I had to coordinate with stakeholders and prioritize the backlog based on technical feasibility."}, {"target_word": "streamline", "zh": "精简 / 优化流程", "pos": "v.", "topic": "流程自动化与提效", "context_tip": "通过系统减少多余的人工环节与阻滞", "sentence_before": "Our objective was to", "sentence_after": "the operational approval process across departments.", "trap_note": "streamline 常用于形容流程、工作流优化，注意不要拼成 stream line", "full_sentence": "Our objective was to streamline the operational approval process across departments."}, {"target_word": "bottleneck", "zh": "瓶颈 / 阻碍卡点", "pos": "n.", "topic": "痛点分析与排查", "context_tip": "流程中限制整体交付速度的关键环节", "sentence_before": "We shadowed end-users to identify the primary", "sentence_after": "in the manual data reconciliation workflow.", "trap_note": "bottle + neck 复合词，不用分开写", "full_sentence": "We shadowed end-users to identify the primary bottleneck in the manual data reconciliation workflow."}, {"target_word": "contingency", "zh": "应急预案 / 变通方案", "pos": "n.", "topic": "项目危机与风险管理", "context_tip": "突发依赖延误时准备的备用路线 (contingency plan)", "sentence_before": "We formulated a reliable", "sentence_after": "plan to ensure delivery milestones were not missed.", "trap_note": "注意 con-tin-gen-cy 拼写，末尾是 cy 不是 sy", "full_sentence": "We formulated a reliable contingency plan to ensure delivery milestones were not missed."}, {"target_word": "discrepancy", "zh": "差异 / 不一致性", "pos": "n.", "topic": "数据核对与质量控制", "context_tip": "两个系统或两份报表之间的金额或数据偏差", "sentence_before": "The automated validation detected a slight", "sentence_after": "between the legacy records and the new database.", "trap_note": "注意中间是 ancy 不是 ency，复数去 y 变 ies", "full_sentence": "The automated validation detected a slight discrepancy between the legacy records and the new database."}]};
-
-    // AI Prompt Template
-    const AI_PROMPT_TEMPLATE = `你是一位资深外企/出海大厂的面试官与专业英语辅导专家。请根据我提供的【个人简历/项目经历】和【目标应聘岗位/JD信息】，为我量身定制一套专属于「interview-trainer」的结构化 JSON 题库。
-
-【生成核心原则】
-1. 业务与真实经历对齐：问题和回答必须严格基于我的简历事实（如项目架构、数据指标、跨部门冲突、技术选型），杜绝脱离实际的空洞套话。
-2. 中文脱稿思考链（zh_scaffold_full）：每道题前必须提供 3~4 个极简中文逻辑节点（用 → 连接，如：痛点阐述 → 方案折中 → 技术/数据落地 → 结果与复盘），防止英文卡顿前思维紊乱。
-3. 渐进式拼装微步骤（steps）：将每个场景的回答拆解为 2~3 个微步骤。每个步骤包含 2 个地道的核心动宾词块（correct_chunks），以及 1~2 个中国候选人常犯的时态飘移、中式搭配或易错介词干扰项（distractors），并注明针对性的避坑解析（trap_reason）。每个词块必须包含稳定 id。
-4. 核心词汇库（spelling_bank）：提炼 6~10 个该岗位面试中至关重要的业务术语与高频动词/短语（target_word 为英文词组或单词，zh 为精简中文释义，用于中英配对消消乐）。
-5. 必须输出合法、规范、无 Markdown 标记的纯 JSON 格式。
-
-【JSON 格式模板】
-{
-  "version": "1.1.0",
-  "bankId": "custom-my-role-v1",
-  "updated_at": "2026-11-20",
-  "scenarios": [
-    {
-      "id": "SCENE-01",
-      "title": "场景名称",
-      "interviewer_q": "面试官针对该岗位的提问 (英文)",
-      "foundation_text": "基础版英文示范 (约80-100词)",
-      "advanced_text": "进阶版英文示范 (约100-120词)",
-      "zh_scaffold_full": "中文脱稿思考链：步骤1 → 步骤2 → 步骤3",
-      "watch_outs": ["易错语法点或避坑提醒1", "避坑提醒2"],
-      "steps": [
+    // Embedded Universal Bank JSON (Upgraded to Granular High-Frequency Chunks)
+    const BUILTIN_BANK = {
+      "version": "1.2.0",
+      "bankId": "builtin-interview-v2",
+      "updated_at": "2026-11-20",
+      "scenarios": [
         {
-          "step_zh": "① 步骤一中文思路",
-          "hint_text": "语法、时态或动宾搭配提示",
-          "target_sentence": "本微步骤的标准英文整句",
-          "correct_chunks": [{"id": "s1_c1", "text": "正确词块前半句"}, {"id": "s1_c2", "text": "正确词块后半句"}],
-          "distractors": [{"id": "s1_d1", "text": "易错口误或时态干扰项", "trap_reason": "错误原因深度解析"}]
-        }
-      ]
-    }
-  ],
-  "spelling_bank": [
-    {
-      "target_word": "drive cross-functional alignment",
-      "zh": "推进跨部门对齐",
-      "pos": "phrase",
-      "topic": "跨部门协同"
-    }
-  ]
-}
-
----
-我的简历经历如下：
-[请在此粘贴你的简历项目经历、工作背景、核心成果]
-
-目标岗位信息 / JD 如下：
-[请在此粘贴你要应聘的岗位职责、要求或面试官常见追问]`;
-
-    const app = createApp({
-      setup() {
-        // Theme & Main Tabs
-        const currentTheme = ref(localStorage.getItem('it_theme') || 'duo');
-        const currentMainTab = ref('practice'); // 'practice' | 'scenarios' | 'dashboard'
-        const activePracticeMode = ref('chunks'); // 'chunks' | 'match'
-
-        // Daily Target
-        const dailyTarget = ref(parseInt(localStorage.getItem('it_daily_target') || '5'));
-        const dismissedDailyBanner = ref(false);
-        const setDailyTarget = (num) => {
-          dailyTarget.value = num;
-          localStorage.setItem('it_daily_target', num);
-        };
-
-        // US English TTS Engine (Web Speech API)
-        const currentVoiceName = ref('');
-        let preferredUSVoice = null;
-
-        const loadUSVoices = () => {
-          if (!('speechSynthesis' in window)) return;
-          const voices = window.speechSynthesis.getVoices();
-          if (!voices || voices.length === 0) return;
-
-          // Prioritize high-quality en-US voices
-          const usVoices = voices.filter(v => v.lang === 'en-US' || v.lang === 'en_US');
-          preferredUSVoice = 
-            usVoices.find(v => /Samantha|Google US English|Ava|Allison|Jenny|Aria|Guy|Natural/i.test(v.name)) ||
-            usVoices[0] ||
-            voices.find(v => v.lang.startsWith('en')) ||
-            null;
-
-          if (preferredUSVoice) {
-            currentVoiceName.value = preferredUSVoice.name;
-          }
-        };
-
-        if ('speechSynthesis' in window) {
-          loadUSVoices();
-          window.speechSynthesis.onvoiceschanged = loadUSVoices;
-        }
-
-        const speakUS = (text, rate = 1.0) => {
-          if (!text || !('speechSynthesis' in window)) return;
-          window.speechSynthesis.cancel();
-          const utterance = new SpeechSynthesisUtterance(text);
-          utterance.lang = 'en-US';
-          utterance.rate = rate;
-          utterance.pitch = 1.0;
-          if (preferredUSVoice) {
-            utterance.voice = preferredUSVoice;
-          }
-          window.speechSynthesis.speak(utterance);
-        };
-
-        // Modals
-        const openSettings = ref(false);
-        const openExemplarModal = ref(false);
-        const openImportModal = ref(false);
-        const openBankSwitcherModal = ref(false);
-        const exemplarTab = ref('foundation');
-
-        // Import modal state
-        const importJsonText = ref('');
-        const fileInputRef = ref(null);
-        const copied = ref(false);
-
-        // Safe load helper
-        const safeGetJSON = (key, fallback) => {
-          try {
-            const raw = localStorage.getItem(key);
-            if (!raw) return fallback;
-            const res = JSON.parse(raw);
-            return (res && typeof res === 'object') ? res : fallback;
-          } catch(e) {
-            return fallback;
-          }
-        };
-
-        const activeBankType = ref(localStorage.getItem('it_active_bank_type') || 'builtin');
-        const loadCustomBankData = () => safeGetJSON('it_custom_bank_content', null);
-        const customBankObj = ref(loadCustomBankData());
-        const hasCustomBank = computed(() => !!customBankObj.value);
-        const customBankScenariosCount = computed(() => {
-          return (customBankObj.value && Array.isArray(customBankObj.value.scenarios)) ? customBankObj.value.scenarios.length : 0;
-        });
-
-        const currentBankData = computed(() => {
-          if (activeBankType.value === 'custom' && customBankObj.value && Array.isArray(customBankObj.value.scenarios) && customBankObj.value.scenarios.length > 0) {
-            return customBankObj.value;
-          }
-          return BUILTIN_BANK;
-        });
-
-        const bankId = computed(() => (currentBankData.value && currentBankData.value.bankId) ? currentBankData.value.bankId : 'builtin-interview-v1');
-        const scenariosList = computed(() => (currentBankData.value && Array.isArray(currentBankData.value.scenarios)) ? currentBankData.value.scenarios : []);
-        const spellingBank = computed(() => (currentBankData.value && Array.isArray(currentBankData.value.spelling_bank)) ? currentBankData.value.spelling_bank : []);
-
-        // Progress Storage Namespaces
-        const getProgressStorageKey = (bId) => `it_progress_${bId}`;
-
-        const loadProgressData = (bId) => {
-          const fallback = {
-            schemaVersion: "1.2",
-            bankId: bId,
-            scenarios: {},
-            sessions: {},
-            stepStats: {},
-            mistakeWords: {} // { wordId: { id, en, zh, topic, wrongCount } }
-          };
-          const data = safeGetJSON(getProgressStorageKey(bId), fallback);
-          if (!data.scenarios) data.scenarios = {};
-          if (!data.sessions) data.sessions = {};
-          if (!data.stepStats) data.stepStats = {};
-          if (!data.mistakeWords) data.mistakeWords = {};
-          return data;
-        };
-
-        const currentProgress = ref(loadProgressData(bankId.value));
-
-        const saveCurrentProgress = () => {
-          localStorage.setItem(getProgressStorageKey(bankId.value), JSON.stringify(currentProgress.value));
-        };
-
-        // Active Timer
-        const activeStudySeconds = ref(parseInt(localStorage.getItem('it_study_seconds') || '0'));
-        const activeStudyMinutes = computed(() => Math.floor(activeStudySeconds.value / 60));
-        let lastUserActivityTime = Date.now();
-        let timerInterval = null;
-
-        const recordActivity = () => { lastUserActivityTime = Date.now(); };
-        window.addEventListener('click', recordActivity);
-        window.addEventListener('touchstart', recordActivity);
-
-        timerInterval = setInterval(() => {
-          const now = Date.now();
-          if (!document.hidden && (now - lastUserActivityTime) <= 90000) {
-            activeStudySeconds.value++;
-            localStorage.setItem('it_study_seconds', activeStudySeconds.value);
-          }
-        }, 1000);
-
-        onUnmounted(() => {
-          clearInterval(timerInterval);
-          window.removeEventListener('click', recordActivity);
-          window.removeEventListener('touchstart', recordActivity);
-        });
-
-        // Helper date functions
-        function getTodayDateStr() {
-          const d = new Date();
-          const year = d.getFullYear();
-          const month = String(d.getMonth() + 1).padStart(2, '0');
-          const day = String(d.getDate()).padStart(2, '0');
-          return `${year}-${month}-${day}`;
-        }
-
-        function addDaysToDateStr(dateStr, days) {
-          const parts = dateStr.split('-');
-          const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-          d.setDate(d.getDate() + days);
-          const year = d.getFullYear();
-          const month = String(d.getMonth() + 1).padStart(2, '0');
-          const day = String(d.getDate()).padStart(2, '0');
-          return `${year}-${month}-${day}`;
-        }
-
-        // Today Completed Scenarios Count
-        const todayCompletedCount = computed(() => {
-          const today = getTodayDateStr();
-          const scs = currentProgress.value.scenarios || {};
-          let cnt = 0;
-          for (let k in scs) {
-            if (scs[k].lastPracticedDate === today) cnt++;
-          }
-          return cnt;
-        });
-
-        // Current Scenario & Practice Session State
-        const currentScenarioIndex = ref(0);
-        const fallbackScenario = {
-          id: '01',
-          title: '通用场景',
-          interviewer_q: '准备中...',
-          foundation_text: '',
-          advanced_text: '',
-          zh_scaffold_full: '',
-          watch_outs: [],
-          steps: [{ step_zh: '加载中...', hint_text: '', target_sentence: '', correct_chunks: [], distractors: [] }]
-        };
-        const currentScenario = computed(() => {
-          const list = scenariosList.value;
-          if (Array.isArray(list) && list.length > 0) {
-            return list[currentScenarioIndex.value] || list[0];
-          }
-          return fallbackScenario;
-        });
-
-        // Scenario Status Tag (告知当前处于什么复习阶段)
-        const currentScenarioTag = computed(() => {
-          const scId = currentScenario.value.id;
-          const rec = (currentProgress.value.scenarios || {})[scId];
-          const today = getTodayDateStr();
-          if (!rec || !rec.lastPracticedDate) {
-            return { label: '✨ 新场景', badgeClass: 'bg-blue-100 text-blue-800' };
-          }
-          if (rec.lastPracticedDate === today) {
-            return { label: '✅ 今日已练', badgeClass: 'bg-emerald-100 text-emerald-800' };
-          }
-          if (rec.nextReviewDate && rec.nextReviewDate <= today) {
-            if (rec.memoryLevel === 'firstPass' || rec.memoryLevel === 'reinforced') {
-              return { label: '📅 一周抽查', badgeClass: 'bg-purple-100 text-purple-800' };
-            }
-            return { label: '🔥 隔天强化', badgeClass: 'bg-rose-100 text-rose-800' };
-          }
-          return { label: '🔄 提前回顾', badgeClass: 'bg-gray-100 text-gray-700' };
-        });
-
-        const currentStepIndex = ref(0);
-        const currentStep = computed(() => {
-          const sc = currentScenario.value;
-          if (sc && Array.isArray(sc.steps) && sc.steps.length > 0) {
-            return sc.steps[currentStepIndex.value] || sc.steps[0];
-          }
-          return fallbackScenario.steps[0];
-        });
-
-        // Find next due or unlearned scenario automatically on load
-        const jumpToNextDueOrNew = () => {
-          const list = scenariosList.value;
-          if (!list || list.length === 0) return;
-          const today = getTodayDateStr();
-          const scs = currentProgress.value.scenarios || {};
-
-          // 1. Priority: Due for review today (nextReviewDate <= today && lastPracticedDate !== today)
-          let idx = list.findIndex(sc => {
-            const r = scs[sc.id];
-            return r && r.nextReviewDate && r.nextReviewDate <= today && r.lastPracticedDate !== today;
-          });
-
-          // 2. Priority: Brand new unlearned scenario
-          if (idx === -1) {
-            idx = list.findIndex(sc => !scs[sc.id] || !scs[sc.id].lastPracticedDate);
-          }
-
-          // 3. Fallback: Any not practiced today
-          if (idx === -1) {
-            idx = list.findIndex(sc => scs[sc.id].lastPracticedDate !== today);
-          }
-
-          if (idx === -1) idx = 0;
-
-          currentScenarioIndex.value = idx;
-          currentStepIndex.value = 0;
-          inRecallPhase.value = false;
-          stepHadMistakeInSession.value = false;
-          initStep();
-        };
-
-        const goPrevScenario = () => {
-          if (currentScenarioIndex.value > 0) {
-            currentScenarioIndex.value--;
-            currentStepIndex.value = 0;
-            inRecallPhase.value = false;
-            stepHadMistakeInSession.value = false;
-            initStep();
-          }
-        };
-
-        const goNextScenario = () => {
-          if (currentScenarioIndex.value < scenariosList.value.length - 1) {
-            currentScenarioIndex.value++;
-            currentStepIndex.value = 0;
-            inRecallPhase.value = false;
-            stepHadMistakeInSession.value = false;
-            initStep();
-          }
-        };
-
-        // Chunks interaction
-        const selectedChunks = ref([]);
-        const availablePool = ref([]);
-        const evaluated = ref(false);
-        const isCurrentStepSuccess = ref(false);
-        const hasError = ref(false);
-        const errorReasonText = ref('');
-        const hitTraps = ref([]);
-        const currentStepAssisted = ref(false);
-        const isSubmitting = ref(false);
-        const stepHadMistakeInSession = ref(false);
-
-        // Session ID
-        const currentSessionId = ref('sess_' + Date.now());
-
-        // Recall Phase State
-        const inRecallPhase = ref(false);
-        const recallRevealed = ref(false);
-        const recallAttempted = ref(false);
-        const recallAssisted = ref(false);
-        const recallOutcome = ref('pending');
-        const showAdvancedInRecall = ref(false);
-
-        const initStep = () => {
-          selectedChunks.value = [];
-          evaluated.value = false;
-          isCurrentStepSuccess.value = false;
-          hasError.value = false;
-          errorReasonText.value = '';
-          hitTraps.value = [];
-          currentStepAssisted.value = false;
-          isSubmitting.value = false;
-
-          if (!currentStep.value) return;
-
-          const raw = [
-            ...currentStep.value.correct_chunks.map((c, i) => ({ ...c, isCorrect: true, originIdx: i })),
-            ...(currentStep.value.distractors || []).map(d => ({ ...d, isCorrect: false }))
-          ];
-
-          for (let i = raw.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [raw[i], raw[j]] = [raw[j], raw[i]];
-          }
-          availablePool.value = raw;
-        };
-
-        const selectChunk = (chunk) => {
-          if (evaluated.value) return;
-          const idx = availablePool.value.indexOf(chunk);
-          if (idx > -1) {
-            availablePool.value.splice(idx, 1);
-            selectedChunks.value.push(chunk);
-            // Auto speak chunk in US English
-            speakUS(chunk.text, 1.0);
-          }
-        };
-
-        const unselectChunk = (chunk, idx) => {
-          if (evaluated.value) return;
-          selectedChunks.value.splice(idx, 1);
-          availablePool.value.push(chunk);
-        };
-
-        const triggerStepHint = () => {
-          currentStepAssisted.value = true;
-          stepHadMistakeInSession.value = true;
-        };
-
-        const openExemplarViewer = () => {
-          if (inRecallPhase.value && !recallRevealed.value) {
-            recallAssisted.value = true;
-          }
-          openExemplarModal.value = true;
-        };
-
-        // Add current step's core expression to Mistake Words Book
-        const recordStepToMistakeBook = () => {
-          const st = currentStep.value;
-          const sc = currentScenario.value;
-          if (!st || !st.target_sentence) return;
-          if (!currentProgress.value.mistakeWords) currentProgress.value.mistakeWords = {};
-
-          const wId = `step_${sc.id}_${currentStepIndex.value}`;
-          // Extract clean Chinese summary from step_zh (remove numbering like ① )
-          const cleanZh = (st.step_zh || sc.title).replace(/^[①②③④⑤\d\.\s]+/, '').split('：')[0];
-          const existing = currentProgress.value.mistakeWords[wId];
-
-          currentProgress.value.mistakeWords[wId] = {
-            id: wId,
-            en: st.target_sentence,
-            zh: cleanZh,
-            topic: sc.title,
-            wrongCount: (existing ? existing.wrongCount : 0) + 1
-          };
-        };
-
-        // Evaluate Chunk Step
-        const evaluateChunkStep = () => {
-          if (selectedChunks.value.length === 0 || isSubmitting.value) return;
-          isSubmitting.value = true;
-
-          const targetCorrect = currentStep.value.correct_chunks;
-          const stepKey = `${currentScenario.value.id}_step_${currentStepIndex.value}`;
-
-          if (!currentProgress.value.stepStats) currentProgress.value.stepStats = {};
-          if (!currentProgress.value.stepStats[stepKey]) {
-            currentProgress.value.stepStats[stepKey] = { attempts: 0, firstTryCorrect: null };
-          }
-
-          const stats = currentProgress.value.stepStats[stepKey];
-          stats.attempts++;
-
-          const traps = selectedChunks.value.filter(c => !c.isCorrect);
-          hitTraps.value = traps;
-
-          let isOrderCorrect = true;
-          if (selectedChunks.value.length !== targetCorrect.length) {
-            isOrderCorrect = false;
-          } else {
-            for (let i = 0; i < targetCorrect.length; i++) {
-              const sel = selectedChunks.value[i];
-              const tgt = targetCorrect[i];
-              if (sel.id && tgt.id) {
-                if (sel.id !== tgt.id) { isOrderCorrect = false; break; }
-              } else if (sel.text !== tgt.text) {
-                isOrderCorrect = false; break;
-              }
-            }
-          }
-
-          const isPass = (traps.length === 0 && isOrderCorrect);
-
-          if (stats.firstTryCorrect === null) {
-            stats.firstTryCorrect = isPass;
-          }
-
-          evaluated.value = true;
-          isCurrentStepSuccess.value = isPass;
-
-          if (!isPass) {
-            hasError.value = true;
-            stepHadMistakeInSession.value = true;
-            recordStepToMistakeBook();
-            if (traps.length > 0) {
-              errorReasonText.value = '选入了易错干扰项';
-            } else if (selectedChunks.value.length < targetCorrect.length) {
-              errorReasonText.value = '词块未选全';
-            } else {
-              errorReasonText.value = '语序排列有误';
-            }
-            setTimeout(() => { hasError.value = false; }, 500);
-          } else {
-            // Auto speak complete target sentence in US English!
-            speakUS(currentStep.value.target_sentence, 1.0);
-          }
-
-          saveCurrentProgress();
-          isSubmitting.value = false;
-        };
-
-        const retryCurrentStep = () => {
-          initStep();
-        };
-
-        const skipCurrentStep = () => {
-          stepHadMistakeInSession.value = true;
-          recordStepToMistakeBook();
-          saveCurrentProgress();
-          advanceToNextStepOrRecall();
-        };
-
-        const advanceToNextStepOrRecall = () => {
-          if (currentStepIndex.value < currentScenario.value.steps.length - 1) {
-            currentStepIndex.value++;
-            initStep();
-          } else {
-            inRecallPhase.value = true;
-            recallRevealed.value = false;
-            recallAssisted.value = stepHadMistakeInSession.value;
-            recallOutcome.value = 'pending';
-            showAdvancedInRecall.value = false;
-          }
-        };
-
-        const revealRecallAnswer = (actionType) => {
-          recallRevealed.value = true;
-          if (actionType === 'skipped') {
-            recallOutcome.value = 'skipped';
-          } else {
-            recallAttempted.value = true;
-          }
-          // Speak foundation exemplar automatically
-          speakUS(currentScenario.value.foundation_text, 1.0);
-        };
-
-        // Submit Final Rating & Interval Scheduling (隔天强化 D+1/D+2 与 一周抽查 D+7)
-        const submitFinalRating = (rating) => {
-          if (rating === 'green' && (recallAssisted.value || recallOutcome.value === 'skipped' || stepHadMistakeInSession.value)) {
-            return;
-          }
-
-          const scId = currentScenario.value.id;
-          const today = getTodayDateStr();
-
-          if (!currentProgress.value.scenarios) currentProgress.value.scenarios = {};
-          if (!currentProgress.value.scenarios[scId]) {
-            currentProgress.value.scenarios[scId] = {
-              lastPracticedDate: today,
-              lastRecallRating: rating,
-              nextReviewDate: today,
-              memoryLevel: 'needsReview',
-              greenReviewStreak: 0,
-              lastGreenDate: null
-            };
-          }
-
-          const scRecord = currentProgress.value.scenarios[scId];
-          scRecord.lastPracticedDate = today;
-          scRecord.lastRecallRating = rating;
-
-          if (rating === 'red') {
-            scRecord.nextReviewDate = addDaysToDateStr(today, 1); // 隔天强化 D+1
-            scRecord.memoryLevel = 'needsReview';
-            scRecord.greenReviewStreak = 0;
-          } else if (rating === 'orange') {
-            scRecord.nextReviewDate = addDaysToDateStr(today, 2); // 隔天巩固 D+2
-            scRecord.memoryLevel = 'needsReview';
-            scRecord.greenReviewStreak = 0;
-          } else if (rating === 'green') {
-            scRecord.nextReviewDate = addDaysToDateStr(today, 7); // 一周抽查 D+7
-            if (!scRecord.lastGreenDate) {
-              scRecord.memoryLevel = 'firstPass';
-              scRecord.greenReviewStreak = 1;
-              scRecord.lastGreenDate = today;
-            } else if (scRecord.lastGreenDate !== today) {
-              scRecord.memoryLevel = 'reinforced';
-              scRecord.greenReviewStreak++;
-              scRecord.lastGreenDate = today;
-            }
-          }
-
-          if (recallOutcome.value !== 'skipped') {
-            if (!currentProgress.value.sessions) currentProgress.value.sessions = {};
-            currentProgress.value.sessions[currentSessionId.value] = {
-              scenarioId: scId,
-              completed: true,
-              rating: rating,
-              assisted: recallAssisted.value,
-              date: today
-            };
-          }
-
-          saveCurrentProgress();
-
-          // Reset & Jump directly to the next due/new scenario in queue!
-          inRecallPhase.value = false;
-          currentStepIndex.value = 0;
-          stepHadMistakeInSession.value = false;
-          currentSessionId.value = 'sess_' + Date.now();
-          jumpToNextDueOrNew();
-        };
-
-        const selectScenarioAndTrain = (sc) => {
-          const idx = scenariosList.value.findIndex(s => s.id === sc.id);
-          if (idx > -1) {
-            currentScenarioIndex.value = idx;
-            currentStepIndex.value = 0;
-            inRecallPhase.value = false;
-            stepHadMistakeInSession.value = false;
-            currentMainTab.value = 'practice';
-            activePracticeMode.value = 'chunks';
-            initStep();
-          }
-        };
-
-        // ================= 词汇消消乐配对逻辑 (MATCHING GAME & MISTAKE BOOK) =================
-        const matchFilterMode = ref('all'); // 'all' | 'mistakes'
-        const matchPairs = ref([]);
-        const matchLeftList = ref([]);
-        const matchRightList = ref([]);
-        const selectedLeftId = ref(null);
-        const selectedRightId = ref(null);
-        const wrongFlashId = ref(null);
-
-        // Extract all vocab items from spelling_bank + scenario watch_outs/chunks
-        const allExtractedVocab = computed(() => {
-          const map = new Map();
-          // 1. From spelling_bank
-          (spellingBank.value || []).forEach((w, idx) => {
-            const id = w.id || `sp_${w.target_word}`;
-            map.set(id, {
-              id,
-              en: w.target_word,
-              zh: w.zh,
-              topic: w.topic || '核心业务词'
-            });
-          });
-          // 2. From mistakeWords so they also appear in 'all'
-          const mistakes = currentProgress.value.mistakeWords || {};
-          Object.values(mistakes).forEach(m => {
-            if (!map.has(m.id)) {
-              map.set(m.id, {
-                id: m.id,
-                en: m.en,
-                zh: m.zh,
-                topic: m.topic || '错题强化'
-              });
-            }
-          });
-          return Array.from(map.values());
-        });
-
-        const mistakeWordsList = computed(() => {
-          const mistakes = currentProgress.value.mistakeWords || {};
-          return Object.values(mistakes);
-        });
-
-        const mistakeWordsCount = computed(() => mistakeWordsList.value.length);
-
-        const isMatchRoundCompleted = computed(() => {
-          return matchPairs.value.length > 0 && matchLeftList.value.every(i => i.matched);
-        });
-
-        const initMatchRound = () => {
-          selectedLeftId.value = null;
-          selectedRightId.value = null;
-          wrongFlashId.value = null;
-
-          const sourcePool = matchFilterMode.value === 'mistakes' ? mistakeWordsList.value : allExtractedVocab.value;
-          if (!sourcePool || sourcePool.length === 0) {
-            matchPairs.value = [];
-            matchLeftList.value = [];
-            matchRightList.value = [];
-            return;
-          }
-
-          // Shuffle source and pick up to 5 pairs per round
-          const shuffled = [...sourcePool].sort(() => Math.random() - 0.5).slice(0, 5);
-          matchPairs.value = shuffled;
-
-          matchLeftList.value = [...shuffled]
-            .map(item => ({ ...item, matched: false }))
-            .sort(() => Math.random() - 0.5);
-
-          matchRightList.value = [...shuffled]
-            .map(item => ({ ...item, matched: false }))
-            .sort(() => Math.random() - 0.5);
-        };
-
-        const switchToMatchMode = () => {
-          activePracticeMode.value = 'match';
-          inRecallPhase.value = false;
-          initMatchRound();
-        };
-
-        const selectMatchLeft = (item) => {
-          if (item.matched) return;
-          selectedLeftId.value = item.id;
-          checkMatchPair();
-        };
-
-        const selectMatchRight = (item) => {
-          if (item.matched) return;
-          selectedRightId.value = item.id;
-          speakUS(item.en, 1.0);
-          checkMatchPair();
-        };
-
-        const checkMatchPair = () => {
-          if (!selectedLeftId.value || !selectedRightId.value) return;
-
-          if (selectedLeftId.value === selectedRightId.value) {
-            // Matched!
-            const matchedId = selectedLeftId.value;
-            const lItem = matchLeftList.value.find(i => i.id === matchedId);
-            const rItem = matchRightList.value.find(i => i.id === matchedId);
-            if (lItem) lItem.matched = true;
-            if (rItem) rItem.matched = true;
-
-            // If in mistake mode, decrement wrongCount or remove once mastered
-            if (matchFilterMode.value === 'mistakes' && currentProgress.value.mistakeWords && currentProgress.value.mistakeWords[matchedId]) {
-              currentProgress.value.mistakeWords[matchedId].wrongCount--;
-              if (currentProgress.value.mistakeWords[matchedId].wrongCount <= 0) {
-                delete currentProgress.value.mistakeWords[matchedId];
-              }
-              saveCurrentProgress();
-            }
-
-            selectedLeftId.value = null;
-            selectedRightId.value = null;
-          } else {
-            // Wrong pair! Add left item to Mistake Words Book
-            const wrongId = selectedLeftId.value;
-            wrongFlashId.value = wrongId;
-            const targetItem = matchLeftList.value.find(i => i.id === wrongId);
-            if (targetItem) {
-              if (!currentProgress.value.mistakeWords) currentProgress.value.mistakeWords = {};
-              const existing = currentProgress.value.mistakeWords[wrongId];
-              currentProgress.value.mistakeWords[wrongId] = {
-                id: wrongId,
-                en: targetItem.en,
-                zh: targetItem.zh,
-                topic: targetItem.topic || '配对易错',
-                wrongCount: (existing ? existing.wrongCount : 0) + 1
-              };
-              saveCurrentProgress();
-            }
-
-            setTimeout(() => {
-              wrongFlashId.value = null;
-              selectedLeftId.value = null;
-              selectedRightId.value = null;
-            }, 450);
-          }
-        };
-
-        // Dashboard Calculations
-        const totalAttempts = computed(() => {
-          let sum = 0;
-          const stats = currentProgress.value.stepStats || {};
-          for (let k in stats) sum += (stats[k].attempts || 0);
-          return sum;
-        });
-
-        const firstTryAccuracyText = computed(() => {
-          const stats = currentProgress.value.stepStats || {};
-          let samples = 0, correct = 0;
-          for (let k in stats) {
-            if (stats[k].firstTryCorrect !== null && stats[k].firstTryCorrect !== undefined) {
-              samples++;
-              if (stats[k].firstTryCorrect === true) correct++;
-            }
-          }
-          return samples === 0 ? '暂无' : Math.round((correct / samples) * 100) + '%';
-        });
-
-        const completedScenariosCount = computed(() => {
-          const scs = currentProgress.value.scenarios || {};
-          let count = 0;
-          for (let k in scs) if (scs[k].lastPracticedDate) count++;
-          return count;
-        });
-
-        const todayDueCount = computed(() => {
-          const scs = currentProgress.value.scenarios || {};
-          const today = getTodayDateStr();
-          let due = 0;
-          for (let k in scs) {
-            if (scs[k].nextReviewDate && scs[k].nextReviewDate <= today && scs[k].lastPracticedDate !== today) due++;
-          }
-          return due;
-        });
-
-        const statusStats = computed(() => {
-          const scs = currentProgress.value.scenarios || {};
-          let unverified = scenariosList.value.length, needsReview = 0, firstPass = 0, reinforced = 0;
-          for (let sc of scenariosList.value) {
-            const rec = scs[sc.id];
-            if (rec && rec.memoryLevel) {
-              unverified--;
-              if (rec.memoryLevel === 'reinforced') reinforced++;
-              else if (rec.memoryLevel === 'firstPass') firstPass++;
-              else if (rec.memoryLevel === 'needsReview') needsReview++;
-            }
-          }
-          return { unverified: Math.max(0, unverified), needsReview, firstPass, reinforced };
-        });
-
-        const getScenarioMemoryBadgeText = (scId) => {
-          const rec = (currentProgress.value.scenarios ? currentProgress.value.scenarios[scId] : null);
-          if (!rec || !rec.memoryLevel) return '未学习';
-          if (rec.memoryLevel === 'reinforced') return '已巩固';
-          if (rec.memoryLevel === 'firstPass') return '一周抽查';
-          return '隔天强化';
-        };
-
-        const getScenarioMemoryBadgeClass = (scId) => {
-          const rec = (currentProgress.value.scenarios ? currentProgress.value.scenarios[scId] : null);
-          if (!rec || !rec.memoryLevel) return 'bg-gray-100 text-gray-700 border-gray-200';
-          if (rec.memoryLevel === 'reinforced') return 'bg-emerald-100 text-emerald-800 border-emerald-300';
-          if (rec.memoryLevel === 'firstPass') return 'bg-purple-100 text-purple-800 border-purple-300';
-          return 'bg-rose-100 text-rose-800 border-rose-300';
-        };
-
-        const getScenarioDueText = (scId) => {
-          const rec = (currentProgress.value.scenarios ? currentProgress.value.scenarios[scId] : null);
-          if (!rec || !rec.nextReviewDate) return '尚未开始';
-          const today = getTodayDateStr();
-          if (rec.nextReviewDate <= today) return '今日到期待复习';
-          return `下次复习: ${rec.nextReviewDate}`;
-        };
-
-        // Bank Switcher Logic
-        const switchBank = (type) => {
-          activeBankType.value = type;
-          localStorage.setItem('it_active_bank_type', type);
-          currentProgress.value = loadProgressData(bankId.value);
-          openBankSwitcherModal.value = false;
-          jumpToNextDueOrNew();
-        };
-
-        const removeCustomBank = () => {
-          if (confirm('确认删除当前的专属题库吗？')) {
-            localStorage.removeItem('it_custom_bank_content');
-            localStorage.removeItem(getProgressStorageKey((customBankObj.value ? customBankObj.value.bankId : 'custom') || 'custom'));
-            customBankObj.value = null;
-            switchBank('builtin');
-            openImportModal.value = false;
-          }
-        };
-
-        // Import Diff & Incremental Merge
-        const importPhase = ref('input');
-        const importMode = ref('incremental');
-        const importDiffInfo = ref({ targetBankId: '', incomingVersion: '1.0', sourceName: '', existingScCount: 0, existingSpCount: 0, incomingScCount: 0, incomingSpCount: 0 });
-        const currentDiff = ref({ scenarios: { added: 0, updated_core: 0, updated_noncore: 0, unchanged: 0, removed: 0 }, spelling: { added: 0, updated_core: 0, updated_noncore: 0, unchanged: 0, removed: 0 }, need_reverification: 0 });
-        const parsedIncomingData = ref(null);
-        const isImportExecuting = ref(false);
-
-        const normalizeText = (text) => text ? String(text).replace(/\s+/g, ' ').trim().toLowerCase() : '';
-        const getWordStableId = (w) => w.id || normalizeText(w.target_word);
-
-        const isScenarioCoreChanged = (oldSc, newSc) => {
-          if (normalizeText(oldSc.interviewer_q) !== normalizeText(newSc.interviewer_q)) return true;
-          const oldSteps = oldSc.steps || [], newSteps = newSc.steps || [];
-          if (oldSteps.length !== newSteps.length) return true;
-          for (let i = 0; i < oldSteps.length; i++) {
-            if (normalizeText(oldSteps[i].target_sentence) !== normalizeText(newSteps[i].target_sentence)) return true;
-          }
-          return false;
-        };
-
-        const validateIncomingJson = (parsed) => {
-          if (!parsed || typeof parsed !== 'object') { alert('JSON 格式错误！'); return false; }
-          const hasSc = Array.isArray(parsed.scenarios) && parsed.scenarios.length > 0;
-          const hasSp = Array.isArray(parsed.spelling_bank) && parsed.spelling_bank.length > 0;
-          if (!hasSc && !hasSp) { alert('必须包含非空的 scenarios 或 spelling_bank 数组！'); return false; }
-          return true;
-        };
-
-        const computeDiffAndShowPreview = (parsed, sourceName = '') => {
-          if (!validateIncomingJson(parsed)) return;
-          if (parsed.bankId === 'builtin-interview-v1') parsed.bankId = 'custom_bank_' + Date.now();
-          else if (!parsed.bankId) parsed.bankId = (customBankObj.value && customBankObj.value.bankId) ? customBankObj.value.bankId : ('custom_bank_' + Date.now());
-
-          let baseScenarios = (customBankObj.value && customBankObj.value.bankId === parsed.bankId) ? (customBankObj.value.scenarios || []) : [];
-          let baseSpelling = (customBankObj.value && customBankObj.value.bankId === parsed.bankId) ? (customBankObj.value.spelling_bank || []) : [];
-
-          const existingScMap = new Map(baseScenarios.map(s => [s.id, s]));
-          const incomingScList = parsed.scenarios || [];
-          const incomingScMap = new Map(incomingScList.map(s => [s.id, s]));
-
-          let scAdded = 0, scUpdatedCore = 0, scUpdatedNoncore = 0, scUnchanged = 0, scRemoved = 0;
-          incomingScList.forEach(s => {
-            if (!existingScMap.has(s.id)) scAdded++;
-            else if (isScenarioCoreChanged(existingScMap.get(s.id), s)) scUpdatedCore++;
-            else scUnchanged++;
-          });
-          baseScenarios.forEach(s => { if (!incomingScMap.has(s.id)) scRemoved++; });
-
-          importDiffInfo.value = { targetBankId: parsed.bankId, incomingVersion: parsed.version || '1.0', sourceName, existingScCount: baseScenarios.length, existingSpCount: baseSpelling.length, incomingScCount: incomingScList.length, incomingSpCount: (parsed.spelling_bank || []).length };
-          currentDiff.value = { scenarios: { added: scAdded, updated_core: scUpdatedCore, updated_noncore: scUpdatedNoncore, unchanged: scUnchanged, removed: scRemoved }, spelling: { added: 0, updated_core: 0, updated_noncore: 0, unchanged: 0, removed: 0 }, need_reverification: scUpdatedCore };
-          parsedIncomingData.value = parsed;
-          importMode.value = 'incremental';
-          importPhase.value = 'preview';
-        };
-
-        const handleFileUpload = (event) => {
-          const file = event.target.files[0];
-          if (!file) return;
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            try { computeDiffAndShowPreview(JSON.parse(e.target.result), file.name); }
-            catch (err) { alert('解析 JSON 失败：' + err.message); }
-          };
-          reader.readAsText(file, 'utf-8');
-        };
-
-        const handlePasteCompare = () => {
-          try { computeDiffAndShowPreview(JSON.parse(importJsonText.value), '粘贴输入'); }
-          catch (err) { alert('解析 JSON 失败：' + err.message); }
-        };
-
-        const cancelImportPreview = () => { importPhase.value = 'input'; parsedIncomingData.value = null; };
-        const closeImportModal = () => { importPhase.value = 'input'; parsedIncomingData.value = null; openImportModal.value = false; };
-
-        const confirmAndExecuteImport = () => {
-          if (!parsedIncomingData.value || isImportExecuting.value) return;
-          isImportExecuting.value = true;
-          const incoming = parsedIncomingData.value;
-          const bId = incoming.bankId;
-
-          try {
-            let existingBank = (customBankObj.value && customBankObj.value.bankId === bId) ? customBankObj.value : { scenarios: [], spelling_bank: [] };
-            let progressData = loadProgressData(bId);
-            let mergedScenarios = [], mergedSpelling = [];
-
-            if (importMode.value === 'incremental') {
-              const incomingScIds = new Set((incoming.scenarios || []).map(s => s.id));
-              mergedScenarios = [...(incoming.scenarios || []), ...(existingBank.scenarios || []).filter(s => !incomingScIds.has(s.id))];
-              const incomingWIds = new Set((incoming.spelling_bank || []).map(w => getWordStableId(w)));
-              mergedSpelling = [...(incoming.spelling_bank || []), ...(existingBank.spelling_bank || []).filter(w => !incomingWIds.has(getWordStableId(w)))];
-            } else {
-              mergedScenarios = incoming.scenarios || [];
-              mergedSpelling = incoming.spelling_bank || [];
-            }
-
-            const finalBank = { version: incoming.version || '1.1.0', bankId: bId, updated_at: getTodayDateStr(), scenarios: mergedScenarios, spelling_bank: mergedSpelling };
-            localStorage.setItem('it_custom_bank_content', JSON.stringify(finalBank));
-            localStorage.setItem(getProgressStorageKey(bId), JSON.stringify(progressData));
-
-            customBankObj.value = finalBank;
-            currentProgress.value = progressData;
-            activeBankType.value = 'custom';
-            localStorage.setItem('it_active_bank_type', 'custom');
-
-            closeImportModal();
-            importJsonText.value = '';
-            jumpToNextDueOrNew();
-          } catch (err) {
-            alert('导入失败：' + err.message);
-          } finally {
-            isImportExecuting.value = false;
-          }
-        };
-
-        const copyAiPrompt = () => {
-          navigator.clipboard.writeText(AI_PROMPT_TEMPLATE).then(() => {
-            copied.value = true;
-            setTimeout(() => { copied.value = false; }, 2500);
-          });
-        };
-
-        const exportBackupFile = () => {
-          const backupData = {
-            schemaVersion: "1.2",
-            exportedAt: new Date().toISOString(),
-            activeStudySeconds: activeStudySeconds.value,
-            customBank: customBankObj.value,
-            progressBuiltin: localStorage.getItem(getProgressStorageKey('builtin-interview-v1')),
-            progressCustom: customBankObj.value ? localStorage.getItem(getProgressStorageKey(customBankObj.value.bankId)) : null
-          };
-          const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `interview_trainer_backup_${getTodayDateStr()}.json`;
-          a.click();
-          URL.revokeObjectURL(url);
-        };
-
-        const handleRestoreBackup = (event) => {
-          const file = event.target.files[0];
-          if (!file) return;
-          const reader = new FileReader();
-          reader.onload = (e) => {
-            try {
-              const b = JSON.parse(e.target.result);
-              if (b.activeStudySeconds) localStorage.setItem('it_study_seconds', b.activeStudySeconds);
-              if (b.customBank) localStorage.setItem('it_custom_bank_content', JSON.stringify(b.customBank));
-              if (b.progressBuiltin) localStorage.setItem(getProgressStorageKey('builtin-interview-v1'), b.progressBuiltin);
-              if (b.progressCustom && b.customBank) localStorage.setItem(getProgressStorageKey(b.customBank.bankId), b.progressCustom);
-              location.reload();
-            } catch(err) { alert('恢复失败：' + err.message); }
-          };
-          reader.readAsText(file, 'utf-8');
-        };
-
-        const switchTheme = (t) => {
-          currentTheme.value = t;
-          localStorage.setItem('it_theme', t);
-        };
-
-        const resetAllData = () => {
-          if (confirm('确认清空全部本地数据并恢复初始状态吗？')) {
-            localStorage.clear();
-            location.reload();
-          }
-        };
-
-        onMounted(() => {
-          loadUSVoices();
-          jumpToNextDueOrNew();
-        });
-
-        return {
-          currentTheme, currentMainTab, activePracticeMode, switchTheme,
-          dailyTarget, setDailyTarget, dismissedDailyBanner, todayCompletedCount,
-          speakUS, currentVoiceName,
-          activeStudyMinutes, openSettings, openExemplarModal, openImportModal, openBankSwitcherModal, exemplarTab,
-          activeBankType, hasCustomBank, customBankScenariosCount, switchBank, removeCustomBank,
-          scenariosList, currentScenario, currentScenarioIndex, currentScenarioTag,
-          goPrevScenario, goNextScenario, jumpToNextDueOrNew,
-          currentStepIndex, currentStep, selectedChunks, availablePool,
-          evaluated, isCurrentStepSuccess, hasError, errorReasonText, hitTraps, currentStepAssisted, isSubmitting, stepHadMistakeInSession,
-          selectChunk, unselectChunk, triggerStepHint, openExemplarViewer,
-          evaluateChunkStep, retryCurrentStep, skipCurrentStep, advanceToNextStepOrRecall,
-          inRecallPhase, recallRevealed, recallAssisted, recallOutcome, showAdvancedInRecall,
-          revealRecallAnswer, submitFinalRating,
-          // Match game & Mistake Book
-          matchFilterMode, allExtractedVocab, mistakeWordsCount,
-          matchPairs, matchLeftList, matchRightList, selectedLeftId, selectedRightId, wrongFlashId, isMatchRoundCompleted,
-          switchToMatchMode, initMatchRound, selectMatchLeft, selectMatchRight,
-          // Scenarios & Dashboard
-          selectScenarioAndTrain, getScenarioMemoryBadgeText, getScenarioMemoryBadgeClass, getScenarioDueText,
-          totalAttempts, firstTryAccuracyText, completedScenariosCount, todayDueCount, statusStats,
-          // Import & Backup
-          importJsonText, importPhase, importMode, importDiffInfo, currentDiff, isImportExecuting,
-          handlePasteCompare, cancelImportPreview, confirmAndExecuteImport, closeImportModal,
-          fileInputRef, copied, copyAiPrompt, handleFileUpload, exportBackupFile, handleRestoreBackup, resetAllData
-        };
-      }
-    });
-    app.mount('#app');
-  </script>
-</body>
-</html>
+          "id": "UNIV-01",
+          "title": "自我介绍 (Tell me about yourself)",
+          "interviewer_q": "Could you walk me through your background and key experience?",
+          "foundation_text": "I have extensive experience
