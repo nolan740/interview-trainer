@@ -84,6 +84,18 @@
       opacity: 0.85;
       transform: none;
     }
+    .theme-apple .btn-3d-accent {
+      background-color: #5e5ce6;
+      box-shadow: none;
+      color: white;
+      border-radius: 9999px;
+    }
+    .theme-apple .btn-3d-warn {
+      background-color: #ff3b30;
+      box-shadow: none;
+      color: white;
+      border-radius: 9999px;
+    }
     .theme-apple .btn-3d-chunk {
       background: #ffffff;
       border: 1px solid #d2d2d7;
@@ -109,6 +121,18 @@
       color: #fbf9f5;
       border-radius: 8px;
     }
+    .theme-nordic .btn-3d-accent {
+      background-color: #7c6a59;
+      box-shadow: none;
+      color: #fbf9f5;
+      border-radius: 8px;
+    }
+    .theme-nordic .btn-3d-warn {
+      background-color: #a34843;
+      box-shadow: none;
+      color: #fbf9f5;
+      border-radius: 8px;
+    }
     .theme-nordic .btn-3d-chunk {
       background: #fbf9f5;
       border: 1px solid #ded7ce;
@@ -130,9 +154,8 @@
 <body class="bg-gray-50 text-gray-800 antialiased select-none font-sans">
   <div id="app" :class="'theme-' + currentTheme" class="min-h-screen flex flex-col max-w-md mx-auto relative shadow-2xl overflow-x-hidden border-x border-gray-200" style="background-color: var(--bg-main);">
 
-    <!-- ================= TOP HEADER (纯图标按钮，无文字换行) ================= -->
+    <!-- ================= TOP HEADER ================= -->
     <header class="px-3.5 py-2.5 bg-white/95 backdrop-blur border-b border-gray-200 sticky top-0 z-40 flex items-center justify-between">
-      <!-- Left: Logo & Status Badge -->
       <div class="flex items-center space-x-2 min-w-0">
         <span class="text-lg font-black tracking-tight flex items-center space-x-1 shrink-0" :style="{ color: currentTheme === 'duo' ? '#58cc02' : 'inherit' }">
           <i class="fa-solid fa-bolt-lightning text-amber-400"></i>
@@ -147,9 +170,8 @@
         </span>
       </div>
 
-      <!-- Right: Icon-only Navigation Actions -->
       <div class="flex items-center space-x-1.5 shrink-0">
-        <!-- Bank Switcher Button -->
+        <!-- Bank Switcher -->
         <button 
           @click="openBankSwitcherModal = true" 
           title="切换题库"
@@ -157,7 +179,7 @@
           <i class="fa-solid fa-layer-group text-xs"></i>
         </button>
 
-        <!-- Import Button -->
+        <!-- Import -->
         <button 
           @click="openImportModal = true" 
           title="导入题库"
@@ -165,13 +187,13 @@
           <i class="fa-solid fa-file-import text-xs"></i>
         </button>
 
-        <!-- Active Timer Pill -->
-        <div class="h-8 px-2.5 rounded-full bg-gray-100 border border-gray-200 font-bold text-gray-700 text-xs flex items-center space-x-1 shadow-inner" title="有效专注时长">
-          <i class="fa-regular fa-clock text-blue-500 text-[11px]"></i>
-          <span>{{ activeStudyMinutes }}m</span>
+        <!-- Daily Goal Pill -->
+        <div class="h-8 px-2.5 rounded-full bg-amber-50 border border-amber-200 font-bold text-amber-800 text-xs flex items-center space-x-1" title="今日闯关进度">
+          <i class="fa-solid fa-fire text-amber-500 text-[11px]"></i>
+          <span>{{ todayCompletedCount }}/{{ dailyTarget }}</span>
         </div>
 
-        <!-- Settings Button -->
+        <!-- Settings -->
         <button 
           @click="openSettings = true" 
           title="设置与备份"
@@ -181,22 +203,22 @@
       </div>
     </header>
 
-    <!-- Sub Header: Mode Switcher (练习主屏) -->
-    <div v-if="currentMainTab === 'practice' && !inRecallPhase" class="px-4 py-2 bg-white/70 border-b border-gray-200 flex space-x-2 shrink-0">
+    <!-- Sub Header: Mode Switcher -->
+    <div v-if="currentMainTab === 'practice'" class="px-4 py-2 bg-white/80 border-b border-gray-200 flex space-x-2 shrink-0">
       <button 
-        @click="activePracticeMode = 'chunks'"
+        @click="activePracticeMode = 'chunks'; inRecallPhase = false"
         :class="activePracticeMode === 'chunks' ? 'bg-emerald-500 text-white font-bold shadow-sm' : 'bg-gray-100 text-gray-600'"
         class="flex-1 py-1.5 rounded-xl text-xs flex items-center justify-center space-x-1 transition">
         <i class="fa-solid fa-puzzle-piece"></i>
-        <span>句型拼装</span>
+        <span>每日场景闯关</span>
       </button>
       <button 
-        v-if="hasSpelling"
-        @click="activePracticeMode = 'spelling'"
-        :class="activePracticeMode === 'spelling' ? 'bg-blue-600 text-white font-bold shadow-sm' : 'bg-gray-100 text-gray-600'"
-        class="flex-1 py-1.5 rounded-xl text-xs flex items-center justify-center space-x-1 transition">
-        <i class="fa-solid fa-keyboard"></i>
-        <span>核心词汇</span>
+        @click="switchToMatchMode"
+        :class="activePracticeMode === 'match' ? 'bg-blue-600 text-white font-bold shadow-sm' : 'bg-gray-100 text-gray-600'"
+        class="flex-1 py-1.5 rounded-xl text-xs flex items-center justify-center space-x-1 transition relative">
+        <i class="fa-solid fa-table-cells"></i>
+        <span>词汇消消乐</span>
+        <span v-if="mistakeWordsCount > 0" class="ml-1 px-1.5 py-0.2 bg-rose-500 text-white text-[9px] rounded-full">{{ mistakeWordsCount }}</span>
       </button>
       <button 
         @click="openExemplarViewer"
@@ -212,18 +234,65 @@
       <!-- ================= TAB 1: 练习主控台 (PRACTICE) ================= -->
       <div v-if="currentMainTab === 'practice'" class="space-y-4">
 
-        <!-- ================= PHASE 1: CHUNKS BUILDING (微步骤词块拼装) ================= -->
-        <div v-if="!inRecallPhase && activePracticeMode === 'chunks'" class="space-y-4">
-          <!-- Top Scenario Bar -->
-          <div class="flex items-center justify-between text-xs text-gray-500 font-medium">
-            <div class="flex items-center space-x-1 min-w-0">
-              <span class="font-bold text-gray-700 shrink-0">场景 {{ currentScenario.id }}:</span>
-              <span class="truncate">{{ currentScenario.title }}</span>
+        <!-- ================= MODE A: 每日场景闯关 (CHUNKS + AUDIO + NAVIGATION) ================= -->
+        <div v-if="activePracticeMode === 'chunks' && !inRecallPhase" class="space-y-3.5">
+          
+          <!-- Daily Goal Banner (达成今日目标提示) -->
+          <div v-if="todayCompletedCount >= dailyTarget && !dismissedDailyBanner" class="p-3 rounded-2xl bg-gradient-to-r from-amber-100 to-yellow-50 border border-amber-300 flex items-center justify-between text-xs text-amber-950 shadow-sm">
+            <div class="flex items-center space-x-2">
+              <span class="text-lg">🏆</span>
+              <div>
+                <div class="font-black">今日闯关目标已达成！({{ todayCompletedCount }}/{{ dailyTarget }})</div>
+                <div class="text-[11px] text-amber-800">你可以继续往后刷题，或切换“词汇消消乐”巩固生词。</div>
+              </div>
             </div>
-            <button @click="currentMainTab = 'scenarios'" class="text-blue-600 font-bold hover:underline flex items-center space-x-0.5 shrink-0 ml-2">
-              <span>全场景 ({{ scenariosList.length }})</span>
-              <i class="fa-solid fa-chevron-right text-[10px]"></i>
+            <button @click="dismissedDailyBanner = true" class="text-amber-600 hover:text-amber-900 p-1">
+              <i class="fa-solid fa-xmark"></i>
             </button>
+          </div>
+
+          <!-- Top Scenario Context & Prev/Next Controls -->
+          <div class="p-3 rounded-2xl bg-white border border-gray-200 shadow-sm space-y-2">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-1.5 min-w-0">
+                <span :class="currentScenarioTag.badgeClass" class="text-[10px] font-black px-2 py-0.5 rounded-md shrink-0">
+                  {{ currentScenarioTag.label }}
+                </span>
+                <span class="text-xs font-black text-gray-800 truncate">
+                  {{ currentScenario.id }} · {{ currentScenario.title }}
+                </span>
+              </div>
+              <span class="text-[11px] font-bold text-gray-400 shrink-0 ml-1">
+                {{ currentScenarioIndex + 1 }}/{{ scenariosList.length }}
+              </span>
+            </div>
+
+            <!-- Prev / Next Scenario Navigation -->
+            <div class="flex items-center justify-between pt-1.5 border-t border-gray-100 text-[11px]">
+              <button 
+                @click="goPrevScenario"
+                :disabled="currentScenarioIndex === 0"
+                :class="currentScenarioIndex === 0 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-gray-100 text-gray-700'"
+                class="px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-200 font-bold flex items-center space-x-1 transition">
+                <i class="fa-solid fa-chevron-left text-[9px]"></i>
+                <span>回顾上一场景</span>
+              </button>
+
+              <button 
+                @click="jumpToNextDueOrNew"
+                class="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold hover:bg-emerald-100 transition">
+                定位今日待练
+              </button>
+
+              <button 
+                @click="goNextScenario"
+                :disabled="currentScenarioIndex >= scenariosList.length - 1"
+                :class="currentScenarioIndex >= scenariosList.length - 1 ? 'opacity-30 cursor-not-allowed' : 'hover:bg-gray-100 text-gray-700'"
+                class="px-2.5 py-1 rounded-lg bg-gray-50 border border-gray-200 font-bold flex items-center space-x-1 transition">
+                <span>下一场景</span>
+                <i class="fa-solid fa-chevron-right text-[9px]"></i>
+              </button>
+            </div>
           </div>
 
           <!-- Micro Step Progress Bar -->
@@ -236,34 +305,49 @@
             </div>
           </div>
 
-          <!-- Interviewer Question Card -->
-          <div class="p-4 rounded-2xl bg-white border border-gray-200 shadow-sm space-y-2">
-            <div class="flex items-center space-x-2 text-xs font-bold text-indigo-600">
-              <i class="fa-solid fa-circle-question"></i>
-              <span>Interviewer 面试官提问</span>
+          <!-- Interviewer Question Card + US Audio Playback -->
+          <div class="p-4 rounded-2xl bg-white border border-gray-200 shadow-sm space-y-2.5">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-1.5 text-xs font-bold text-indigo-600">
+                <i class="fa-solid fa-user-tie"></i>
+                <span>面试官提问 (Interviewer)</span>
+              </div>
+              <div class="flex items-center space-x-1.5">
+                <button 
+                  @click="speakUS(currentScenario.interviewer_q, 1.0)"
+                  class="px-2.5 py-1 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold text-[11px] flex items-center space-x-1 transition active:scale-95">
+                  <i class="fa-solid fa-volume-high"></i>
+                  <span>美音朗读</span>
+                </button>
+                <button 
+                  @click="speakUS(currentScenario.interviewer_q, 0.72)"
+                  class="px-2 py-1 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold text-[10px] transition active:scale-95" title="慢速跟读">
+                  🐢 慢速
+                </button>
+              </div>
             </div>
             <p class="text-sm font-bold text-gray-800 leading-snug">
               "{{ currentScenario.interviewer_q }}"
             </p>
           </div>
 
-          <!-- Logic Scaffold (防大脑卡顿脚手架) -->
-          <div class="p-3.5 rounded-2xl bg-amber-50/80 border border-amber-200 text-xs space-y-1">
+          <!-- Logic Scaffold (中文表达意图提示) -->
+          <div class="p-3.5 rounded-2xl bg-amber-50/90 border border-amber-200 text-xs space-y-1">
             <div class="flex items-center justify-between text-amber-800 font-bold">
               <span class="flex items-center space-x-1">
                 <i class="fa-regular fa-lightbulb"></i>
-                <span>思考步骤 ({{ currentStepIndex + 1 }}/{{ (currentScenario && currentScenario.steps) ? currentScenario.steps.length : 1 }}):</span>
+                <span>你的回复意图 ({{ currentStepIndex + 1 }}/{{ (currentScenario && currentScenario.steps) ? currentScenario.steps.length : 1 }}):</span>
               </span>
               <button 
                 v-if="!currentStepAssisted" 
                 @click="triggerStepHint" 
                 class="text-amber-700 hover:text-amber-900 underline flex items-center space-x-1">
                 <i class="fa-solid fa-key text-[10px]"></i>
-                <span>查看避坑提示</span>
+                <span>语法/搭配提示</span>
               </button>
-              <span v-else class="text-amber-600 italic">已查看提示</span>
+              <span v-else class="text-amber-600 italic">已展开提示</span>
             </div>
-            <p class="text-amber-900 font-medium">
+            <p class="text-amber-950 font-bold text-[13px]">
               {{ currentStep.step_zh }}
             </p>
           </div>
@@ -272,24 +356,24 @@
           <div v-if="currentStepAssisted" class="p-3 rounded-xl bg-orange-100/90 border border-orange-300 text-xs text-orange-900 space-y-1">
             <div class="font-bold flex items-center space-x-1">
               <i class="fa-solid fa-circle-info"></i>
-              <span>避坑提示 (Watch Out)</span>
+              <span>地道搭配提示 (Watch Out)</span>
             </div>
             <p>{{ currentStep.hint_text }}</p>
           </div>
 
-          <!-- Assembly Target Box (组装答题槽) -->
+          <!-- Assembly Target Box (点选词块槽) -->
           <div 
             :class="[hasError ? 'animate-shake border-red-400 bg-red-50/30' : 'border-gray-200 bg-white']"
-            class="min-h-[105px] p-3 rounded-2xl border-2 border-dashed flex flex-wrap gap-2 items-start content-start transition-all">
+            class="min-h-[100px] p-3 rounded-2xl border-2 border-dashed flex flex-wrap gap-2 items-start content-start transition-all">
             <div v-if="selectedChunks.length === 0" class="text-xs text-gray-400 my-auto w-full text-center py-4">
-              点击下方词块，按严格正确语序拼装句子（点击已拼词块可撤回）
+              手点下方英文词块拼出句子（点击即自动播放美式发音）
             </div>
             <button 
               v-for="(chunk, idx) in selectedChunks" 
               :key="idx" 
               @click="unselectChunk(chunk, idx)"
               :disabled="evaluated"
-              class="px-3 py-2 rounded-xl text-xs font-semibold bg-emerald-100 text-emerald-900 border border-emerald-300 shadow-sm flex items-center space-x-1 hover:bg-emerald-200 transition">
+              class="px-3 py-2 rounded-xl text-xs font-semibold bg-emerald-100 text-emerald-900 border border-emerald-300 shadow-sm flex items-center space-x-1.5 hover:bg-emerald-200 transition">
               <span>{{ chunk.text }}</span>
               <i v-if="!evaluated" class="fa-solid fa-xmark text-[10px] text-emerald-600"></i>
             </button>
@@ -297,8 +381,8 @@
 
           <!-- Chunk Pool (备选词块池) -->
           <div v-if="!evaluated" class="space-y-2">
-            <div class="text-[11px] font-bold text-gray-500 uppercase tracking-wider flex justify-between">
-              <span>备选词块库 (含易错干扰项)</span>
+            <div class="text-[11px] font-bold text-gray-500 flex justify-between">
+              <span>备选词块池（点选拼句，含易错干扰项）</span>
               <span>已选 {{ selectedChunks.length }} / {{ (currentStep && currentStep.correct_chunks) ? currentStep.correct_chunks.length : 0 }}</span>
             </div>
             <div class="flex flex-wrap gap-2">
@@ -306,8 +390,9 @@
                 v-for="(chunk, idx) in availablePool" 
                 :key="chunk.id || idx" 
                 @click="selectChunk(chunk)"
-                class="btn-3d-chunk px-3 py-2.5 rounded-xl text-xs font-semibold leading-tight text-left transition transform active:scale-95">
-                {{ chunk.text }}
+                class="btn-3d-chunk px-3 py-2.5 rounded-xl text-xs font-semibold leading-tight text-left transition transform active:scale-95 flex items-center space-x-1.5">
+                <i class="fa-solid fa-volume-low text-gray-400 text-[10px]"></i>
+                <span>{{ chunk.text }}</span>
               </button>
             </div>
           </div>
@@ -318,9 +403,9 @@
               @click="evaluateChunkStep"
               :disabled="selectedChunks.length === 0 || isSubmitting"
               :class="selectedChunks.length === 0 ? 'opacity-40 cursor-not-allowed' : ''"
-              class="flex-1 btn-3d-primary py-3.5 rounded-2xl font-black text-sm uppercase tracking-wide flex items-center justify-center space-x-2">
+              class="flex-1 btn-3d-primary py-3.5 rounded-2xl font-black text-sm tracking-wide flex items-center justify-center space-x-2">
               <i class="fa-solid fa-check-double"></i>
-              <span>核对答案 (Check Answer)</span>
+              <span>核对答案</span>
             </button>
             <button 
               @click="skipCurrentStep"
@@ -329,17 +414,17 @@
             </button>
           </div>
 
-          <!-- Evaluation Feedback Section (严格判分反馈) -->
+          <!-- Evaluation Feedback Section -->
           <div v-if="evaluated" class="space-y-3 pt-2">
             <!-- Wrong Feedback -->
             <div v-if="!isCurrentStepSuccess" class="p-3.5 rounded-2xl bg-rose-50 border-2 border-rose-300 text-rose-900 space-y-2">
               <div class="flex items-center space-x-1.5 font-bold text-xs text-rose-700">
                 <i class="fa-solid fa-triangle-exclamation text-rose-600"></i>
-                <span>判分错误：{{ errorReasonText }}</span>
+                <span>{{ errorReasonText }}（已加入隔天强化复习）</span>
               </div>
               <div v-if="hitTraps.length > 0" class="space-y-1">
                 <div v-for="(trap, tidx) in hitTraps" :key="tidx" class="text-xs bg-white/80 p-2 rounded-xl border border-rose-200">
-                  <p class="font-bold text-red-700 line-through">❌ 选入干扰项: "{{ trap.text }}"</p>
+                  <p class="font-bold text-red-700 line-through">❌ 干扰项: "{{ trap.text }}"</p>
                   <p class="text-gray-800 mt-0.5">⚠️ 避坑解析: {{ trap.trap_reason }}</p>
                 </div>
               </div>
@@ -347,250 +432,265 @@
                 @click="retryCurrentStep"
                 class="w-full btn-3d-warn py-2.5 rounded-xl text-xs font-black flex items-center justify-center space-x-1">
                 <i class="fa-solid fa-rotate-left"></i>
-                <span>清空重新拼装 (Retry)</span>
+                <span>清空重新拼装</span>
               </button>
             </div>
 
-            <!-- Success Feedback -->
+            <!-- Success Feedback + Auto Read & Shadowing -->
             <div v-else class="space-y-3">
-              <div class="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-300 text-emerald-900 text-xs font-semibold flex items-center space-x-2">
-                <i class="fa-solid fa-circle-check text-emerald-600 text-base"></i>
-                <span>词块与顺序完全正确！地道避开时态与搭配陷阱。</span>
+              <div class="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-300 text-emerald-900 space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-black text-emerald-700 flex items-center space-x-1.5">
+                    <i class="fa-solid fa-circle-check text-emerald-600 text-base"></i>
+                    <span>拼装正确！请大声跟读一遍：</span>
+                  </span>
+                  <div class="flex items-center space-x-1.5">
+                    <button 
+                      @click="speakUS(currentStep.target_sentence, 1.0)"
+                      class="px-2.5 py-1 rounded-full bg-emerald-600 text-white font-bold text-[11px] flex items-center space-x-1 shadow-sm active:scale-95">
+                      <i class="fa-solid fa-volume-high"></i>
+                      <span>重听</span>
+                    </button>
+                    <button 
+                      @click="speakUS(currentStep.target_sentence, 0.72)"
+                      class="px-2 py-1 rounded-full bg-white border border-emerald-300 text-emerald-800 font-bold text-[10px] active:scale-95">
+                      🐢 慢速
+                    </button>
+                  </div>
+                </div>
+                <p class="font-bold text-gray-900 text-sm leading-relaxed bg-white/80 p-2.5 rounded-xl border border-emerald-200">
+                  {{ currentStep.target_sentence }}
+                </p>
               </div>
-              <div class="p-3 rounded-xl bg-gray-100 text-xs space-y-1">
-                <span class="font-bold text-gray-500">本步骤地道标准表达：</span>
-                <p class="font-bold text-gray-900">{{ currentStep.target_sentence }}</p>
-              </div>
+
               <button 
                 @click="advanceToNextStepOrRecall"
-                class="w-full btn-3d-primary py-3 rounded-2xl text-xs font-black flex items-center justify-center space-x-1">
-                <span>{{ currentStepIndex < currentScenario.steps.length - 1 ? '进入下一步 (Next Step)' : '完成微步骤，进入无提示回忆' }}</span>
+                class="w-full btn-3d-primary py-3.5 rounded-2xl text-xs font-black flex items-center justify-center space-x-1.5">
+                <span>{{ currentStepIndex < currentScenario.steps.length - 1 ? '跟读完成，进入下一句' : '跟读完成，进入口头脱稿核对' }}</span>
                 <i class="fa-solid fa-arrow-right"></i>
               </button>
             </div>
           </div>
         </div>
 
-        <!-- ================= PHASE 2: NO-HINT RECALL (P0-02 无提示终局回忆与防作弊评级) ================= -->
-        <div v-if="inRecallPhase" class="space-y-4">
-          <!-- Top Title -->
+        <!-- ================= PHASE 2: NO-HINT ORAL RECALL (纯口头跟读自评，零打字) ================= -->
+        <div v-if="activePracticeMode === 'chunks' && inRecallPhase" class="space-y-4">
           <div class="p-4 bg-indigo-50 border border-indigo-200 rounded-2xl flex items-center justify-between">
             <div>
               <div class="text-xs font-bold text-indigo-700 flex items-center space-x-1">
-                <i class="fa-solid fa-brain"></i>
-                <span>终局回忆阶段 (No-Hint Recall)</span>
+                <i class="fa-solid fa-microphone-lines"></i>
+                <span>口头脱稿核对 (Oral Self-Check)</span>
               </div>
-              <div class="text-sm font-black text-indigo-950 mt-0.5">场景 {{ currentScenario.id }}: {{ currentScenario.title }}</div>
+              <div class="text-sm font-black text-indigo-950 mt-0.5">{{ currentScenario.id }}: {{ currentScenario.title }}</div>
             </div>
-            <span v-if="recallAssisted" class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-100 text-amber-800 border border-amber-300">
-              ⚠️ 依赖提示 (限橙)
+            <span v-if="recallAssisted || stepHadMistakeInSession" class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-amber-100 text-amber-800 border border-amber-300">
+              本轮有提示/错误
             </span>
             <span v-else class="text-[10px] px-2 py-0.5 rounded-full font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
-              独立回忆中
+              独立完成拼装
             </span>
           </div>
 
-          <!-- Question Display (仅大字号英文提问，绝不泄露范文与答案) -->
+          <!-- Question Display + Audio -->
           <div class="p-5 rounded-2xl bg-white border border-gray-200 shadow-sm space-y-3">
-            <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Interviewer 面试官提问：</span>
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-gray-500">面试官提问：</span>
+              <button 
+                @click="speakUS(currentScenario.interviewer_q, 1.0)"
+                class="px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 font-bold text-[11px] flex items-center space-x-1">
+                <i class="fa-solid fa-volume-high"></i>
+                <span>听提问</span>
+              </button>
+            </div>
             <p class="text-base font-bold text-gray-900 leading-snug">
               "{{ currentScenario.interviewer_q }}"
             </p>
-            <div class="p-3 bg-gray-50 rounded-xl text-xs text-gray-600 leading-relaxed border border-gray-100">
-              💡 <strong>操作指引</strong>：请尝试在心中或小声用英文脱稿完整陈述。无需语音输入，下方可选用输入框做短文本整理（仅保存在手机本地）。
+            <div class="p-3 bg-amber-50/70 rounded-xl text-xs text-amber-900 leading-relaxed border border-amber-200">
+              <strong>中文逻辑提示</strong>：{{ currentScenario.zh_scaffold_full }}
+            </div>
+            <div class="text-xs text-gray-500 flex items-center space-x-1.5">
+              <i class="fa-solid fa-comment-dots text-emerald-600"></i>
+              <span>无需打字！请直接看着中文逻辑，小声用英文完整说一遍。</span>
             </div>
           </div>
 
-          <!-- Optional Short Text Recall Input (可选输入，默认不上传，仅存本地) -->
-          <div class="space-y-1.5">
-            <label class="block text-xs font-bold text-gray-700">我的英文回答草稿（可选，仅供自我核对）：</label>
-            <textarea 
-              v-model="userRecallDraft" 
-              rows="3" 
-              placeholder="在此整理几句核心词块或论证点（可选）..." 
-              class="w-full p-3 font-sans text-xs border-2 border-gray-200 rounded-2xl focus:border-indigo-500 focus:outline-none bg-white"></textarea>
-          </div>
-
-          <!-- REVEAL CONTROLS (揭晓前) -->
+          <!-- REVEAL CONTROLS -->
           <div v-if="!recallRevealed" class="space-y-2 pt-2">
             <button 
               @click="revealRecallAnswer('attempted')"
-              class="w-full btn-3d-primary py-3.5 rounded-2xl font-black text-sm uppercase tracking-wide flex items-center justify-center space-x-2">
+              class="w-full btn-3d-primary py-3.5 rounded-2xl font-black text-sm tracking-wide flex items-center justify-center space-x-2">
               <i class="fa-solid fa-eye"></i>
-              <span>我已尝试回忆，查看参考答案</span>
+              <span>我已口头说了一遍，核对范文</span>
             </button>
             <button 
               @click="revealRecallAnswer('skipped')"
               class="w-full py-2.5 text-xs text-gray-500 font-bold hover:text-gray-800 transition text-center">
-              跳过回忆，直接看答案 (记未通过 D+1)
+              说不出来，直接听范文跟读 (安排明天复测)
             </button>
           </div>
 
-          <!-- REVEALED SECTION (揭晓后：比对与严谨自评) -->
-          <div v-if="recallRevealed" class="space-y-4 pt-1 animate-slide-up">
-            <!-- Reference Exemplars -->
+          <!-- REVEALED SECTION -->
+          <div v-if="recallRevealed" class="space-y-4 pt-1">
             <div class="p-4 rounded-2xl bg-white border border-gray-200 shadow-sm space-y-3">
               <div class="flex items-center justify-between border-b border-gray-100 pb-2">
-                <span class="text-xs font-bold text-gray-500">标准参考范文对比</span>
-                <button 
-                  @click="showAdvancedInRecall = !showAdvancedInRecall"
-                  class="text-xs font-bold text-indigo-600 hover:underline">
-                  {{ showAdvancedInRecall ? '切换为基础版' : '查看进阶版' }}
-                </button>
+                <span class="text-xs font-bold text-gray-500">参考范文与美音跟读</span>
+                <div class="flex items-center space-x-2">
+                  <button 
+                    @click="speakUS(showAdvancedInRecall ? currentScenario.advanced_text : currentScenario.foundation_text, 1.0)"
+                    class="px-2.5 py-1 rounded-full bg-emerald-500 text-white font-bold text-[11px] flex items-center space-x-1">
+                    <i class="fa-solid fa-volume-high"></i>
+                    <span>整段朗读</span>
+                  </button>
+                  <button 
+                    @click="showAdvancedInRecall = !showAdvancedInRecall"
+                    class="text-xs font-bold text-indigo-600 hover:underline">
+                    {{ showAdvancedInRecall ? '切回基础版' : '看进阶版' }}
+                  </button>
+                </div>
               </div>
 
-              <!-- Text Content -->
               <div class="text-xs leading-relaxed text-gray-800 bg-gray-50 p-3 rounded-xl border border-gray-100">
-                <p class="font-medium">
+                <p class="font-medium text-sm leading-relaxed">
                   {{ showAdvancedInRecall ? currentScenario.advanced_text : currentScenario.foundation_text }}
                 </p>
               </div>
-
-              <!-- Chinese Scaffold -->
-              <div class="text-xs text-amber-900 bg-amber-50 p-2.5 rounded-xl border border-amber-200">
-                <span class="font-bold">中文脱稿思维链：</span> {{ currentScenario.zh_scaffold_full }}
-              </div>
             </div>
 
-            <!-- Self Rating Buttons (根据防作弊规则严格限制绿色评级) -->
+            <!-- Self Rating Buttons (驱动隔天强化与一周抽查) -->
             <div class="space-y-2">
               <div class="text-xs font-bold text-gray-700 text-center">
-                请对照参考答案，自评本次回忆效果（驱动复习排期）：
+                根据刚才的脱稿流利度，安排下次复习时间：
               </div>
               <div class="grid grid-cols-3 gap-2">
-                <!-- Red Rating -->
                 <button 
                   @click="submitFinalRating('red')"
                   class="py-3 px-1 rounded-2xl text-xs font-bold bg-rose-50 text-rose-800 border-2 border-rose-300 hover:bg-rose-100 transition flex flex-col items-center">
-                  <span class="text-sm">🔴 忘记/卡壳</span>
-                  <span class="text-[10px] text-rose-600 font-normal mt-0.5">次日(D+1)复习</span>
+                  <span class="text-sm">🔴 还有卡壳</span>
+                  <span class="text-[10px] text-rose-600 font-normal mt-0.5">明天 (D+1) 强化</span>
                 </button>
 
-                <!-- Orange Rating -->
                 <button 
                   @click="submitFinalRating('orange')"
                   class="py-3 px-1 rounded-2xl text-xs font-bold bg-amber-50 text-amber-800 border-2 border-amber-300 hover:bg-amber-100 transition flex flex-col items-center">
-                  <span class="text-sm">🟠 勉强想起</span>
-                  <span class="text-[10px] text-amber-600 font-normal mt-0.5">2天后(D+2)复习</span>
+                  <span class="text-sm">🟠 基本能说</span>
+                  <span class="text-[10px] text-amber-600 font-normal mt-0.5">2天后 (D+2) 巩固</span>
                 </button>
 
-                <!-- Green Rating (Disabled if assisted or skipped) -->
                 <button 
                   @click="submitFinalRating('green')"
-                  :disabled="recallAssisted || recallOutcome === 'skipped'"
-                  :class="(recallAssisted || recallOutcome === 'skipped') ? 'opacity-40 cursor-not-allowed bg-gray-100 border-gray-300 text-gray-400' : 'bg-emerald-50 text-emerald-800 border-2 border-emerald-300 hover:bg-emerald-100'"
+                  :disabled="recallAssisted || recallOutcome === 'skipped' || stepHadMistakeInSession"
+                  :class="(recallAssisted || recallOutcome === 'skipped' || stepHadMistakeInSession) ? 'opacity-40 cursor-not-allowed bg-gray-100 border-gray-300 text-gray-400' : 'bg-emerald-50 text-emerald-800 border-2 border-emerald-300 hover:bg-emerald-100'"
                   class="py-3 px-1 rounded-2xl text-xs font-bold transition flex flex-col items-center">
-                  <span class="text-sm">🟢 独立脱口而出</span>
-                  <span class="text-[10px] text-emerald-600 font-normal mt-0.5">7天后(D+7)保鲜</span>
+                  <span class="text-sm">🟢 脱口而出</span>
+                  <span class="text-[10px] text-emerald-600 font-normal mt-0.5">一周后 (D+7) 抽查</span>
                 </button>
               </div>
-              <p v-if="recallAssisted" class="text-[10px] text-amber-700 text-center">
-                * 本轮回忆阶段已查看提示或范文，已标记“依赖提示”，按规则最高评橙。
-              </p>
-              <p v-if="recallOutcome === 'skipped'" class="text-[10px] text-rose-600 text-center">
-                * 本轮已选择跳过独立回忆，自动按未通过排期次日复查。
+              <p v-if="stepHadMistakeInSession || recallAssisted" class="text-[10px] text-amber-700 text-center">
+                * 本轮拼装过程中曾出现错误或查看提示，系统已自动为你安排 1~2 天内隔天强化复习。
               </p>
             </div>
           </div>
         </div>
 
-        <!-- ================= MODE: SPELLING SPRINT (核心词汇键盘盲打) ================= -->
-        <div v-if="!inRecallPhase && activePracticeMode === 'spelling'" class="space-y-4">
-          <div class="flex items-center justify-between text-xs font-medium text-gray-500">
-            <span>核心词汇攻坚 ({{ spellingIndex + 1 }} / {{ spellingBank.length }})</span>
-            <span class="px-2 py-0.5 rounded-full font-bold bg-blue-100 text-blue-700">盲打键盘提取</span>
-          </div>
-
-          <div class="p-4 rounded-2xl bg-white border border-gray-200 shadow-sm space-y-3">
+        <!-- ================= MODE B: 多邻国同款错题本与词汇消消乐配对 (MATCHING GAME) ================= -->
+        <div v-if="activePracticeMode === 'match'" class="space-y-4">
+          <!-- Sub-filter: 全部核心词汇 vs 错题强化词汇 -->
+          <div class="p-3 rounded-2xl bg-white border border-gray-200 shadow-sm space-y-2.5">
             <div class="flex items-center justify-between">
-              <span class="text-xs font-black uppercase text-blue-600 tracking-wider">
-                <i class="fa-solid fa-spell-check mr-1"></i>
-                [{{ currentWord.pos }}] {{ currentWord.topic }}
-              </span>
+              <div>
+                <h3 class="text-sm font-black text-gray-900">词汇中英配对消消乐</h3>
+                <p class="text-[11px] text-gray-500">手点左侧中文与右侧英文配对，配对成功自动朗读美音</p>
+              </div>
               <button 
-                @click="giveFirstLetterHint" 
-                class="text-xs font-bold text-gray-500 hover:text-blue-600 flex items-center space-x-1">
-                <i class="fa-regular fa-lightbulb"></i>
-                <span>提示首字母</span>
+                @click="initMatchRound"
+                class="px-2.5 py-1.5 rounded-xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs flex items-center space-x-1">
+                <i class="fa-solid fa-shuffle"></i>
+                <span>换一组</span>
               </button>
             </div>
 
-            <div>
-              <h3 class="text-xl font-black text-gray-900">{{ currentWord.zh }}</h3>
-              <p class="text-xs text-gray-500 mt-1">{{ currentWord.context_tip }}</p>
-            </div>
-
-            <div class="p-3 bg-gray-50 rounded-xl border border-gray-200 text-xs font-medium text-gray-700 leading-relaxed">
-              <span>{{ currentWord.sentence_before }}</span>
-              <span class="font-bold underline text-blue-600 px-1 decoration-2">
-                {{ wordFeedback ? currentWord.target_word : '_______' }}
-              </span>
-              <span>{{ currentWord.sentence_after }}</span>
-            </div>
-          </div>
-
-          <div class="space-y-2">
-            <label class="block text-xs font-bold text-gray-600">请输入完整的英文拼写：</label>
-            <div class="relative">
-              <input 
-                v-model="userTypedWord" 
-                @keyup.enter="checkSpelling"
-                :disabled="wordEvaluated"
-                type="text" 
-                spellcheck="false"
-                autocapitalize="none"
-                placeholder="敲入单词..." 
-                class="w-full px-4 py-3.5 rounded-xl border-2 border-gray-300 focus:border-blue-500 focus:outline-none font-bold text-base tracking-wide bg-white shadow-inner">
+            <div class="flex space-x-2 pt-1 border-t border-gray-100">
               <button 
-                v-if="userTypedWord && !wordEvaluated" 
-                @click="userTypedWord = ''"
-                class="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600 text-sm">
-                <i class="fa-solid fa-circle-xmark"></i>
+                @click="matchFilterMode = 'all'; initMatchRound()"
+                :class="matchFilterMode === 'all' ? 'bg-blue-600 text-white font-bold' : 'bg-gray-100 text-gray-600'"
+                class="flex-1 py-1.5 rounded-xl text-xs transition">
+                全部核心词 ({{ allExtractedVocab.length }})
+              </button>
+              <button 
+                @click="matchFilterMode = 'mistakes'; initMatchRound()"
+                :class="matchFilterMode === 'mistakes' ? 'bg-rose-600 text-white font-bold' : 'bg-rose-50 text-rose-700 border border-rose-200'"
+                class="flex-1 py-1.5 rounded-xl text-xs font-bold transition">
+                🔥 错题词汇本 ({{ mistakeWordsCount }})
               </button>
             </div>
           </div>
 
-          <div v-if="!wordEvaluated">
+          <!-- Empty Mistake Book State -->
+          <div v-if="matchFilterMode === 'mistakes' && mistakeWordsCount === 0" class="p-8 rounded-2xl bg-white border border-gray-200 text-center space-y-3">
+            <div class="text-3xl">🎉</div>
+            <div class="text-sm font-black text-gray-800">错题词汇本目前是空的！</div>
+            <p class="text-xs text-gray-500">在配对中点错的词，或者在场景拼装中答错的句子词汇，都会自动收录到这里。</p>
             <button 
-              @click="checkSpelling"
-              :disabled="!userTypedWord.trim()"
-              :class="!userTypedWord.trim() ? 'opacity-40 cursor-not-allowed' : ''"
-              class="w-full btn-3d-accent py-3.5 rounded-2xl font-black text-sm uppercase tracking-wide flex items-center justify-center space-x-2">
-              <i class="fa-solid fa-paper-plane"></i>
-              <span>核对拼写 (Submit)</span>
+              @click="matchFilterMode = 'all'; initMatchRound()"
+              class="px-4 py-2 rounded-xl bg-blue-600 text-white font-bold text-xs">
+              先练全部核心词汇
             </button>
           </div>
 
-          <div v-if="wordEvaluated" class="space-y-3 pt-1">
-            <div 
-              :class="wordFeedback.isCorrect ? 'bg-emerald-50 border-emerald-300 text-emerald-900' : 'bg-rose-50 border-rose-300 text-rose-900'"
-              class="p-4 rounded-2xl border-2 space-y-2">
-              <div class="flex items-center justify-between font-black text-sm">
-                <span v-if="wordFeedback.isCorrect" class="text-emerald-700 flex items-center space-x-1">
-                  <i class="fa-solid fa-circle-check"></i>
-                  <span>拼写完全正确！</span>
-                </span>
-                <span v-else class="text-rose-700 flex items-center space-x-1">
-                  <i class="fa-solid fa-circle-xmark"></i>
-                  <span>拼写有误，强化记忆！</span>
-                </span>
-                <span class="text-xs font-mono font-bold bg-white px-2 py-0.5 rounded border">
-                  答案: {{ currentWord.target_word }}
-                </span>
+          <!-- Matching Columns (Left ZH, Right EN) -->
+          <div v-else-if="matchPairs.length > 0" class="space-y-3">
+            <div class="grid grid-cols-2 gap-3">
+              <!-- Left Column: Chinese -->
+              <div class="space-y-2.5">
+                <div class="text-[10px] font-bold text-gray-400 text-center uppercase">中文业务释义</div>
+                <button 
+                  v-for="item in matchLeftList" 
+                  :key="'zh_' + item.id"
+                  @click="selectMatchLeft(item)"
+                  :disabled="item.matched"
+                  :class="[
+                    item.matched ? 'opacity-25 bg-emerald-50 border-emerald-200 text-emerald-700 cursor-default' :
+                    selectedLeftId === item.id ? 'bg-blue-100 border-blue-500 text-blue-900 ring-2 ring-blue-300 font-black' :
+                    wrongFlashId === item.id ? 'animate-shake bg-rose-100 border-rose-500 text-rose-900' :
+                    'btn-3d-chunk hover:bg-gray-50 text-gray-800'
+                  ]"
+                  class="w-full min-h-[56px] px-3 py-2 rounded-2xl text-xs font-bold text-center flex flex-col items-center justify-center transition">
+                  <span>{{ item.zh }}</span>
+                  <span v-if="item.topic" class="text-[9px] font-normal text-gray-400 mt-0.5 truncate max-w-full">{{ item.topic }}</span>
+                </button>
               </div>
 
-              <div class="text-xs space-y-1 bg-white/70 p-2.5 rounded-xl border">
-                <p class="font-bold text-gray-800">⚠️ 易错混淆点：{{ currentWord.trap_note }}</p>
-                <p class="text-gray-600">例句全句：{{ currentWord.full_sentence }}</p>
+              <!-- Right Column: English -->
+              <div class="space-y-2.5">
+                <div class="text-[10px] font-bold text-gray-400 text-center uppercase">英文表达 (点击发音)</div>
+                <button 
+                  v-for="item in matchRightList" 
+                  :key="'en_' + item.id"
+                  @click="selectMatchRight(item)"
+                  :disabled="item.matched"
+                  :class="[
+                    item.matched ? 'opacity-25 bg-emerald-50 border-emerald-200 text-emerald-700 cursor-default' :
+                    selectedRightId === item.id ? 'bg-blue-100 border-blue-500 text-blue-900 ring-2 ring-blue-300 font-black' :
+                    wrongFlashId === item.id ? 'animate-shake bg-rose-100 border-rose-500 text-rose-900' :
+                    'btn-3d-chunk hover:bg-gray-50 text-gray-800'
+                  ]"
+                  class="w-full min-h-[56px] px-3 py-2 rounded-2xl text-xs font-bold text-center flex items-center justify-center space-x-1 transition">
+                  <i class="fa-solid fa-volume-low text-[10px] text-blue-500 shrink-0"></i>
+                  <span class="leading-tight">{{ item.en }}</span>
+                </button>
               </div>
             </div>
 
-            <button 
-              @click="nextSpellingWord" 
-              class="w-full btn-3d-primary py-3 rounded-2xl font-bold text-sm flex items-center justify-center space-x-2">
-              <span>下一个单词 (Next Word)</span>
-              <i class="fa-solid fa-arrow-right"></i>
-            </button>
+            <!-- Round Complete Banner -->
+            <div v-if="isMatchRoundCompleted" class="p-4 rounded-2xl bg-emerald-50 border-2 border-emerald-300 text-center space-y-2.5">
+              <div class="text-sm font-black text-emerald-800">✨ 本组配对全部消除！</div>
+              <p class="text-xs text-emerald-700">配对答错过的词已自动记入错题词汇本，方便随时强化。</p>
+              <button 
+                @click="initMatchRound"
+                class="w-full btn-3d-primary py-3 rounded-2xl font-black text-xs">
+                继续下一组消消乐
+              </button>
+            </div>
           </div>
         </div>
 
@@ -602,17 +702,16 @@
         <div class="flex items-center justify-between">
           <div>
             <h2 class="text-lg font-black text-gray-900">面试场景全景库</h2>
-            <p class="text-xs text-gray-500">当前题库收录 {{ scenariosList.length }} 个场景</p>
+            <p class="text-xs text-gray-500">点击任意场景可直接进入拼装与美音跟读</p>
           </div>
           <button 
             @click="currentMainTab = 'practice'" 
             class="px-3 py-1.5 rounded-xl bg-emerald-500 text-white font-bold text-xs flex items-center space-x-1 shadow-sm">
-            <span>回到训练</span>
+            <span>回到闯关</span>
             <i class="fa-solid fa-arrow-right text-[10px]"></i>
           </button>
         </div>
 
-        <!-- Scenarios List Cards -->
         <div class="space-y-2.5">
           <div 
             v-for="sc in scenariosList" 
@@ -644,7 +743,7 @@
             <div class="flex items-center justify-between text-[11px] text-gray-500 pt-1 border-t border-gray-100">
               <span>{{ sc.steps ? sc.steps.length : 1 }} 个微步骤 · {{ getScenarioDueText(sc.id) }}</span>
               <div class="flex items-center space-x-1.5 font-bold text-emerald-600">
-                <span>开始训练</span>
+                <span>开始练习</span>
                 <i class="fa-solid fa-play text-[10px]"></i>
               </div>
             </div>
@@ -653,19 +752,18 @@
       </div>
 
 
-      <!-- ================= TAB 3: 全屏成果大盘 (DASHBOARD - 消除写死占位) ================= -->
+      <!-- ================= TAB 3: 全屏成果大盘 (DASHBOARD) ================= -->
       <div v-if="currentMainTab === 'dashboard'" class="space-y-4">
         <div>
-          <h2 class="text-lg font-black text-gray-900">真实训练成果大盘</h2>
-          <p class="text-xs text-gray-500">基于客观交互打点与真实回忆自评（无虚构数据）</p>
+          <h2 class="text-lg font-black text-gray-900">掌握度与复习大盘</h2>
+          <p class="text-xs text-gray-500">基于客观交互打点与间隔复习排期</p>
         </div>
 
-        <!-- Big 4 Real Metrics Cards -->
         <div class="grid grid-cols-2 gap-2.5">
           <div class="p-3.5 rounded-2xl bg-white border border-gray-200 shadow-sm">
-            <div class="text-[11px] font-bold text-gray-500">有效专注时长</div>
-            <div class="text-2xl font-black text-emerald-600 mt-1">{{ activeStudyMinutes }}<span class="text-xs font-normal text-gray-500 ml-1">分钟</span></div>
-            <div class="text-[10px] text-gray-400 mt-0.5">排除后台与90s闲置</div>
+            <div class="text-[11px] font-bold text-gray-500">今日闯关完成</div>
+            <div class="text-2xl font-black text-amber-500 mt-1">{{ todayCompletedCount }}<span class="text-xs font-normal text-gray-500 ml-1">/ {{ dailyTarget }} 场景</span></div>
+            <div class="text-[10px] text-gray-400 mt-0.5">累计专注 {{ activeStudyMinutes }} 分钟</div>
           </div>
           <div class="p-3.5 rounded-2xl bg-white border border-gray-200 shadow-sm">
             <div class="text-[11px] font-bold text-gray-500">词块首答正确率</div>
@@ -675,18 +773,18 @@
             <div class="text-[10px] text-gray-400 mt-0.5">累计尝试 {{ totalAttempts }} 次</div>
           </div>
           <div class="p-3.5 rounded-2xl bg-white border border-gray-200 shadow-sm">
-            <div class="text-[11px] font-bold text-gray-500">完整轮次 / 去重场景</div>
+            <div class="text-[11px] font-bold text-gray-500">已学去重场景</div>
             <div class="text-2xl font-black text-purple-600 mt-1">
-              {{ completedSessionsCount }} <span class="text-xs font-normal text-gray-500">/ {{ completedScenariosCount }}题</span>
+              {{ completedScenariosCount }} <span class="text-xs font-normal text-gray-500">/ {{ scenariosList.length }} 题</span>
             </div>
-            <div class="text-[10px] text-gray-400 mt-0.5">完成所有微步与终局回忆</div>
+            <div class="text-[10px] text-gray-400 mt-0.5">错题词汇待消: {{ mistakeWordsCount }} 词</div>
           </div>
           <div class="p-3.5 rounded-2xl bg-white border border-gray-200 shadow-sm">
-            <div class="text-[11px] font-bold text-gray-500">今日待复习场景</div>
-            <div class="text-2xl font-black text-amber-600 mt-1">
+            <div class="text-[11px] font-bold text-gray-500">今日到期需复测</div>
+            <div class="text-2xl font-black text-rose-600 mt-1">
               {{ todayDueCount }}<span class="text-xs font-normal text-gray-500 ml-1">题</span>
             </div>
-            <div class="text-[10px] text-gray-400 mt-0.5">按本地日期 {{ todayStr }} 统计</div>
+            <div class="text-[10px] text-gray-400 mt-0.5">含隔天强化与一周抽查</div>
           </div>
         </div>
 
@@ -700,32 +798,28 @@
           <div class="grid grid-cols-4 gap-1.5 text-center text-xs">
             <div class="p-2 bg-gray-50 rounded-xl border border-gray-200">
               <div class="font-black text-gray-700">{{ statusStats.unverified }}</div>
-              <div class="text-[10px] text-gray-400">未验证</div>
+              <div class="text-[10px] text-gray-400">未学习</div>
             </div>
             <div class="p-2 bg-rose-50 rounded-xl border border-rose-200">
               <div class="font-black text-rose-700">{{ statusStats.needsReview }}</div>
-              <div class="text-[10px] text-rose-500">需复习</div>
+              <div class="text-[10px] text-rose-500">隔天强化</div>
             </div>
             <div class="p-2 bg-amber-50 rounded-xl border border-amber-200">
               <div class="font-black text-amber-700">{{ statusStats.firstPass }}</div>
-              <div class="text-[10px] text-amber-600">待巩固</div>
+              <div class="text-[10px] text-amber-600">一周抽查</div>
             </div>
             <div class="p-2 bg-emerald-50 rounded-xl border border-emerald-200">
               <div class="font-black text-emerald-700">{{ statusStats.reinforced }}</div>
-              <div class="text-[10px] text-emerald-600">自评已巩固</div>
+              <div class="text-[10px] text-emerald-600">已巩固</div>
             </div>
           </div>
-
-          <p class="text-[10px] text-gray-400 leading-relaxed border-t border-gray-100 pt-2">
-            * <strong>定义说明</strong>：连续在两个不同自然日完成无提示回忆并评绿的题目才记入“自评已巩固”；本统计仅代表用户主观脱稿自评，不包装为客观口语能力分数。
-          </p>
         </div>
 
         <!-- Scenarios Progress List -->
         <div class="p-4 rounded-2xl bg-white border border-gray-200 shadow-sm space-y-3">
-          <div class="font-bold text-gray-900 text-xs">各场景复习安排明细</div>
+          <div class="font-bold text-gray-900 text-xs">各场景复习排期明细</div>
           <div class="space-y-2">
-            <div v-for="sc in scenariosList" :key="sc.id" class="p-2.5 rounded-xl bg-gray-50 border border-gray-200 flex items-center justify-between text-xs">
+            <div v-for="sc in scenariosList" :key="sc.id" @click="selectScenarioAndTrain(sc)" class="p-2.5 rounded-xl bg-gray-50 hover:bg-gray-100 cursor-pointer border border-gray-200 flex items-center justify-between text-xs">
               <div class="space-y-0.5 pr-2">
                 <div class="font-bold text-gray-800 truncate max-w-[180px]">#{{ sc.id }} {{ sc.title }}</div>
                 <div class="text-[10px] text-gray-500">{{ getScenarioDueText(sc.id) }}</div>
@@ -748,7 +842,7 @@
         :class="currentMainTab === 'practice' ? 'text-emerald-600 font-black' : 'text-gray-400 font-medium'"
         class="flex flex-col items-center space-y-0.5 text-xs">
         <i class="fa-solid fa-graduation-cap text-lg"></i>
-        <span>场景训练</span>
+        <span>每日闯关</span>
       </button>
 
       <button 
@@ -764,14 +858,14 @@
         :class="currentMainTab === 'dashboard' ? 'text-purple-600 font-black' : 'text-gray-400 font-medium'"
         class="flex flex-col items-center space-y-0.5 text-xs">
         <i class="fa-solid fa-chart-pie text-lg"></i>
-        <span>成果大盘</span>
+        <span>掌握大盘</span>
       </button>
     </nav>
 
 
     <!-- ================= MODAL: 题库切换器 (Bank Switcher) ================= -->
     <div v-if="openBankSwitcherModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end justify-center">
-      <div class="bg-white w-full max-w-md rounded-t-3xl max-h-[85vh] flex flex-col overflow-hidden animate-slide-up">
+      <div class="bg-white w-full max-w-md rounded-t-3xl max-h-[85vh] flex flex-col overflow-hidden">
         <div class="p-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
           <span class="text-base font-black text-gray-900">切换训练题库</span>
           <button @click="openBankSwitcherModal = false" class="text-gray-400 hover:text-gray-600 text-lg p-1">
@@ -780,7 +874,6 @@
         </div>
 
         <div class="p-4 overflow-y-auto space-y-3 text-xs">
-          <!-- Built-in Universal Bank -->
           <div 
             @click="switchBank('builtin')"
             :class="activeBankType === 'builtin' ? 'border-blue-500 bg-blue-50/60 ring-2 ring-blue-300' : 'border-gray-200 bg-white hover:bg-gray-50'"
@@ -789,10 +882,9 @@
               <span class="font-black text-sm text-gray-900">官方通用职场题库 (Built-in)</span>
               <span v-if="activeBankType === 'builtin'" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-600 text-white">当前使用中</span>
             </div>
-            <p class="text-gray-500 text-[11px]">包含 10 个通用面试场景与 5 个核心词汇，涵盖自我介绍、项目经历、冲突处理与反思。</p>
+            <p class="text-gray-500 text-[11px]">包含 10 个通用面试场景与高频职场词汇。</p>
           </div>
 
-          <!-- Custom Imported Bank (if exists) -->
           <div 
             v-if="hasCustomBank"
             @click="switchBank('custom')"
@@ -802,10 +894,9 @@
               <span class="font-black text-sm text-gray-900">我的专属题库 (Custom Bank)</span>
               <span v-if="activeBankType === 'custom'" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-600 text-white">当前使用中</span>
             </div>
-            <p class="text-gray-500 text-[11px]">包含 {{ customBankScenariosCount }} 个专属面试场景。进度独立保存，不与通用题库冲突。</p>
+            <p class="text-gray-500 text-[11px]">包含 {{ customBankScenariosCount }} 个专属面试场景。进度独立保存。</p>
           </div>
 
-          <!-- If no custom bank yet -->
           <div v-else class="p-4 rounded-2xl border-2 border-dashed border-gray-300 text-center space-y-2">
             <p class="text-gray-500">暂无已导入的专属题库</p>
             <button 
@@ -821,11 +912,16 @@
 
     <!-- ================= MODAL: 完整范文即时查阅 (EXEMPLARS) ================= -->
     <div v-if="openExemplarModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end justify-center">
-      <div class="bg-white w-full max-w-md rounded-t-3xl max-h-[88vh] flex flex-col overflow-hidden animate-slide-up">
+      <div class="bg-white w-full max-w-md rounded-t-3xl max-h-[88vh] flex flex-col overflow-hidden">
         <div class="p-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
           <div class="flex items-center space-x-2">
             <span class="text-base font-black text-gray-900">场景 {{ currentScenario.id }} 完整范文</span>
-            <span class="text-xs bg-purple-100 text-purple-800 font-bold px-2 py-0.5 rounded-full">中英双版</span>
+            <button 
+              @click="speakUS(exemplarTab === 'foundation' ? currentScenario.foundation_text : currentScenario.advanced_text, 1.0)"
+              class="text-xs bg-emerald-500 text-white font-bold px-2.5 py-0.5 rounded-full flex items-center space-x-1">
+              <i class="fa-solid fa-volume-high"></i>
+              <span>美音朗读</span>
+            </button>
           </div>
           <button @click="openExemplarModal = false" class="text-gray-400 hover:text-gray-600 text-lg p-1">
             <i class="fa-solid fa-xmark"></i>
@@ -837,7 +933,7 @@
             @click="exemplarTab = 'foundation'" 
             :class="exemplarTab === 'foundation' ? 'bg-emerald-500 text-white font-bold' : 'bg-gray-100 text-gray-600'"
             class="flex-1 py-1.5 rounded-xl text-xs transition">
-            基础版（先背这版）
+            基础版（先跟读这版）
           </button>
           <button 
             @click="exemplarTab = 'advanced'" 
@@ -860,7 +956,7 @@
           <div class="p-3.5 bg-amber-50 rounded-2xl border border-amber-200 text-amber-900 space-y-1">
             <div class="font-bold flex items-center space-x-1">
               <i class="fa-solid fa-brain"></i>
-              <span>脱稿中文思路骨架 (防大脑卡顿)</span>
+              <span>脱稿中文思路骨架</span>
             </div>
             <p>{{ currentScenario.zh_scaffold_full }}</p>
           </div>
@@ -885,18 +981,13 @@
     </div>
 
 
-    <!-- ================= MODAL: 导入专属题库 (V1.1.1 增量合并与预览确认) ================= -->
+    <!-- ================= MODAL: 导入专属题库 ================= -->
     <div v-if="openImportModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end justify-center">
-      <div class="bg-white w-full max-w-md rounded-t-3xl max-h-[92vh] flex flex-col overflow-hidden animate-slide-up">
-        
-        <!-- Header -->
+      <div class="bg-white w-full max-w-md rounded-t-3xl max-h-[92vh] flex flex-col overflow-hidden">
         <div class="p-4 border-b border-gray-200 flex items-center justify-between bg-indigo-50/60 shrink-0">
           <div class="flex items-center space-x-2">
             <span class="text-base font-black text-indigo-950">
               {{ importPhase === 'input' ? '📥 导入专属题库' : '🔍 导入差异预览与确认' }}
-            </span>
-            <span class="text-[10px] bg-indigo-100 text-indigo-800 font-bold px-2 py-0.5 rounded-full">
-              {{ importPhase === 'input' ? '本地存储' : '增量安全保护' }}
             </span>
           </div>
           <button @click="closeImportModal" class="text-gray-400 hover:text-gray-600 text-lg p-1">
@@ -904,298 +995,147 @@
           </button>
         </div>
 
-        <!-- PHASE 1: INPUT VIEW (选文件 / 贴文本) -->
         <div v-if="importPhase === 'input'" class="p-4 overflow-y-auto space-y-4 text-xs">
-          <!-- Privacy Note -->
           <div class="p-3 bg-amber-50 rounded-2xl border border-amber-200 text-amber-900 space-y-1">
             <div class="font-bold flex items-center space-x-1">
               <i class="fa-solid fa-shield-halved text-amber-600"></i>
               <span>本地隐私与增量安全</span>
             </div>
             <p class="leading-relaxed">
-              题库仅在当前设备浏览器解析存储。系统支持<strong>增量合并</strong>，再次导入时旧知识点与历史进度默认完整保留。
+              题库仅在当前设备浏览器解析存储，支持<strong>增量合并</strong>，旧进度完整保留。
             </p>
           </div>
 
-          <!-- OPTION 1: FILE UPLOAD -->
           <div class="space-y-2">
-            <label class="block font-bold text-gray-800 flex items-center justify-between">
-              <span>方法一：选择 JSON 文件解析</span>
-              <span class="text-[10px] text-emerald-600 font-bold">无字数截断限制</span>
+            <label class="block font-bold text-gray-800">方法一：选择 JSON 文件解析</label>
+            <input type="file" ref="fileInputRef" accept=".json,application/json" @change="handleFileUpload" class="hidden" id="jsonFileInput">
+            <label for="jsonFileInput" class="w-full btn-3d-primary py-3 px-4 rounded-2xl font-black text-xs flex items-center justify-center space-x-2 cursor-pointer shadow-md">
+              <i class="fa-solid fa-folder-open text-base"></i>
+              <span>选择本地 JSON 文件对比</span>
             </label>
-            <div class="relative">
-              <input 
-                type="file" 
-                ref="fileInputRef"
-                accept=".json,application/json" 
-                @change="handleFileUpload" 
-                class="hidden" 
-                id="jsonFileInput">
-              <label 
-                for="jsonFileInput" 
-                class="w-full btn-3d-primary py-3 px-4 rounded-2xl font-black text-xs uppercase tracking-wide flex items-center justify-center space-x-2 cursor-pointer shadow-md">
-                <i class="fa-solid fa-folder-open text-base"></i>
-                <span>选择本地 JSON 文件对比</span>
-              </label>
-            </div>
           </div>
 
-          <div class="relative flex py-1 items-center">
-            <div class="flex-grow border-t border-gray-200"></div>
-            <span class="flex-shrink mx-3 text-gray-400 text-[10px] font-bold">或者</span>
-            <div class="flex-grow border-t border-gray-200"></div>
-          </div>
-
-          <!-- AI PROMPT COPY BOX -->
           <div class="p-3 bg-indigo-50/70 rounded-2xl border border-indigo-200 space-y-2">
             <div class="flex items-center justify-between">
-              <span class="font-bold text-indigo-900 flex items-center space-x-1">
-                <i class="fa-solid fa-wand-magic-sparkles text-indigo-600"></i>
-                <span>用外部 AI 生成合规题库</span>
-              </span>
-              <button 
-                @click="copyAiPrompt" 
-                class="px-2.5 py-1 rounded-lg bg-indigo-600 text-white font-bold text-[10px] hover:bg-indigo-700 active:scale-95 transition flex items-center space-x-1">
-                <i :class="copied ? 'fa-solid fa-check' : 'fa-regular fa-copy'"></i>
-                <span>{{ copied ? '已复制 Prompt' : '复制 AI 提示词' }}</span>
+              <span class="font-bold text-indigo-900">用 AI 生成专属题库 JSON</span>
+              <button @click="copyAiPrompt" class="px-2.5 py-1 rounded-lg bg-indigo-600 text-white font-bold text-[10px]">
+                {{ copied ? '已复制 Prompt' : '复制 AI 提示词' }}
               </button>
             </div>
             <p class="text-[10px] text-indigo-700 leading-relaxed">
-              将提示词与你的简历经历、目标岗位 JD 发给 ChatGPT 或 Claude，即可生成可增量导入的标准 JSON。
+              把提示词和你的简历、目标 JD 发给 AI，生成的 JSON 可直接导入本应用。
             </p>
           </div>
 
-          <!-- OPTION 2: PASTE TEXT -->
           <div class="space-y-1.5">
             <label class="block font-bold text-gray-700">方法二：手动粘贴 JSON 文本</label>
-            <textarea 
-              v-model="importJsonText" 
-              rows="3" 
-              placeholder='将 json 内容复制粘贴到这里...' 
-              class="w-full p-2.5 font-mono text-[11px] border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:outline-none bg-gray-50"></textarea>
-            <button 
-              @click="handlePasteCompare" 
-              :disabled="!importJsonText.trim()"
-              :class="!importJsonText.trim() ? 'opacity-40 cursor-not-allowed' : ''"
-              class="w-full btn-3d-accent py-2.5 rounded-xl font-bold text-xs flex items-center justify-center space-x-1">
-              <i class="fa-solid fa-magnifying-glass"></i>
-              <span>解析并查看差异预览</span>
+            <textarea v-model="importJsonText" rows="3" placeholder='粘贴 JSON 内容...' class="w-full p-2.5 font-mono text-[11px] border-2 border-gray-200 rounded-xl bg-gray-50"></textarea>
+            <button @click="handlePasteCompare" :disabled="!importJsonText.trim()" class="w-full btn-3d-accent py-2.5 rounded-xl font-bold text-xs">
+              解析并查看差异预览
             </button>
           </div>
 
           <div v-if="activeBankType === 'custom'" class="pt-2">
-            <button 
-              @click="removeCustomBank" 
-              class="w-full py-2.5 rounded-xl border border-rose-300 text-rose-700 font-bold hover:bg-rose-50 transition">
+            <button @click="removeCustomBank" class="w-full py-2.5 rounded-xl border border-rose-300 text-rose-700 font-bold hover:bg-rose-50">
               删除此专属题库并切回通用题库
             </button>
           </div>
         </div>
 
-        <!-- PHASE 2: DIFF PREVIEW & CONFIRMATION VIEW (V1.1.1 增量/全量选择与明细) -->
         <div v-else-if="importPhase === 'preview'" class="p-4 overflow-y-auto space-y-3.5 text-xs">
-          <!-- Target Bank Info -->
           <div class="p-3 bg-gray-50 rounded-2xl border border-gray-200 space-y-1">
-            <div class="flex items-center justify-between">
-              <span class="font-bold text-gray-800">目标题库身份</span>
-              <span class="font-mono text-[10px] px-2 py-0.5 rounded bg-white border border-gray-300 text-gray-600">{{ importDiffInfo.targetBankId }}</span>
+            <div class="font-bold text-gray-800">目标题库: {{ importDiffInfo.targetBankId }}</div>
+            <div class="text-[11px] text-gray-500">来源: {{ importDiffInfo.sourceName }}</div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div @click="importMode = 'incremental'" :class="importMode === 'incremental' ? 'border-emerald-500 bg-emerald-50/60 ring-2 ring-emerald-300' : 'border-gray-200'" class="p-2.5 rounded-xl border-2 cursor-pointer">
+              <div class="font-bold text-emerald-900">增量合并 (推荐)</div>
+              <p class="text-[10px] text-gray-500 mt-0.5">追加新题，保留原有进度</p>
             </div>
-            <div class="text-[11px] text-gray-500">
-              来源标识: {{ importDiffInfo.sourceName || '手动输入' }} · 版本: v{{ importDiffInfo.incomingVersion || '1.0' }}
+            <div @click="importMode = 'replace'" :class="importMode === 'replace' ? 'border-rose-500 bg-rose-50/60 ring-2 ring-rose-300' : 'border-gray-200'" class="p-2.5 rounded-xl border-2 cursor-pointer">
+              <div class="font-bold text-rose-900">全量替换</div>
+              <p class="text-[10px] text-gray-500 mt-0.5">新文件覆盖当前专属库</p>
             </div>
           </div>
 
-          <!-- Mode Selector (增量合并 vs 全量替换) -->
-          <div class="space-y-1.5">
-            <label class="block font-bold text-gray-800">选择导入方式：</label>
-            <div class="grid grid-cols-2 gap-2">
-              <div 
-                @click="importMode = 'incremental'"
-                :class="importMode === 'incremental' ? 'border-emerald-500 bg-emerald-50/60 ring-2 ring-emerald-300' : 'border-gray-200 bg-white'"
-                class="p-2.5 rounded-xl border-2 cursor-pointer transition">
-                <div class="font-bold text-emerald-900 flex items-center space-x-1">
-                  <i class="fa-solid fa-code-merge"></i>
-                  <span>增量合并 (推荐)</span>
-                </div>
-                <p class="text-[10px] text-gray-500 mt-0.5">追加新题，更新已有题，原有未包含题目继续保留</p>
-              </div>
-
-              <div 
-                @click="importMode = 'replace'"
-                :class="importMode === 'replace' ? 'border-rose-500 bg-rose-50/60 ring-2 ring-rose-300' : 'border-gray-200 bg-white'"
-                class="p-2.5 rounded-xl border-2 cursor-pointer transition">
-                <div class="font-bold text-rose-900 flex items-center space-x-1">
-                  <i class="fa-solid fa-arrows-rotate"></i>
-                  <span>全量替换</span>
-                </div>
-                <p class="text-[10px] text-gray-500 mt-0.5">整库替换，新文件中未出现的题目将被移出可见列表</p>
-              </div>
-            </div>
+          <div class="p-3 bg-white rounded-2xl border border-gray-200 space-y-2">
+            <div class="font-bold text-gray-800">场景变动: 新增 {{ currentDiff.scenarios.added }} · 更新 {{ currentDiff.scenarios.updated_core + currentDiff.scenarios.updated_noncore }} · 移除 {{ currentDiff.scenarios.removed }}</div>
           </div>
 
-          <!-- Scenario Diff Stats -->
-          <div class="p-3 bg-white rounded-2xl border border-gray-200 shadow-sm space-y-2">
-            <div class="font-bold text-gray-800 flex items-center justify-between">
-              <span>面试场景变动 (Scenarios)</span>
-              <span class="text-gray-500 font-normal">当前库已有 {{ importDiffInfo.existingScCount }} 题</span>
-            </div>
-            <div class="grid grid-cols-4 gap-1.5 text-center text-[11px]">
-              <div class="p-1.5 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200">
-                <div class="font-black text-sm">{{ currentDiff.scenarios.added }}</div>
-                <div>新增</div>
-              </div>
-              <div class="p-1.5 rounded-lg bg-blue-50 text-blue-800 border border-blue-200">
-                <div class="font-black text-sm">{{ currentDiff.scenarios.updated_core + currentDiff.scenarios.updated_noncore }}</div>
-                <div>更新</div>
-              </div>
-              <div class="p-1.5 rounded-lg bg-gray-50 text-gray-700 border border-gray-200">
-                <div class="font-black text-sm">{{ currentDiff.scenarios.unchanged }}</div>
-                <div>无变化</div>
-              </div>
-              <div class="p-1.5 rounded-lg" :class="currentDiff.scenarios.removed > 0 ? 'bg-rose-50 text-rose-800 border border-rose-200' : 'bg-gray-50 text-gray-400 border border-gray-100'">
-                <div class="font-black text-sm">{{ currentDiff.scenarios.removed }}</div>
-                <div>移除</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Spelling Diff Stats (if present) -->
-          <div v-if="importDiffInfo.incomingSpCount > 0 || importDiffInfo.existingSpCount > 0" class="p-3 bg-white rounded-2xl border border-gray-200 shadow-sm space-y-2">
-            <div class="font-bold text-gray-800 flex items-center justify-between">
-              <span>核心词汇变动 (Spelling Bank)</span>
-              <span class="text-gray-500 font-normal">当前库已有 {{ importDiffInfo.existingSpCount }} 词</span>
-            </div>
-            <div class="grid grid-cols-4 gap-1.5 text-center text-[11px]">
-              <div class="p-1.5 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200">
-                <div class="font-black text-sm">{{ currentDiff.spelling.added }}</div>
-                <div>新增</div>
-              </div>
-              <div class="p-1.5 rounded-lg bg-blue-50 text-blue-800 border border-blue-200">
-                <div class="font-black text-sm">{{ currentDiff.spelling.updated_core + currentDiff.spelling.updated_noncore }}</div>
-                <div>更新</div>
-              </div>
-              <div class="p-1.5 rounded-lg bg-gray-50 text-gray-700 border border-gray-200">
-                <div class="font-black text-sm">{{ currentDiff.spelling.unchanged }}</div>
-                <div>无变化</div>
-              </div>
-              <div class="p-1.5 rounded-lg" :class="currentDiff.spelling.removed > 0 ? 'bg-rose-50 text-rose-800 border border-rose-200' : 'bg-gray-50 text-gray-400 border border-gray-100'">
-                <div class="font-black text-sm">{{ currentDiff.spelling.removed }}</div>
-                <div>移除</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Impact & Progress Inheritance Explanation (INC-03) -->
-          <div class="p-3 rounded-xl border text-[11px] leading-relaxed space-y-1" :class="currentDiff.need_reverification > 0 ? 'bg-amber-50 border-amber-300 text-amber-900' : 'bg-emerald-50 border-emerald-200 text-emerald-900'">
-            <div class="font-bold flex items-center space-x-1">
-              <i :class="currentDiff.need_reverification > 0 ? 'fa-solid fa-triangle-exclamation text-amber-600' : 'fa-solid fa-circle-check text-emerald-600'"></i>
-              <span>进度继承说明</span>
-            </div>
-            <p v-if="currentDiff.need_reverification > 0">
-              检测到 <strong>{{ currentDiff.need_reverification }} 个知识点的核心训练内容发生实质修改</strong>（英文提问或正确词块变化）。系统将完整保留历史练习次数与首答统计，并将当前掌握状态标记为「需重新验证」，安排重新复测。
-            </p>
-            <p v-else>
-              所有未修改及仅说明微调的题目，将<strong>100% 继承原有的掌握阶段与下次复习排期</strong>，训练进度平稳无损。
-            </p>
-          </div>
-
-          <!-- Action Buttons -->
           <div class="pt-2 flex space-x-2">
-            <button 
-              @click="cancelImportPreview" 
-              class="w-1/3 py-3 rounded-2xl border border-gray-300 text-gray-600 font-bold hover:bg-gray-100 transition">
-              取消
-            </button>
-            <button 
-              @click="confirmAndExecuteImport" 
-              :disabled="isImportExecuting"
-              class="flex-1 btn-3d-primary py-3 rounded-2xl font-black text-xs uppercase tracking-wide flex items-center justify-center space-x-1.5 shadow-md">
-              <i class="fa-solid fa-check"></i>
-              <span>{{ importMode === 'incremental' ? '确认增量合并写入' : '确认全量替换写入' }}</span>
-            </button>
+            <button @click="cancelImportPreview" class="w-1/3 py-3 rounded-2xl border border-gray-300 text-gray-600 font-bold">取消</button>
+            <button @click="confirmAndExecuteImport" class="flex-1 btn-3d-primary py-3 rounded-2xl font-black text-xs">确认导入</button>
           </div>
         </div>
-
       </div>
     </div>
 
-    <!-- ================= MODAL: 设置与备份 (SETTINGS & BACKUP) ================= -->
+    <!-- ================= MODAL: 设置与备份 ================= -->
     <div v-if="openSettings" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-end justify-center">
-      <div class="bg-white w-full max-w-md rounded-t-3xl max-h-[85vh] flex flex-col overflow-hidden animate-slide-up">
+      <div class="bg-white w-full max-w-md rounded-t-3xl max-h-[85vh] flex flex-col overflow-hidden">
         <div class="p-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
-          <span class="text-base font-black text-gray-900">个性化设置与数据管理</span>
+          <span class="text-base font-black text-gray-900">设置与学习偏好</span>
           <button @click="openSettings = false" class="text-gray-400 hover:text-gray-600 text-lg p-1">
             <i class="fa-solid fa-xmark"></i>
           </button>
         </div>
 
-        <div class="p-5 space-y-4 text-xs">
+        <div class="p-5 overflow-y-auto space-y-4 text-xs">
+          <!-- Daily Target Setting -->
+          <div class="p-3.5 bg-amber-50/70 rounded-2xl border border-amber-200 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-amber-950">每日闯关目标（场景数/天）</span>
+              <span class="font-black text-amber-700">{{ dailyTarget }} 个场景</span>
+            </div>
+            <div class="grid grid-cols-4 gap-2">
+              <button v-for="num in [3, 5, 8, 10]" :key="num" @click="setDailyTarget(num)" :class="dailyTarget === num ? 'bg-amber-500 text-white font-bold' : 'bg-white border border-amber-200 text-amber-900'" class="py-1.5 rounded-xl text-xs transition">
+                {{ num }} 个
+              </button>
+            </div>
+          </div>
+
+          <!-- US Voice Test -->
+          <div class="p-3.5 bg-blue-50/70 rounded-2xl border border-blue-200 flex items-center justify-between">
+            <div>
+              <div class="font-bold text-blue-950">美式发音引擎 (en-US)</div>
+              <div class="text-[10px] text-blue-700 mt-0.5">{{ currentVoiceName || '默认系统美音' }}</div>
+            </div>
+            <button @click="speakUS('Hello! Let us practice your interview scenarios today.', 1.0)" class="px-3 py-1.5 rounded-xl bg-blue-600 text-white font-bold text-xs">
+              试听美音
+            </button>
+          </div>
+
           <!-- Theme Picker -->
           <div class="space-y-2">
-            <label class="block font-bold text-gray-700">视觉主题风格 (Theme Selection)</label>
+            <label class="block font-bold text-gray-700">视觉主题风格</label>
             <div class="grid grid-cols-3 gap-2">
-              <button 
-                @click="switchTheme('duo')"
-                :class="currentTheme === 'duo' ? 'border-emerald-500 ring-2 ring-emerald-300 font-bold bg-emerald-50' : 'border-gray-200'"
-                class="p-3 rounded-2xl border-2 text-center transition">
+              <button @click="switchTheme('duo')" :class="currentTheme === 'duo' ? 'border-emerald-500 ring-2 ring-emerald-300 font-bold bg-emerald-50' : 'border-gray-200'" class="p-3 rounded-2xl border-2 text-center">
                 <div class="text-base text-emerald-500 mb-1"><i class="fa-solid fa-shapes"></i></div>
                 <div class="text-xs">多邻国风</div>
-                <div class="text-[9px] text-gray-400 mt-0.5">趣味3D</div>
               </button>
-              <button 
-                @click="switchTheme('apple')"
-                :class="currentTheme === 'apple' ? 'border-blue-500 ring-2 ring-blue-300 font-bold bg-blue-50' : 'border-gray-200'"
-                class="p-3 rounded-2xl border-2 text-center transition">
+              <button @click="switchTheme('apple')" :class="currentTheme === 'apple' ? 'border-blue-500 ring-2 ring-blue-300 font-bold bg-blue-50' : 'border-gray-200'" class="p-3 rounded-2xl border-2 text-center">
                 <div class="text-base text-blue-500 mb-1"><i class="fa-brands fa-apple"></i></div>
                 <div class="text-xs">苹果极简</div>
-                <div class="text-[9px] text-gray-400 mt-0.5">流线克制</div>
               </button>
-              <button 
-                @click="switchTheme('nordic')"
-                :class="currentTheme === 'nordic' ? 'border-amber-700 ring-2 ring-amber-300 font-bold bg-amber-50' : 'border-gray-200'"
-                class="p-3 rounded-2xl border-2 text-center transition">
+              <button @click="switchTheme('nordic')" :class="currentTheme === 'nordic' ? 'border-amber-700 ring-2 ring-amber-300 font-bold bg-amber-50' : 'border-gray-200'" class="p-3 rounded-2xl border-2 text-center">
                 <div class="text-base text-amber-700 mb-1"><i class="fa-solid fa-leaf"></i></div>
                 <div class="text-xs">北欧有机</div>
-                <div class="text-[9px] text-gray-400 mt-0.5">舒适低疲劳</div>
               </button>
             </div>
           </div>
 
-          <!-- Backup & Restore Section (P0-06) -->
-          <div class="p-3.5 bg-gray-50 rounded-2xl border border-gray-200 space-y-2.5">
-            <div class="font-bold text-gray-800 flex items-center space-x-1">
-              <i class="fa-solid fa-box-archive text-indigo-600"></i>
-              <span>本地数据备份与恢复 (P0-06)</span>
-            </div>
-            <p class="text-gray-500 leading-relaxed text-[11px]">
-              包含你所有的题库、每题复习排期、尝试次数与首答统计。可随时导出 JSON 备份并安全恢复。
-            </p>
-            <div class="flex space-x-2 pt-1">
-              <button 
-                @click="exportBackupFile"
-                class="flex-1 py-2 rounded-xl bg-indigo-600 text-white font-bold text-xs flex items-center justify-center space-x-1 shadow-sm">
-                <i class="fa-solid fa-download"></i>
-                <span>导出完整备份</span>
-              </button>
-              <label 
-                for="restoreFileInput"
-                class="flex-1 py-2 rounded-xl bg-white border border-gray-300 text-gray-700 font-bold text-xs flex items-center justify-center space-x-1 cursor-pointer hover:bg-gray-50 shadow-sm">
-                <i class="fa-solid fa-upload"></i>
-                <span>从备份恢复</span>
-              </label>
-              <input 
-                type="file" 
-                id="restoreFileInput" 
-                accept=".json,application/json" 
-                @change="handleRestoreBackup" 
-                class="hidden">
+          <!-- Backup & Restore -->
+          <div class="p-3.5 bg-gray-50 rounded-2xl border border-gray-200 space-y-2">
+            <div class="font-bold text-gray-800">本地数据备份与恢复</div>
+            <div class="flex space-x-2">
+              <button @click="exportBackupFile" class="flex-1 py-2 rounded-xl bg-indigo-600 text-white font-bold text-xs">导出备份</button>
+              <label for="restoreFileInput" class="flex-1 py-2 rounded-xl bg-white border border-gray-300 text-gray-700 font-bold text-xs text-center cursor-pointer">恢复备份</label>
+              <input type="file" id="restoreFileInput" accept=".json,application/json" @change="handleRestoreBackup" class="hidden">
             </div>
           </div>
 
-          <!-- Danger Zone -->
-          <button 
-            @click="resetAllData" 
-            class="w-full py-3 rounded-xl border border-rose-300 text-rose-700 font-bold hover:bg-rose-50 transition">
+          <button @click="resetAllData" class="w-full py-3 rounded-xl border border-rose-300 text-rose-700 font-bold hover:bg-rose-50">
             清空所有学习记录并恢复初始状态
           </button>
         </div>
@@ -1218,21 +1158,21 @@
 1. 业务与真实经历对齐：问题和回答必须严格基于我的简历事实（如项目架构、数据指标、跨部门冲突、技术选型），杜绝脱离实际的空洞套话。
 2. 中文脱稿思考链（zh_scaffold_full）：每道题前必须提供 3~4 个极简中文逻辑节点（用 → 连接，如：痛点阐述 → 方案折中 → 技术/数据落地 → 结果与复盘），防止英文卡顿前思维紊乱。
 3. 渐进式拼装微步骤（steps）：将每个场景的回答拆解为 2~3 个微步骤。每个步骤包含 2 个地道的核心动宾词块（correct_chunks），以及 1~2 个中国候选人常犯的时态飘移、中式搭配或易错介词干扰项（distractors），并注明针对性的避坑解析（trap_reason）。每个词块必须包含稳定 id。
-4. 核心词汇盲打提取（spelling_bank）：提炼 4~6 个该岗位面试中至关重要的业务术语与高频动词（附带词性、挖空例句及混淆警示）。
+4. 核心词汇库（spelling_bank）：提炼 6~10 个该岗位面试中至关重要的业务术语与高频动词/短语（target_word 为英文词组或单词，zh 为精简中文释义，用于中英配对消消乐）。
 5. 必须输出合法、规范、无 Markdown 标记的纯 JSON 格式。
 
 【JSON 格式模板】
 {
   "version": "1.1.0",
   "bankId": "custom-my-role-v1",
-  "updated_at": "2026-11-06",
+  "updated_at": "2026-11-20",
   "scenarios": [
     {
       "id": "SCENE-01",
       "title": "场景名称",
       "interviewer_q": "面试官针对该岗位的提问 (英文)",
-      "foundation_text": "基础版英文示范 (约80-100词，适合脱稿先背这版)",
-      "advanced_text": "进阶版英文示范 (约100-120词，适合理解与高阶替换)",
+      "foundation_text": "基础版英文示范 (约80-100词)",
+      "advanced_text": "进阶版英文示范 (约100-120词)",
       "zh_scaffold_full": "中文脱稿思考链：步骤1 → 步骤2 → 步骤3",
       "watch_outs": ["易错语法点或避坑提醒1", "避坑提醒2"],
       "steps": [
@@ -1248,15 +1188,10 @@
   ],
   "spelling_bank": [
     {
-      "target_word": "prioritize",
-      "zh": "按优先级排序",
-      "pos": "v.",
-      "topic": "岗位高频核心动词",
-      "context_tip": "需求排期与跨团队沟通时使用",
-      "sentence_before": "I had to coordinate with stakeholders and",
-      "sentence_after": "the backlog based on technical feasibility.",
-      "trap_note": "注意是动词 prioritize，不要误用为名词 priority",
-      "full_sentence": "I had to coordinate with stakeholders and prioritize the backlog based on technical feasibility."
+      "target_word": "drive cross-functional alignment",
+      "zh": "推进跨部门对齐",
+      "pos": "phrase",
+      "topic": "跨部门协同"
     }
   ]
 }
@@ -1270,11 +1205,58 @@
 
     const app = createApp({
       setup() {
-
         // Theme & Main Tabs
         const currentTheme = ref(localStorage.getItem('it_theme') || 'duo');
         const currentMainTab = ref('practice'); // 'practice' | 'scenarios' | 'dashboard'
-        const activePracticeMode = ref('chunks'); // 'chunks' | 'spelling'
+        const activePracticeMode = ref('chunks'); // 'chunks' | 'match'
+
+        // Daily Target
+        const dailyTarget = ref(parseInt(localStorage.getItem('it_daily_target') || '5'));
+        const dismissedDailyBanner = ref(false);
+        const setDailyTarget = (num) => {
+          dailyTarget.value = num;
+          localStorage.setItem('it_daily_target', num);
+        };
+
+        // US English TTS Engine (Web Speech API)
+        const currentVoiceName = ref('');
+        let preferredUSVoice = null;
+
+        const loadUSVoices = () => {
+          if (!('speechSynthesis' in window)) return;
+          const voices = window.speechSynthesis.getVoices();
+          if (!voices || voices.length === 0) return;
+
+          // Prioritize high-quality en-US voices
+          const usVoices = voices.filter(v => v.lang === 'en-US' || v.lang === 'en_US');
+          preferredUSVoice = 
+            usVoices.find(v => /Samantha|Google US English|Ava|Allison|Jenny|Aria|Guy|Natural/i.test(v.name)) ||
+            usVoices[0] ||
+            voices.find(v => v.lang.startsWith('en')) ||
+            null;
+
+          if (preferredUSVoice) {
+            currentVoiceName.value = preferredUSVoice.name;
+          }
+        };
+
+        if ('speechSynthesis' in window) {
+          loadUSVoices();
+          window.speechSynthesis.onvoiceschanged = loadUSVoices;
+        }
+
+        const speakUS = (text, rate = 1.0) => {
+          if (!text || !('speechSynthesis' in window)) return;
+          window.speechSynthesis.cancel();
+          const utterance = new SpeechSynthesisUtterance(text);
+          utterance.lang = 'en-US';
+          utterance.rate = rate;
+          utterance.pitch = 1.0;
+          if (preferredUSVoice) {
+            utterance.voice = preferredUSVoice;
+          }
+          window.speechSynthesis.speak(utterance);
+        };
 
         // Modals
         const openSettings = ref(false);
@@ -1283,13 +1265,12 @@
         const openBankSwitcherModal = ref(false);
         const exemplarTab = ref('foundation');
 
-        // Import modal state (restored after V1.1.1 refactor)
+        // Import modal state
         const importJsonText = ref('');
         const fileInputRef = ref(null);
         const copied = ref(false);
 
-        // Bank State & Identity Management (P0-06)
-                // Safe load helper
+        // Safe load helper
         const safeGetJSON = (key, fallback) => {
           try {
             const raw = localStorage.getItem(key);
@@ -1301,13 +1282,8 @@
           }
         };
 
-        const activeBankType = ref(localStorage.getItem('it_active_bank_type') || 'builtin'); // 'builtin' | 'custom'
-        
-        // Load Banks from storage safely
-        const loadCustomBankData = () => {
-          return safeGetJSON('it_custom_bank_content', null);
-        };
-
+        const activeBankType = ref(localStorage.getItem('it_active_bank_type') || 'builtin');
+        const loadCustomBankData = () => safeGetJSON('it_custom_bank_content', null);
         const customBankObj = ref(loadCustomBankData());
         const hasCustomBank = computed(() => !!customBankObj.value);
         const customBankScenariosCount = computed(() => {
@@ -1324,23 +1300,24 @@
         const bankId = computed(() => (currentBankData.value && currentBankData.value.bankId) ? currentBankData.value.bankId : 'builtin-interview-v1');
         const scenariosList = computed(() => (currentBankData.value && Array.isArray(currentBankData.value.scenarios)) ? currentBankData.value.scenarios : []);
         const spellingBank = computed(() => (currentBankData.value && Array.isArray(currentBankData.value.spelling_bank)) ? currentBankData.value.spelling_bank : []);
-        const hasSpelling = computed(() => spellingBank.value.length > 0);
 
         // Progress Storage Namespaces
         const getProgressStorageKey = (bId) => `it_progress_${bId}`;
 
         const loadProgressData = (bId) => {
           const fallback = {
-            schemaVersion: "1.1",
+            schemaVersion: "1.2",
             bankId: bId,
             scenarios: {},
             sessions: {},
-            stepStats: {}
+            stepStats: {},
+            mistakeWords: {} // { wordId: { id, en, zh, topic, wrongCount } }
           };
           const data = safeGetJSON(getProgressStorageKey(bId), fallback);
           if (!data.scenarios) data.scenarios = {};
           if (!data.sessions) data.sessions = {};
           if (!data.stepStats) data.stepStats = {};
+          if (!data.mistakeWords) data.mistakeWords = {};
           return data;
         };
 
@@ -1350,26 +1327,19 @@
           localStorage.setItem(getProgressStorageKey(bankId.value), JSON.stringify(currentProgress.value));
         };
 
-        // Active Timer with 90s idle limit and tab visibility check (P0-04)
+        // Active Timer
         const activeStudySeconds = ref(parseInt(localStorage.getItem('it_study_seconds') || '0'));
         const activeStudyMinutes = computed(() => Math.floor(activeStudySeconds.value / 60));
         let lastUserActivityTime = Date.now();
         let timerInterval = null;
 
-        const recordActivity = () => {
-          lastUserActivityTime = Date.now();
-        };
-
+        const recordActivity = () => { lastUserActivityTime = Date.now(); };
         window.addEventListener('click', recordActivity);
         window.addEventListener('touchstart', recordActivity);
-        window.addEventListener('keydown', recordActivity);
 
         timerInterval = setInterval(() => {
           const now = Date.now();
-          const isDocVisible = !document.hidden;
-          const isIdle = (now - lastUserActivityTime) > 90000; // 90 seconds idle threshold
-
-          if (isDocVisible && !isIdle) {
+          if (!document.hidden && (now - lastUserActivityTime) <= 90000) {
             activeStudySeconds.value++;
             localStorage.setItem('it_study_seconds', activeStudySeconds.value);
           }
@@ -1379,10 +1349,39 @@
           clearInterval(timerInterval);
           window.removeEventListener('click', recordActivity);
           window.removeEventListener('touchstart', recordActivity);
-          window.removeEventListener('keydown', recordActivity);
         });
 
-        // Current Scenario & Practice Session State (P0-01, P0-02)
+        // Helper date functions
+        function getTodayDateStr() {
+          const d = new Date();
+          const year = d.getFullYear();
+          const month = String(d.getMonth() + 1).padStart(2, '0');
+          const day = String(d.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
+        }
+
+        function addDaysToDateStr(dateStr, days) {
+          const parts = dateStr.split('-');
+          const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+          d.setDate(d.getDate() + days);
+          const year = d.getFullYear();
+          const month = String(d.getMonth() + 1).padStart(2, '0');
+          const day = String(d.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
+        }
+
+        // Today Completed Scenarios Count
+        const todayCompletedCount = computed(() => {
+          const today = getTodayDateStr();
+          const scs = currentProgress.value.scenarios || {};
+          let cnt = 0;
+          for (let k in scs) {
+            if (scs[k].lastPracticedDate === today) cnt++;
+          }
+          return cnt;
+        });
+
+        // Current Scenario & Practice Session State
         const currentScenarioIndex = ref(0);
         const fallbackScenario = {
           id: '01',
@@ -1392,20 +1391,34 @@
           advanced_text: '',
           zh_scaffold_full: '',
           watch_outs: [],
-          steps: [{
-          step_zh: '加载中...',
-          hint_text: '',
-          target_sentence: '',
-          correct_chunks: [],
-          distractors: []
-        }]
+          steps: [{ step_zh: '加载中...', hint_text: '', target_sentence: '', correct_chunks: [], distractors: [] }]
         };
         const currentScenario = computed(() => {
           const list = scenariosList.value;
           if (Array.isArray(list) && list.length > 0) {
             return list[currentScenarioIndex.value] || list[0];
           }
-          return (BUILTIN_BANK && BUILTIN_BANK.scenarios && BUILTIN_BANK.scenarios[0]) ? BUILTIN_BANK.scenarios[0] : fallbackScenario;
+          return fallbackScenario;
+        });
+
+        // Scenario Status Tag (告知当前处于什么复习阶段)
+        const currentScenarioTag = computed(() => {
+          const scId = currentScenario.value.id;
+          const rec = (currentProgress.value.scenarios || {})[scId];
+          const today = getTodayDateStr();
+          if (!rec || !rec.lastPracticedDate) {
+            return { label: '✨ 新场景', badgeClass: 'bg-blue-100 text-blue-800' };
+          }
+          if (rec.lastPracticedDate === today) {
+            return { label: '✅ 今日已练', badgeClass: 'bg-emerald-100 text-emerald-800' };
+          }
+          if (rec.nextReviewDate && rec.nextReviewDate <= today) {
+            if (rec.memoryLevel === 'firstPass' || rec.memoryLevel === 'reinforced') {
+              return { label: '📅 一周抽查', badgeClass: 'bg-purple-100 text-purple-800' };
+            }
+            return { label: '🔥 隔天强化', badgeClass: 'bg-rose-100 text-rose-800' };
+          }
+          return { label: '🔄 提前回顾', badgeClass: 'bg-gray-100 text-gray-700' };
         });
 
         const currentStepIndex = ref(0);
@@ -1417,6 +1430,58 @@
           return fallbackScenario.steps[0];
         });
 
+        // Find next due or unlearned scenario automatically on load
+        const jumpToNextDueOrNew = () => {
+          const list = scenariosList.value;
+          if (!list || list.length === 0) return;
+          const today = getTodayDateStr();
+          const scs = currentProgress.value.scenarios || {};
+
+          // 1. Priority: Due for review today (nextReviewDate <= today && lastPracticedDate !== today)
+          let idx = list.findIndex(sc => {
+            const r = scs[sc.id];
+            return r && r.nextReviewDate && r.nextReviewDate <= today && r.lastPracticedDate !== today;
+          });
+
+          // 2. Priority: Brand new unlearned scenario
+          if (idx === -1) {
+            idx = list.findIndex(sc => !scs[sc.id] || !scs[sc.id].lastPracticedDate);
+          }
+
+          // 3. Fallback: Any not practiced today
+          if (idx === -1) {
+            idx = list.findIndex(sc => scs[sc.id].lastPracticedDate !== today);
+          }
+
+          if (idx === -1) idx = 0;
+
+          currentScenarioIndex.value = idx;
+          currentStepIndex.value = 0;
+          inRecallPhase.value = false;
+          stepHadMistakeInSession.value = false;
+          initStep();
+        };
+
+        const goPrevScenario = () => {
+          if (currentScenarioIndex.value > 0) {
+            currentScenarioIndex.value--;
+            currentStepIndex.value = 0;
+            inRecallPhase.value = false;
+            stepHadMistakeInSession.value = false;
+            initStep();
+          }
+        };
+
+        const goNextScenario = () => {
+          if (currentScenarioIndex.value < scenariosList.value.length - 1) {
+            currentScenarioIndex.value++;
+            currentStepIndex.value = 0;
+            inRecallPhase.value = false;
+            stepHadMistakeInSession.value = false;
+            initStep();
+          }
+        };
+
         // Chunks interaction
         const selectedChunks = ref([]);
         const availablePool = ref([]);
@@ -1427,20 +1492,19 @@
         const hitTraps = ref([]);
         const currentStepAssisted = ref(false);
         const isSubmitting = ref(false);
+        const stepHadMistakeInSession = ref(false);
 
-        // Session ID & step first-try tracking
+        // Session ID
         const currentSessionId = ref('sess_' + Date.now());
 
         // Recall Phase State
         const inRecallPhase = ref(false);
-        const userRecallDraft = ref('');
         const recallRevealed = ref(false);
         const recallAttempted = ref(false);
         const recallAssisted = ref(false);
-        const recallOutcome = ref('pending'); // 'pending' | 'rated' | 'skipped'
+        const recallOutcome = ref('pending');
         const showAdvancedInRecall = ref(false);
 
-        // Initialize / Reset Step
         const initStep = () => {
           selectedChunks.value = [];
           evaluated.value = false;
@@ -1458,7 +1522,6 @@
             ...(currentStep.value.distractors || []).map(d => ({ ...d, isCorrect: false }))
           ];
 
-          // Shuffle
           for (let i = raw.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [raw[i], raw[j]] = [raw[j], raw[i]];
@@ -1472,6 +1535,8 @@
           if (idx > -1) {
             availablePool.value.splice(idx, 1);
             selectedChunks.value.push(chunk);
+            // Auto speak chunk in US English
+            speakUS(chunk.text, 1.0);
           }
         };
 
@@ -1483,17 +1548,38 @@
 
         const triggerStepHint = () => {
           currentStepAssisted.value = true;
+          stepHadMistakeInSession.value = true;
         };
 
         const openExemplarViewer = () => {
           if (inRecallPhase.value && !recallRevealed.value) {
-            // Opening exemplar in unrevealed recall phase triggers recallAssisted!
             recallAssisted.value = true;
           }
           openExemplarModal.value = true;
         };
 
-        // P0-01 Strict Chunk Evaluation
+        // Add current step's core expression to Mistake Words Book
+        const recordStepToMistakeBook = () => {
+          const st = currentStep.value;
+          const sc = currentScenario.value;
+          if (!st || !st.target_sentence) return;
+          if (!currentProgress.value.mistakeWords) currentProgress.value.mistakeWords = {};
+
+          const wId = `step_${sc.id}_${currentStepIndex.value}`;
+          // Extract clean Chinese summary from step_zh (remove numbering like ① )
+          const cleanZh = (st.step_zh || sc.title).replace(/^[①②③④⑤\d\.\s]+/, '').split('：')[0];
+          const existing = currentProgress.value.mistakeWords[wId];
+
+          currentProgress.value.mistakeWords[wId] = {
+            id: wId,
+            en: st.target_sentence,
+            zh: cleanZh,
+            topic: sc.title,
+            wrongCount: (existing ? existing.wrongCount : 0) + 1
+          };
+        };
+
+        // Evaluate Chunk Step
         const evaluateChunkStep = () => {
           if (selectedChunks.value.length === 0 || isSubmitting.value) return;
           isSubmitting.value = true;
@@ -1501,7 +1587,6 @@
           const targetCorrect = currentStep.value.correct_chunks;
           const stepKey = `${currentScenario.value.id}_step_${currentStepIndex.value}`;
 
-          // Ensure step record in current progress
           if (!currentProgress.value.stepStats) currentProgress.value.stepStats = {};
           if (!currentProgress.value.stepStats[stepKey]) {
             currentProgress.value.stepStats[stepKey] = { attempts: 0, firstTryCorrect: null };
@@ -1510,11 +1595,9 @@
           const stats = currentProgress.value.stepStats[stepKey];
           stats.attempts++;
 
-          // 1. Check for distractors
           const traps = selectedChunks.value.filter(c => !c.isCorrect);
           hitTraps.value = traps;
 
-          // 2. Check length & order
           let isOrderCorrect = true;
           if (selectedChunks.value.length !== targetCorrect.length) {
             isOrderCorrect = false;
@@ -1532,7 +1615,6 @@
 
           const isPass = (traps.length === 0 && isOrderCorrect);
 
-          // Record First-try accuracy on the FIRST submission of this step
           if (stats.firstTryCorrect === null) {
             stats.firstTryCorrect = isPass;
           }
@@ -1542,14 +1624,19 @@
 
           if (!isPass) {
             hasError.value = true;
+            stepHadMistakeInSession.value = true;
+            recordStepToMistakeBook();
             if (traps.length > 0) {
-              errorReasonText.value = '选入了中式易错干扰项';
+              errorReasonText.value = '选入了易错干扰项';
             } else if (selectedChunks.value.length < targetCorrect.length) {
-              errorReasonText.value = '词块未选全 (缺少词块)';
+              errorReasonText.value = '词块未选全';
             } else {
-              errorReasonText.value = '词块顺序颠倒或不匹配 (语序错误)';
+              errorReasonText.value = '语序排列有误';
             }
             setTimeout(() => { hasError.value = false; }, 500);
+          } else {
+            // Auto speak complete target sentence in US English!
+            speakUS(currentStep.value.target_sentence, 1.0);
           }
 
           saveCurrentProgress();
@@ -1561,29 +1648,25 @@
         };
 
         const skipCurrentStep = () => {
-          const stepKey = `${currentScenario.value.id}_step_${currentStepIndex.value}`;
-          if (!currentProgress.value.stepStats) currentProgress.value.stepStats = {};
-          if (!currentProgress.value.stepStats[stepKey]) {
-            currentProgress.value.stepStats[stepKey] = { attempts: 1, firstTryCorrect: false };
-          }
-          advanceToNextStepOrRecall(true);
+          stepHadMistakeInSession.value = true;
+          recordStepToMistakeBook();
+          saveCurrentProgress();
+          advanceToNextStepOrRecall();
         };
 
-        const advanceToNextStepOrRecall = (skipped = false) => {
+        const advanceToNextStepOrRecall = () => {
           if (currentStepIndex.value < currentScenario.value.steps.length - 1) {
             currentStepIndex.value++;
             initStep();
           } else {
-            // All micro-steps completed -> Enter Full-screen No-Hint Recall Phase (P0-02)
             inRecallPhase.value = true;
             recallRevealed.value = false;
-            userRecallDraft.value = '';
+            recallAssisted.value = stepHadMistakeInSession.value;
             recallOutcome.value = 'pending';
             showAdvancedInRecall.value = false;
           }
         };
 
-        // P0-02 Reveal Answer Control
         const revealRecallAnswer = (actionType) => {
           recallRevealed.value = true;
           if (actionType === 'skipped') {
@@ -1591,12 +1674,13 @@
           } else {
             recallAttempted.value = true;
           }
+          // Speak foundation exemplar automatically
+          speakUS(currentScenario.value.foundation_text, 1.0);
         };
 
-        // P0-03 & P0-04 Submit Final Rating & Interval Scheduling
+        // Submit Final Rating & Interval Scheduling (隔天强化 D+1/D+2 与 一周抽查 D+7)
         const submitFinalRating = (rating) => {
-          if (rating === 'green' && (recallAssisted.value || recallOutcome.value === 'skipped')) {
-            alert('本轮回忆已使用提示或已跳过，按规则最高只能自评为“勉强想起(橙)”。');
+          if (rating === 'green' && (recallAssisted.value || recallOutcome.value === 'skipped' || stepHadMistakeInSession.value)) {
             return;
           }
 
@@ -1619,34 +1703,27 @@
           scRecord.lastPracticedDate = today;
           scRecord.lastRecallRating = rating;
 
-          // Next Review Date calculation (P0-03)
           if (rating === 'red') {
-            scRecord.nextReviewDate = addDaysToDateStr(today, 1); // D+1
+            scRecord.nextReviewDate = addDaysToDateStr(today, 1); // 隔天强化 D+1
             scRecord.memoryLevel = 'needsReview';
             scRecord.greenReviewStreak = 0;
           } else if (rating === 'orange') {
-            scRecord.nextReviewDate = addDaysToDateStr(today, 2); // D+2
+            scRecord.nextReviewDate = addDaysToDateStr(today, 2); // 隔天巩固 D+2
             scRecord.memoryLevel = 'needsReview';
             scRecord.greenReviewStreak = 0;
           } else if (rating === 'green') {
-            scRecord.nextReviewDate = addDaysToDateStr(today, 7); // D+7
+            scRecord.nextReviewDate = addDaysToDateStr(today, 7); // 一周抽查 D+7
             if (!scRecord.lastGreenDate) {
-              // First time green
-              scRecord.memoryLevel = 'firstPass'; // "待巩固"
+              scRecord.memoryLevel = 'firstPass';
               scRecord.greenReviewStreak = 1;
               scRecord.lastGreenDate = today;
             } else if (scRecord.lastGreenDate !== today) {
-              // Another distinct calendar day green!
-              scRecord.memoryLevel = 'reinforced'; // "自评已巩固"
+              scRecord.memoryLevel = 'reinforced';
               scRecord.greenReviewStreak++;
               scRecord.lastGreenDate = today;
-            } else {
-              // Same day repeated green does not advance reinforced level
-              scRecord.memoryLevel = scRecord.memoryLevel || 'firstPass';
             }
           }
 
-          // Record Completed Session only if recall attempted and not skipped
           if (recallOutcome.value !== 'skipped') {
             if (!currentProgress.value.sessions) currentProgress.value.sessions = {};
             currentProgress.value.sessions[currentSessionId.value] = {
@@ -1660,87 +1737,208 @@
 
           saveCurrentProgress();
 
-          alert(`🎉 场景 ${scId} 练习完成！下次复习日期: ${scRecord.nextReviewDate}`);
-          
-          // Reset to practice view
+          // Reset & Jump directly to the next due/new scenario in queue!
           inRecallPhase.value = false;
           currentStepIndex.value = 0;
+          stepHadMistakeInSession.value = false;
           currentSessionId.value = 'sess_' + Date.now();
-          initStep();
+          jumpToNextDueOrNew();
         };
 
-        // Select Scenario from Scenarios tab
         const selectScenarioAndTrain = (sc) => {
           const idx = scenariosList.value.findIndex(s => s.id === sc.id);
           if (idx > -1) {
             currentScenarioIndex.value = idx;
             currentStepIndex.value = 0;
             inRecallPhase.value = false;
+            stepHadMistakeInSession.value = false;
             currentMainTab.value = 'practice';
             activePracticeMode.value = 'chunks';
             initStep();
           }
         };
 
-        // Real Dashboard Calculations (P0-04)
+        // ================= 词汇消消乐配对逻辑 (MATCHING GAME & MISTAKE BOOK) =================
+        const matchFilterMode = ref('all'); // 'all' | 'mistakes'
+        const matchPairs = ref([]);
+        const matchLeftList = ref([]);
+        const matchRightList = ref([]);
+        const selectedLeftId = ref(null);
+        const selectedRightId = ref(null);
+        const wrongFlashId = ref(null);
+
+        // Extract all vocab items from spelling_bank + scenario watch_outs/chunks
+        const allExtractedVocab = computed(() => {
+          const map = new Map();
+          // 1. From spelling_bank
+          (spellingBank.value || []).forEach((w, idx) => {
+            const id = w.id || `sp_${w.target_word}`;
+            map.set(id, {
+              id,
+              en: w.target_word,
+              zh: w.zh,
+              topic: w.topic || '核心业务词'
+            });
+          });
+          // 2. From mistakeWords so they also appear in 'all'
+          const mistakes = currentProgress.value.mistakeWords || {};
+          Object.values(mistakes).forEach(m => {
+            if (!map.has(m.id)) {
+              map.set(m.id, {
+                id: m.id,
+                en: m.en,
+                zh: m.zh,
+                topic: m.topic || '错题强化'
+              });
+            }
+          });
+          return Array.from(map.values());
+        });
+
+        const mistakeWordsList = computed(() => {
+          const mistakes = currentProgress.value.mistakeWords || {};
+          return Object.values(mistakes);
+        });
+
+        const mistakeWordsCount = computed(() => mistakeWordsList.value.length);
+
+        const isMatchRoundCompleted = computed(() => {
+          return matchPairs.value.length > 0 && matchLeftList.value.every(i => i.matched);
+        });
+
+        const initMatchRound = () => {
+          selectedLeftId.value = null;
+          selectedRightId.value = null;
+          wrongFlashId.value = null;
+
+          const sourcePool = matchFilterMode.value === 'mistakes' ? mistakeWordsList.value : allExtractedVocab.value;
+          if (!sourcePool || sourcePool.length === 0) {
+            matchPairs.value = [];
+            matchLeftList.value = [];
+            matchRightList.value = [];
+            return;
+          }
+
+          // Shuffle source and pick up to 5 pairs per round
+          const shuffled = [...sourcePool].sort(() => Math.random() - 0.5).slice(0, 5);
+          matchPairs.value = shuffled;
+
+          matchLeftList.value = [...shuffled]
+            .map(item => ({ ...item, matched: false }))
+            .sort(() => Math.random() - 0.5);
+
+          matchRightList.value = [...shuffled]
+            .map(item => ({ ...item, matched: false }))
+            .sort(() => Math.random() - 0.5);
+        };
+
+        const switchToMatchMode = () => {
+          activePracticeMode.value = 'match';
+          inRecallPhase.value = false;
+          initMatchRound();
+        };
+
+        const selectMatchLeft = (item) => {
+          if (item.matched) return;
+          selectedLeftId.value = item.id;
+          checkMatchPair();
+        };
+
+        const selectMatchRight = (item) => {
+          if (item.matched) return;
+          selectedRightId.value = item.id;
+          speakUS(item.en, 1.0);
+          checkMatchPair();
+        };
+
+        const checkMatchPair = () => {
+          if (!selectedLeftId.value || !selectedRightId.value) return;
+
+          if (selectedLeftId.value === selectedRightId.value) {
+            // Matched!
+            const matchedId = selectedLeftId.value;
+            const lItem = matchLeftList.value.find(i => i.id === matchedId);
+            const rItem = matchRightList.value.find(i => i.id === matchedId);
+            if (lItem) lItem.matched = true;
+            if (rItem) rItem.matched = true;
+
+            // If in mistake mode, decrement wrongCount or remove once mastered
+            if (matchFilterMode.value === 'mistakes' && currentProgress.value.mistakeWords && currentProgress.value.mistakeWords[matchedId]) {
+              currentProgress.value.mistakeWords[matchedId].wrongCount--;
+              if (currentProgress.value.mistakeWords[matchedId].wrongCount <= 0) {
+                delete currentProgress.value.mistakeWords[matchedId];
+              }
+              saveCurrentProgress();
+            }
+
+            selectedLeftId.value = null;
+            selectedRightId.value = null;
+          } else {
+            // Wrong pair! Add left item to Mistake Words Book
+            const wrongId = selectedLeftId.value;
+            wrongFlashId.value = wrongId;
+            const targetItem = matchLeftList.value.find(i => i.id === wrongId);
+            if (targetItem) {
+              if (!currentProgress.value.mistakeWords) currentProgress.value.mistakeWords = {};
+              const existing = currentProgress.value.mistakeWords[wrongId];
+              currentProgress.value.mistakeWords[wrongId] = {
+                id: wrongId,
+                en: targetItem.en,
+                zh: targetItem.zh,
+                topic: targetItem.topic || '配对易错',
+                wrongCount: (existing ? existing.wrongCount : 0) + 1
+              };
+              saveCurrentProgress();
+            }
+
+            setTimeout(() => {
+              wrongFlashId.value = null;
+              selectedLeftId.value = null;
+              selectedRightId.value = null;
+            }, 450);
+          }
+        };
+
+        // Dashboard Calculations
         const totalAttempts = computed(() => {
           let sum = 0;
           const stats = currentProgress.value.stepStats || {};
-          for (let k in stats) {
-            sum += (stats[k].attempts || 0);
-          }
+          for (let k in stats) sum += (stats[k].attempts || 0);
           return sum;
         });
 
         const firstTryAccuracyText = computed(() => {
           const stats = currentProgress.value.stepStats || {};
-          let samples = 0;
-          let correct = 0;
+          let samples = 0, correct = 0;
           for (let k in stats) {
             if (stats[k].firstTryCorrect !== null && stats[k].firstTryCorrect !== undefined) {
               samples++;
               if (stats[k].firstTryCorrect === true) correct++;
             }
           }
-          if (samples === 0) return '暂无数据';
-          return Math.round((correct / samples) * 100) + '%';
-        });
-
-        const completedSessionsCount = computed(() => {
-          const sess = currentProgress.value.sessions || {};
-          return Object.keys(sess).length;
+          return samples === 0 ? '暂无' : Math.round((correct / samples) * 100) + '%';
         });
 
         const completedScenariosCount = computed(() => {
           const scs = currentProgress.value.scenarios || {};
           let count = 0;
-          for (let k in scs) {
-            if (scs[k].lastPracticedDate) count++;
-          }
+          for (let k in scs) if (scs[k].lastPracticedDate) count++;
           return count;
         });
-
-        const todayStr = computed(() => getTodayDateStr());
 
         const todayDueCount = computed(() => {
           const scs = currentProgress.value.scenarios || {};
           const today = getTodayDateStr();
           let due = 0;
           for (let k in scs) {
-            if (scs[k].nextReviewDate && scs[k].nextReviewDate <= today) {
-              due++;
-            }
+            if (scs[k].nextReviewDate && scs[k].nextReviewDate <= today && scs[k].lastPracticedDate !== today) due++;
           }
           return due;
         });
 
         const statusStats = computed(() => {
           const scs = currentProgress.value.scenarios || {};
-          let unverified = scenariosList.value.length;
-          let needsReview = 0;
-          let firstPass = 0;
-          let reinforced = 0;
-
+          let unverified = scenariosList.value.length, needsReview = 0, firstPass = 0, reinforced = 0;
           for (let sc of scenariosList.value) {
             const rec = scs[sc.id];
             if (rec && rec.memoryLevel) {
@@ -1755,17 +1953,17 @@
 
         const getScenarioMemoryBadgeText = (scId) => {
           const rec = (currentProgress.value.scenarios ? currentProgress.value.scenarios[scId] : null);
-          if (!rec || !rec.memoryLevel) return '未验证';
-          if (rec.memoryLevel === 'reinforced') return '自评已巩固';
-          if (rec.memoryLevel === 'firstPass') return '待巩固';
-          return '需复习';
+          if (!rec || !rec.memoryLevel) return '未学习';
+          if (rec.memoryLevel === 'reinforced') return '已巩固';
+          if (rec.memoryLevel === 'firstPass') return '一周抽查';
+          return '隔天强化';
         };
 
         const getScenarioMemoryBadgeClass = (scId) => {
           const rec = (currentProgress.value.scenarios ? currentProgress.value.scenarios[scId] : null);
           if (!rec || !rec.memoryLevel) return 'bg-gray-100 text-gray-700 border-gray-200';
           if (rec.memoryLevel === 'reinforced') return 'bg-emerald-100 text-emerald-800 border-emerald-300';
-          if (rec.memoryLevel === 'firstPass') return 'bg-amber-100 text-amber-800 border-amber-300';
+          if (rec.memoryLevel === 'firstPass') return 'bg-purple-100 text-purple-800 border-purple-300';
           return 'bg-rose-100 text-rose-800 border-rose-300';
         };
 
@@ -1774,23 +1972,20 @@
           if (!rec || !rec.nextReviewDate) return '尚未开始';
           const today = getTodayDateStr();
           if (rec.nextReviewDate <= today) return '今日到期待复习';
-          return `下次: ${rec.nextReviewDate}`;
+          return `下次复习: ${rec.nextReviewDate}`;
         };
 
-        // Bank Switcher Logic (P0-06)
+        // Bank Switcher Logic
         const switchBank = (type) => {
           activeBankType.value = type;
           localStorage.setItem('it_active_bank_type', type);
           currentProgress.value = loadProgressData(bankId.value);
-          currentScenarioIndex.value = 0;
-          currentStepIndex.value = 0;
-          inRecallPhase.value = false;
           openBankSwitcherModal.value = false;
-          initStep();
+          jumpToNextDueOrNew();
         };
 
         const removeCustomBank = () => {
-          if (confirm('确认删除当前的专属题库吗？该专属题库的进度将被永久清理。')) {
+          if (confirm('确认删除当前的专属题库吗？')) {
             localStorage.removeItem('it_custom_bank_content');
             localStorage.removeItem(getProgressStorageKey((customBankObj.value ? customBankObj.value.bankId : 'custom') || 'custom'));
             customBankObj.value = null;
@@ -1799,263 +1994,60 @@
           }
         };
 
-        // V1.1.1 增量合并与两阶段导入机制 (INC-02, INC-03, INC-04, INC-05)
-        const importPhase = ref('input'); // 'input' | 'preview'
-        const importMode = ref('incremental'); // 'incremental' | 'replace'
-        const importDiffInfo = ref({
-          targetBankId: '',
-          incomingVersion: '1.0',
-          sourceName: '',
-          existingScCount: 0,
-          existingSpCount: 0,
-          incomingScCount: 0,
-          incomingSpCount: 0
-        });
-        const currentDiff = ref({
-          scenarios: { added: 0, updated_core: 0, updated_noncore: 0, unchanged: 0, removed: 0 },
-          spelling: { added: 0, updated_core: 0, updated_noncore: 0, unchanged: 0, removed: 0 },
-          need_reverification: 0
-        });
+        // Import Diff & Incremental Merge
+        const importPhase = ref('input');
+        const importMode = ref('incremental');
+        const importDiffInfo = ref({ targetBankId: '', incomingVersion: '1.0', sourceName: '', existingScCount: 0, existingSpCount: 0, incomingScCount: 0, incomingSpCount: 0 });
+        const currentDiff = ref({ scenarios: { added: 0, updated_core: 0, updated_noncore: 0, unchanged: 0, removed: 0 }, spelling: { added: 0, updated_core: 0, updated_noncore: 0, unchanged: 0, removed: 0 }, need_reverification: 0 });
         const parsedIncomingData = ref(null);
         const isImportExecuting = ref(false);
 
-        const normalizeText = (text) => {
-          if (!text) return '';
-          return String(text).replace(/\s+/g, ' ').trim().toLowerCase();
-        };
+        const normalizeText = (text) => text ? String(text).replace(/\s+/g, ' ').trim().toLowerCase() : '';
+        const getWordStableId = (w) => w.id || normalizeText(w.target_word);
 
         const isScenarioCoreChanged = (oldSc, newSc) => {
           if (normalizeText(oldSc.interviewer_q) !== normalizeText(newSc.interviewer_q)) return true;
-          const oldSteps = oldSc.steps || [];
-          const newSteps = newSc.steps || [];
+          const oldSteps = oldSc.steps || [], newSteps = newSc.steps || [];
           if (oldSteps.length !== newSteps.length) return true;
           for (let i = 0; i < oldSteps.length; i++) {
-            const os = oldSteps[i];
-            const ns = newSteps[i];
-            if (normalizeText(os.target_sentence) !== normalizeText(ns.target_sentence)) return true;
-            const oc = os.correct_chunks || [];
-            const nc = ns.correct_chunks || [];
-            if (oc.length !== nc.length) return true;
-            for (let j = 0; j < oc.length; j++) {
-              if (normalizeText(oc[j].text) !== normalizeText(nc[j].text)) return true;
-            }
+            if (normalizeText(oldSteps[i].target_sentence) !== normalizeText(newSteps[i].target_sentence)) return true;
           }
           return false;
         };
 
-        const getWordStableId = (w) => {
-          return w.id || normalizeText(w.target_word);
-        };
-
-        const isWordCoreChanged = (oldW, newW) => {
-          if (normalizeText(oldW.target_word) !== normalizeText(newW.target_word)) return true;
-          if (normalizeText(oldW.sentence_before) !== normalizeText(newW.sentence_before)) return true;
-          if (normalizeText(oldW.sentence_after) !== normalizeText(newW.sentence_after)) return true;
-          return false;
-        };
-
-        // 校验输入 JSON（支持增量只含 scenarios 或只含 spelling_bank）
-        const validateIncomingJson = (parsed, sourceName = '') => {
-          if (!parsed || typeof parsed !== 'object') {
-            alert('导入失败：JSON 内容不是合法的对象！');
-            return false;
-          }
-
+        const validateIncomingJson = (parsed) => {
+          if (!parsed || typeof parsed !== 'object') { alert('JSON 格式错误！'); return false; }
           const hasSc = Array.isArray(parsed.scenarios) && parsed.scenarios.length > 0;
           const hasSp = Array.isArray(parsed.spelling_bank) && parsed.spelling_bank.length > 0;
-
-          if (!hasSc && !hasSp) {
-            alert('导入校验失败：文件必须包含非空的 scenarios 或 spelling_bank 数组！');
-            return false;
-          }
-
-          if (hasSc) {
-            const idSet = new Set();
-            for (let i = 0; i < parsed.scenarios.length; i++) {
-              const sc = parsed.scenarios[i];
-              const p = `scenarios[${i}]`;
-              if (!sc || typeof sc !== 'object') {
-                alert(`校验失败：${p} 必须是有效对象！`);
-                return false;
-              }
-              if (!sc.id || typeof sc.id !== 'string') {
-                alert(`校验失败：${p}.id 缺失或不是字符串！`);
-                return false;
-              }
-              if (idSet.has(sc.id)) {
-                alert(`校验失败：发现重复的场景 ID [${sc.id}]！同文件内 ID 必须唯一。`);
-                return false;
-              }
-              idSet.add(sc.id);
-
-              if (!sc.title) { alert(`校验失败：${p}.title 缺失！`); return false; }
-              if (!sc.interviewer_q) { alert(`校验失败：${p}.interviewer_q 缺失！`); return false; }
-              if (!Array.isArray(sc.steps) || sc.steps.length === 0) {
-                alert(`校验失败：${p}.steps 必须为非空数组！`);
-                return false;
-              }
-              for (let j = 0; j < sc.steps.length; j++) {
-                const st = sc.steps[j];
-                const sp = `${p}.steps[${j}]`;
-                if (!Array.isArray(st.correct_chunks) || st.correct_chunks.length === 0) {
-                  alert(`校验失败：${sp}.correct_chunks 必须为非空数组！`);
-                  return false;
-                }
-              }
-            }
-          }
-
-          if (hasSp) {
-            const wIdSet = new Set();
-            for (let i = 0; i < parsed.spelling_bank.length; i++) {
-              const w = parsed.spelling_bank[i];
-              const p = `spelling_bank[${i}]`;
-              const wid = getWordStableId(w);
-              if (!wid) {
-                alert(`校验失败：${p} 缺少 target_word 或 id！`);
-                return false;
-              }
-              if (wIdSet.has(wid)) {
-                alert(`校验失败：发现重复的词汇 ID/单词 [${wid}]！`);
-                return false;
-              }
-              wIdSet.add(wid);
-              if (!w.target_word) { alert(`校验失败：${p}.target_word 缺失！`); return false; }
-              if (!w.zh) { alert(`校验失败：${p}.zh 缺失！`); return false; }
-            }
-          }
-
+          if (!hasSc && !hasSp) { alert('必须包含非空的 scenarios 或 spelling_bank 数组！'); return false; }
           return true;
         };
 
         const computeDiffAndShowPreview = (parsed, sourceName = '') => {
-          if (!validateIncomingJson(parsed, sourceName)) return;
+          if (!validateIncomingJson(parsed)) return;
+          if (parsed.bankId === 'builtin-interview-v1') parsed.bankId = 'custom_bank_' + Date.now();
+          else if (!parsed.bankId) parsed.bankId = (customBankObj.value && customBankObj.value.bankId) ? customBankObj.value.bankId : ('custom_bank_' + Date.now());
 
-          // 保护内置通用题库不被非法覆盖 (P0-06, INC-02)
-          if (parsed.bankId === 'builtin-interview-v1') {
-            alert('注意：检测到题库使用了官方内置题库 ID (builtin-interview-v1)。为防止官方题库被篡改，系统将为其自动分配独立的专属私人题库身份。');
-            parsed.bankId = 'custom_bank_' + Date.now();
-          } else if (!parsed.bankId) {
-            // 没有 bankId 时，若当前已有 customBankObj 则询问或匹配现有
-            if (customBankObj.value && customBankObj.value.bankId) {
-              parsed.bankId = customBankObj.value.bankId;
-            } else {
-              parsed.bankId = 'custom_bank_' + Date.now();
-            }
-          }
+          let baseScenarios = (customBankObj.value && customBankObj.value.bankId === parsed.bankId) ? (customBankObj.value.scenarios || []) : [];
+          let baseSpelling = (customBankObj.value && customBankObj.value.bankId === parsed.bankId) ? (customBankObj.value.spelling_bank || []) : [];
 
-          // 确定对比基线
-          let baseScenarios = [];
-          let baseSpelling = [];
-          if (customBankObj.value && customBankObj.value.bankId === parsed.bankId) {
-            baseScenarios = customBankObj.value.scenarios || [];
-            baseSpelling = customBankObj.value.spelling_bank || [];
-          }
-
-          const existingScMap = new Map();
-          baseScenarios.forEach(s => existingScMap.set(s.id, s));
-
+          const existingScMap = new Map(baseScenarios.map(s => [s.id, s]));
           const incomingScList = parsed.scenarios || [];
-          const incomingScMap = new Map();
-          incomingScList.forEach(s => incomingScMap.set(s.id, s));
+          const incomingScMap = new Map(incomingScList.map(s => [s.id, s]));
 
           let scAdded = 0, scUpdatedCore = 0, scUpdatedNoncore = 0, scUnchanged = 0, scRemoved = 0;
-
           incomingScList.forEach(s => {
-            if (!existingScMap.has(s.id)) {
-              scAdded++;
-            } else {
-              const oldS = existingScMap.get(s.id);
-              if (isScenarioCoreChanged(oldS, s)) {
-                scUpdatedCore++;
-              } else if (
-                normalizeText(oldS.title) !== normalizeText(s.title) ||
-                normalizeText(oldS.foundation_text) !== normalizeText(s.foundation_text) ||
-                normalizeText(oldS.advanced_text) !== normalizeText(s.advanced_text) ||
-                normalizeText(oldS.zh_scaffold_full) !== normalizeText(s.zh_scaffold_full)
-              ) {
-                scUpdatedNoncore++;
-              } else {
-                scUnchanged++;
-              }
-            }
+            if (!existingScMap.has(s.id)) scAdded++;
+            else if (isScenarioCoreChanged(existingScMap.get(s.id), s)) scUpdatedCore++;
+            else scUnchanged++;
           });
+          baseScenarios.forEach(s => { if (!incomingScMap.has(s.id)) scRemoved++; });
 
-          // 全量替换模式下的预计移除
-          baseScenarios.forEach(s => {
-            if (!incomingScMap.has(s.id)) {
-              scRemoved++;
-            }
-          });
-
-          // 词汇对比
-          const existingWMap = new Map();
-          baseSpelling.forEach(w => existingWMap.set(getWordStableId(w), w));
-
-          const incomingSpList = parsed.spelling_bank || [];
-          const incomingWMap = new Map();
-          incomingSpList.forEach(w => incomingWMap.set(getWordStableId(w), w));
-
-          let wAdded = 0, wUpdatedCore = 0, wUpdatedNoncore = 0, wUnchanged = 0, wRemoved = 0;
-
-          incomingSpList.forEach(w => {
-            const wid = getWordStableId(w);
-            if (!existingWMap.has(wid)) {
-              wAdded++;
-            } else {
-              const oldW = existingWMap.get(wid);
-              if (isWordCoreChanged(oldW, w)) {
-                wUpdatedCore++;
-              } else if (
-                normalizeText(oldW.zh) !== normalizeText(w.zh) ||
-                normalizeText(oldW.topic) !== normalizeText(w.topic) ||
-                normalizeText(oldW.context_tip) !== normalizeText(w.context_tip)
-              ) {
-                wUpdatedNoncore++;
-              } else {
-                wUnchanged++;
-              }
-            }
-          });
-
-          baseSpelling.forEach(w => {
-            const wid = getWordStableId(w);
-            if (!incomingWMap.has(wid)) {
-              wRemoved++;
-            }
-          });
-
-          importDiffInfo.value = {
-            targetBankId: parsed.bankId,
-            incomingVersion: parsed.version || '1.0',
-            sourceName: sourceName,
-            existingScCount: baseScenarios.length,
-            existingSpCount: baseSpelling.length,
-            incomingScCount: incomingScList.length,
-            incomingSpCount: incomingSpList.length
-          };
-
-          currentDiff.value = {
-            scenarios: {
-              added: scAdded,
-              updated_core: scUpdatedCore,
-              updated_noncore: scUpdatedNoncore,
-              unchanged: scUnchanged,
-              removed: scRemoved
-            },
-            spelling: {
-              added: wAdded,
-              updated_core: wUpdatedCore,
-              updated_noncore: wUpdatedNoncore,
-              unchanged: wUnchanged,
-              removed: wRemoved
-            },
-            need_reverification: scUpdatedCore + wUpdatedCore
-          };
-
+          importDiffInfo.value = { targetBankId: parsed.bankId, incomingVersion: parsed.version || '1.0', sourceName, existingScCount: baseScenarios.length, existingSpCount: baseSpelling.length, incomingScCount: incomingScList.length, incomingSpCount: (parsed.spelling_bank || []).length };
+          currentDiff.value = { scenarios: { added: scAdded, updated_core: scUpdatedCore, updated_noncore: scUpdatedNoncore, unchanged: scUnchanged, removed: scRemoved }, spelling: { added: 0, updated_core: 0, updated_noncore: 0, unchanged: 0, removed: 0 }, need_reverification: scUpdatedCore };
           parsedIncomingData.value = parsed;
-          importMode.value = 'incremental'; // 默认增量合并 (INC-02)
-          importPhase.value = 'preview'; // 进入两阶段预览 (INC-04)
+          importMode.value = 'incremental';
+          importPhase.value = 'preview';
         };
 
         const handleFileUpload = (event) => {
@@ -2063,189 +2055,55 @@
           if (!file) return;
           const reader = new FileReader();
           reader.onload = (e) => {
-            try {
-              const parsed = JSON.parse(e.target.result);
-              computeDiffAndShowPreview(parsed, file.name);
-            } catch (err) {
-              alert('读取或解析 JSON 失败！请确保文件内容是合法的 JSON。\n错误信息: ' + err.message);
-            }
+            try { computeDiffAndShowPreview(JSON.parse(e.target.result), file.name); }
+            catch (err) { alert('解析 JSON 失败：' + err.message); }
           };
           reader.readAsText(file, 'utf-8');
         };
 
         const handlePasteCompare = () => {
-          try {
-            const parsed = JSON.parse(importJsonText.value);
-            computeDiffAndShowPreview(parsed, '粘贴输入');
-          } catch (err) {
-            alert('解析 JSON 失败，请检查复制内容是否完整！\n错误信息: ' + err.message);
-          }
+          try { computeDiffAndShowPreview(JSON.parse(importJsonText.value), '粘贴输入'); }
+          catch (err) { alert('解析 JSON 失败：' + err.message); }
         };
 
-        const cancelImportPreview = () => {
-          importPhase.value = 'input';
-          parsedIncomingData.value = null;
-        };
+        const cancelImportPreview = () => { importPhase.value = 'input'; parsedIncomingData.value = null; };
+        const closeImportModal = () => { importPhase.value = 'input'; parsedIncomingData.value = null; openImportModal.value = false; };
 
-        const closeImportModal = () => {
-          importPhase.value = 'input';
-          parsedIncomingData.value = null;
-          openImportModal.value = false;
-        };
-
-        // 执行导入合并 / 替换并继承进度 (INC-02, INC-03, INC-04, INC-05)
         const confirmAndExecuteImport = () => {
           if (!parsedIncomingData.value || isImportExecuting.value) return;
           isImportExecuting.value = true;
-
           const incoming = parsedIncomingData.value;
           const bId = incoming.bankId;
 
-          // 全量替换时的校验 (INC-02 4.3: 必须提供完整题库，不能用只含几条的增量文件静默替换)
-          if (importMode.value === 'replace') {
-            if (!Array.isArray(incoming.scenarios) || incoming.scenarios.length === 0) {
-              alert('全量替换失败：全量替换必须提供包含完整 scenarios 数组的题库文件！');
-              isImportExecuting.value = false;
-              return;
-            }
-            if (!confirm(`警告：全量替换将移出当前题库中未包含的 ${currentDiff.value.scenarios.removed} 个场景和 ${currentDiff.value.spelling.removed} 个词汇。确认执行吗？`)) {
-              isImportExecuting.value = false;
-              return;
-            }
-          }
-
           try {
-            // 写入前安全快照 (INC-04 6.2)
-            const preImportSnapshotKey = `it_backup_pre_import_${Date.now()}`;
-            const currentBankRaw = localStorage.getItem('it_custom_bank_content');
-            const currentProgRaw = localStorage.getItem(getProgressStorageKey(bId));
-            localStorage.setItem(preImportSnapshotKey, JSON.stringify({
-              time: new Date().toISOString(),
-              bank: currentBankRaw,
-              progress: currentProgRaw
-            }));
-
-            // 获取或初始化旧进度
-            let existingBank = { scenarios: [], spelling_bank: [] };
-            if (customBankObj.value && customBankObj.value.bankId === bId) {
-              existingBank = customBankObj.value;
-            }
-
+            let existingBank = (customBankObj.value && customBankObj.value.bankId === bId) ? customBankObj.value : { scenarios: [], spelling_bank: [] };
             let progressData = loadProgressData(bId);
-            if (!progressData.scenarios) progressData.scenarios = {};
-
-            let mergedScenarios = [];
-            let mergedSpelling = [];
+            let mergedScenarios = [], mergedSpelling = [];
 
             if (importMode.value === 'incremental') {
-              // 增量合并模式 (INC-02)
-              // 1. 处理 Scenarios
-              const existingScMap = new Map();
-              (existingBank.scenarios || []).forEach(s => existingScMap.set(s.id, s));
-
-              const incomingScList = incoming.scenarios || [];
-              const incomingScIds = new Set();
-
-              incomingScList.forEach(s => {
-                incomingScIds.add(s.id);
-                if (!existingScMap.has(s.id)) {
-                  // 新增场景
-                  mergedScenarios.push(s);
-                } else {
-                  // 已有场景更新
-                  const oldS = existingScMap.get(s.id);
-                  mergedScenarios.push(s);
-                  // 核心更新重验逻辑 (INC-03)
-                  if (isScenarioCoreChanged(oldS, s)) {
-                    if (progressData.scenarios[s.id]) {
-                      progressData.scenarios[s.id].memoryLevel = 'needsReview';
-                      progressData.scenarios[s.id].greenReviewStreak = 0;
-                      progressData.scenarios[s.id].nextReviewDate = getTodayDateStr(); // 立即需要复测
-                    }
-                  }
-                }
-              });
-
-              // 保留新文件中未出现的老场景
-              (existingBank.scenarios || []).forEach(s => {
-                if (!incomingScIds.has(s.id)) {
-                  mergedScenarios.push(s);
-                }
-              });
-
-              // 2. 处理 Spelling
-              const existingWMap = new Map();
-              (existingBank.spelling_bank || []).forEach(w => existingWMap.set(getWordStableId(w), w));
-
-              const incomingSpList = incoming.spelling_bank || [];
-              const incomingWIds = new Set();
-
-              incomingSpList.forEach(w => {
-                const wid = getWordStableId(w);
-                incomingWIds.add(wid);
-                mergedSpelling.push(w);
-              });
-
-              (existingBank.spelling_bank || []).forEach(w => {
-                const wid = getWordStableId(w);
-                if (!incomingWIds.has(wid)) {
-                  mergedSpelling.push(w);
-                }
-              });
-
+              const incomingScIds = new Set((incoming.scenarios || []).map(s => s.id));
+              mergedScenarios = [...(incoming.scenarios || []), ...(existingBank.scenarios || []).filter(s => !incomingScIds.has(s.id))];
+              const incomingWIds = new Set((incoming.spelling_bank || []).map(w => getWordStableId(w)));
+              mergedSpelling = [...(incoming.spelling_bank || []), ...(existingBank.spelling_bank || []).filter(w => !incomingWIds.has(getWordStableId(w)))];
             } else {
-              // 全量替换模式 (INC-02 4.3)
               mergedScenarios = incoming.scenarios || [];
               mergedSpelling = incoming.spelling_bank || [];
-
-              // 对保留的场景检查核心更新
-              const oldScMap = new Map();
-              (existingBank.scenarios || []).forEach(s => oldScMap.set(s.id, s));
-
-              mergedScenarios.forEach(s => {
-                if (oldScMap.has(s.id)) {
-                  const oldS = oldScMap.get(s.id);
-                  if (isScenarioCoreChanged(oldS, s)) {
-                    if (progressData.scenarios[s.id]) {
-                      progressData.scenarios[s.id].memoryLevel = 'needsReview';
-                      progressData.scenarios[s.id].greenReviewStreak = 0;
-                      progressData.scenarios[s.id].nextReviewDate = getTodayDateStr();
-                    }
-                  }
-                }
-              });
             }
 
-            // 组装最终题库对象
-            const finalBank = {
-              version: incoming.version || '1.1.0',
-              bankId: bId,
-              updated_at: getTodayDateStr(),
-              scenarios: mergedScenarios,
-              spelling_bank: mergedSpelling
-            };
-
-            // 原子化提交持久层
+            const finalBank = { version: incoming.version || '1.1.0', bankId: bId, updated_at: getTodayDateStr(), scenarios: mergedScenarios, spelling_bank: mergedSpelling };
             localStorage.setItem('it_custom_bank_content', JSON.stringify(finalBank));
             localStorage.setItem(getProgressStorageKey(bId), JSON.stringify(progressData));
 
-            // 更新响应式状态
             customBankObj.value = finalBank;
             currentProgress.value = progressData;
             activeBankType.value = 'custom';
             localStorage.setItem('it_active_bank_type', 'custom');
 
-            currentScenarioIndex.value = 0;
-            currentStepIndex.value = 0;
-            inRecallPhase.value = false;
-            initStep();
-
-            alert(`🎉 题库导入成功！\n操作方式: ${importMode.value === 'incremental' ? '增量合并' : '全量替换'}\n最终场景总数: ${mergedScenarios.length} 个\n最终核心词汇: ${mergedSpelling.length} 个\n学习记录已成功继承与同步。`);
-
             closeImportModal();
             importJsonText.value = '';
+            jumpToNextDueOrNew();
           } catch (err) {
-            alert('写入存储失败！已保持原题库与进度不变。\n错误信息: ' + err.message);
+            alert('导入失败：' + err.message);
           } finally {
             isImportExecuting.value = false;
           }
@@ -2255,15 +2113,12 @@
           navigator.clipboard.writeText(AI_PROMPT_TEMPLATE).then(() => {
             copied.value = true;
             setTimeout(() => { copied.value = false; }, 2500);
-          }).catch(() => {
-            alert('复制失败，请在设置中查看完整提示词。');
           });
         };
 
-        // P0-06 Backup Export & Restore
         const exportBackupFile = () => {
           const backupData = {
-            schemaVersion: "1.1",
+            schemaVersion: "1.2",
             exportedAt: new Date().toISOString(),
             activeStudySeconds: activeStudySeconds.value,
             customBank: customBankObj.value,
@@ -2286,65 +2141,14 @@
           reader.onload = (e) => {
             try {
               const b = JSON.parse(e.target.result);
-              if (!b.schemaVersion) {
-                alert('备份文件格式不兼容！'); return;
-              }
-              if (b.activeStudySeconds) {
-                activeStudySeconds.value = b.activeStudySeconds;
-                localStorage.setItem('it_study_seconds', activeStudySeconds.value);
-              }
-              if (b.customBank) {
-                customBankObj.value = b.customBank;
-                localStorage.setItem('it_custom_bank_content', JSON.stringify(b.customBank));
-              }
-              if (b.progressBuiltin) {
-                localStorage.setItem(getProgressStorageKey('builtin-interview-v1'), b.progressBuiltin);
-              }
-              if (b.progressCustom && b.customBank) {
-                localStorage.setItem(getProgressStorageKey(b.customBank.bankId), b.progressCustom);
-              }
-              alert('🎉 备份已成功恢复！正在刷新页面加载数据...');
+              if (b.activeStudySeconds) localStorage.setItem('it_study_seconds', b.activeStudySeconds);
+              if (b.customBank) localStorage.setItem('it_custom_bank_content', JSON.stringify(b.customBank));
+              if (b.progressBuiltin) localStorage.setItem(getProgressStorageKey('builtin-interview-v1'), b.progressBuiltin);
+              if (b.progressCustom && b.customBank) localStorage.setItem(getProgressStorageKey(b.customBank.bankId), b.progressCustom);
               location.reload();
-            } catch(err) {
-              alert('恢复备份失败！' + err.message);
-            }
+            } catch(err) { alert('恢复失败：' + err.message); }
           };
           reader.readAsText(file, 'utf-8');
-        };
-
-        // Spelling Mode Logic
-        const spellingIndex = ref(0);
-        const currentWord = computed(() => spellingBank.value[spellingIndex.value] || spellingBank.value[0]);
-        const userTypedWord = ref('');
-        const wordEvaluated = ref(false);
-        const wordFeedback = ref(null);
-
-        const giveFirstLetterHint = () => {
-          if (!userTypedWord.value && currentWord.value) {
-            userTypedWord.value = currentWord.value.target_word.charAt(0);
-          }
-        };
-
-        const checkSpelling = () => {
-          if (!userTypedWord.value.trim() || !currentWord.value) return;
-          const cleanInput = userTypedWord.value.trim().toLowerCase();
-          const target = currentWord.value.target_word.toLowerCase();
-          const isCorrect = (cleanInput === target);
-
-          wordFeedback.value = { isCorrect, typed: cleanInput };
-          wordEvaluated.value = true;
-        };
-
-        const nextSpellingWord = () => {
-          userTypedWord.value = '';
-          wordEvaluated.value = false;
-          wordFeedback.value = null;
-          if (spellingIndex.value < spellingBank.value.length - 1) {
-            spellingIndex.value++;
-          } else {
-            alert('🎉 核心词汇已过完一轮！');
-            spellingIndex.value = 0;
-          }
         };
 
         const switchTheme = (t) => {
@@ -2353,129 +2157,45 @@
         };
 
         const resetAllData = () => {
-          if (confirm('确认清空全部本地数据并恢复初始状态吗？此操作不可逆！')) {
+          if (confirm('确认清空全部本地数据并恢复初始状态吗？')) {
             localStorage.clear();
             location.reload();
           }
         };
 
-        // Helper date functions (Local timezone)
-        function getTodayDateStr() {
-          const d = new Date();
-          const year = d.getFullYear();
-          const month = String(d.getMonth() + 1).padStart(2, '0');
-          const day = String(d.getDate()).padStart(2, '0');
-          return `${year}-${month}-${day}`;
-        }
-
-        function addDaysToDateStr(dateStr, days) {
-          const parts = dateStr.split('-');
-          const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
-          d.setDate(d.getDate() + days);
-          const year = d.getFullYear();
-          const month = String(d.getMonth() + 1).padStart(2, '0');
-          const day = String(d.getDate()).padStart(2, '0');
-          return `${year}-${month}-${day}`;
-        }
-
         onMounted(() => {
-          initStep();
+          loadUSVoices();
+          jumpToNextDueOrNew();
         });
 
         return {
-          currentTheme,
-          currentMainTab,
-          activePracticeMode,
-          switchTheme,
-          activeStudyMinutes,
-          openSettings,
-          openExemplarModal,
-          openImportModal,
-          openBankSwitcherModal,
-          exemplarTab,
-          activeBankType,
-          hasCustomBank,
-          customBankScenariosCount,
-          switchBank,
-          removeCustomBank,
-          scenariosList,
-          spellingBank,
-          hasSpelling,
-          currentScenario,
-          currentStepIndex,
-          currentStep,
-          selectedChunks,
-          availablePool,
-          evaluated,
-          isCurrentStepSuccess,
-          hasError,
-          errorReasonText,
-          hitTraps,
-          currentStepAssisted,
-          isSubmitting,
-          selectChunk,
-          unselectChunk,
-          triggerStepHint,
-          openExemplarViewer,
-          evaluateChunkStep,
-          retryCurrentStep,
-          skipCurrentStep,
-          advanceToNextStepOrRecall,
-          // Recall
-          inRecallPhase,
-          userRecallDraft,
-          recallRevealed,
-          recallAssisted,
-          recallOutcome,
-          showAdvancedInRecall,
-          revealRecallAnswer,
-          submitFinalRating,
-          // Scenarios tab
-          selectScenarioAndTrain,
-          getScenarioMemoryBadgeText,
-          getScenarioMemoryBadgeClass,
-          getScenarioDueText,
-          // Dashboard
-          totalAttempts,
-          firstTryAccuracyText,
-          completedSessionsCount,
-          completedScenariosCount,
-          todayStr,
-          todayDueCount,
-          statusStats,
+          currentTheme, currentMainTab, activePracticeMode, switchTheme,
+          dailyTarget, setDailyTarget, dismissedDailyBanner, todayCompletedCount,
+          speakUS, currentVoiceName,
+          activeStudyMinutes, openSettings, openExemplarModal, openImportModal, openBankSwitcherModal, exemplarTab,
+          activeBankType, hasCustomBank, customBankScenariosCount, switchBank, removeCustomBank,
+          scenariosList, currentScenario, currentScenarioIndex, currentScenarioTag,
+          goPrevScenario, goNextScenario, jumpToNextDueOrNew,
+          currentStepIndex, currentStep, selectedChunks, availablePool,
+          evaluated, isCurrentStepSuccess, hasError, errorReasonText, hitTraps, currentStepAssisted, isSubmitting, stepHadMistakeInSession,
+          selectChunk, unselectChunk, triggerStepHint, openExemplarViewer,
+          evaluateChunkStep, retryCurrentStep, skipCurrentStep, advanceToNextStepOrRecall,
+          inRecallPhase, recallRevealed, recallAssisted, recallOutcome, showAdvancedInRecall,
+          revealRecallAnswer, submitFinalRating,
+          // Match game & Mistake Book
+          matchFilterMode, allExtractedVocab, mistakeWordsCount,
+          matchPairs, matchLeftList, matchRightList, selectedLeftId, selectedRightId, wrongFlashId, isMatchRoundCompleted,
+          switchToMatchMode, initMatchRound, selectMatchLeft, selectMatchRight,
+          // Scenarios & Dashboard
+          selectScenarioAndTrain, getScenarioMemoryBadgeText, getScenarioMemoryBadgeClass, getScenarioDueText,
+          totalAttempts, firstTryAccuracyText, completedScenariosCount, todayDueCount, statusStats,
           // Import & Backup
-          importJsonText,
-          importPhase,
-          importMode,
-          importDiffInfo,
-          currentDiff,
-          isImportExecuting,
-          handlePasteCompare,
-          cancelImportPreview,
-          confirmAndExecuteImport,
-          closeImportModal,
-          fileInputRef,
-          copied,
-          copyAiPrompt,
-          handleFileUpload,
-          exportBackupFile,
-          handleRestoreBackup,
-          resetAllData,
-          // Spelling
-          spellingIndex,
-          currentWord,
-          userTypedWord,
-          wordEvaluated,
-          wordFeedback,
-          giveFirstLetterHint,
-          checkSpelling,
-          nextSpellingWord
+          importJsonText, importPhase, importMode, importDiffInfo, currentDiff, isImportExecuting,
+          handlePasteCompare, cancelImportPreview, confirmAndExecuteImport, closeImportModal,
+          fileInputRef, copied, copyAiPrompt, handleFileUpload, exportBackupFile, handleRestoreBackup, resetAllData
         };
       }
     });
-    app.config.errorHandler = (err, instance, info) => {
-      console.error('Vue Runtime Caught Error:', err, info);
-    };
     app.mount('#app');
   </script>
 </body>
